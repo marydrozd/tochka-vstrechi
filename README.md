@@ -14,4 +14,4 @@
 - (в планах) Python-бэкенд и ИИ
 
 ## Демо
-https://ваш-username.github.io/tochka-vstrechi/
+https://marydrozd.github.io/tochka-vstrechi/
