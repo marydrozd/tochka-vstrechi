@@ -7,20 +7,115 @@
     <title>ТочкаВстречи</title>
 
     <style>
+        /* =========================================================
+           ЦВЕТА — все основные цвета сайта в одном месте
+           ========================================================= */
+        :root {
+            --purple: #6a35d2;
+            --purple-dark: #5928bd;
+            --purple-soft: #a77bf3;
+            --lilac: #f4efff;
+            --lilac-2: #f1edfa;
+            --tag-text: #52319a;
+            --text: #1e1b2f;
+            --muted: #5a5a73;
+            --border: #e5e5ea;
+            --bg: #f9f9fb;
+            --white: #ffffff;
+            --error: #c4314b;
+            --success: #1f8a5b;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f9f9fb;
-            color: #1e1b2f;
-            min-height: 100vh;
+        html {
+            -webkit-text-size-adjust: 100%;
         }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* =========================================================
+           ФОН: мягкие фиолетовые пятна + символы за курсором
+           ========================================================= */
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.75;
+            animation: drift 22s ease-in-out infinite alternate;
+        }
+
+        .blob-1 {
+            width: 46vw;
+            height: 46vw;
+            min-width: 340px;
+            min-height: 340px;
+            background: #ddcdfd;
+            top: -12%;
+            right: -8%;
+        }
+
+        .blob-2 {
+            width: 38vw;
+            height: 38vw;
+            min-width: 280px;
+            min-height: 280px;
+            background: #e9e1ff;
+            bottom: -14%;
+            left: -10%;
+            animation-duration: 28s;
+        }
+
+        .blob-3 {
+            width: 30vw;
+            height: 30vw;
+            min-width: 220px;
+            min-height: 220px;
+            background: #d4c9ff;
+            top: 38%;
+            left: 52%;
+            opacity: 0.45;
+            animation-duration: 34s;
+        }
+
+        @keyframes drift {
+            from { transform: translate(0, 0) scale(1); }
+            to   { transform: translate(-6vw, 5vh) scale(1.12); }
+        }
+
+        #glyphs {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* =========================================================
+           КАРКАС
+           ========================================================= */
         .app {
+            position: relative;
+            z-index: 2;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -31,69 +126,60 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
-            border-bottom: 1px solid #e5e5ea;
+            gap: 16px;
         }
 
         .logo {
-            color: #6a35d2;
+            color: var(--purple);
             font-size: 22px;
             font-weight: 800;
+            cursor: pointer;
+            user-select: none;
         }
 
-        .step {
-            color: #5a5a73;
-            font-size: 14px;
-            font-weight: 600;
+        .clock {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            white-space: nowrap;
         }
 
-        .progress {
-            height: 4px;
-            background: #eeeeF3;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 12.5%;
-            background: #6a35d2;
-            transition: width 0.3s ease;
+        .clock b {
+            color: var(--text);
         }
 
         main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen {
+            display: none;
             width: min(700px, 90%);
             margin: 0 auto;
-            padding: 55px 0 70px;
-            flex: 1;
+            padding: 40px 0 70px;
+            animation: appear 0.35s ease;
         }
 
-        .question {
-            display: none;
-            animation: appear 0.3s ease;
-        }
-
-        .question.active {
+        .screen.active {
             display: block;
         }
 
+        .screen.wide {
+            width: min(1080px, 90%);
+        }
+
         @keyframes appear {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        .question-number {
-            color: #6a35d2;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
+        /* =========================================================
+           ТИПОГРАФИКА (как в опроснике)
+           ========================================================= */
         h1 {
             font-size: 38px;
             line-height: 1.12;
@@ -102,20 +188,513 @@
         }
 
         .subtitle {
-            color: #5a5a73;
+            color: var(--muted);
             font-size: 16px;
             line-height: 1.5;
             margin-bottom: 28px;
         }
 
+        .question-number,
+        .eyebrow {
+            color: var(--purple);
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .eyebrow {
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .eyebrow span {
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .accent {
+            color: var(--purple);
+        }
+
+        /* =========================================================
+           КНОПКИ (как в опроснике)
+           ========================================================= */
+        button {
+            font-family: inherit;
+            border: none;
+            border-radius: 13px;
+            padding: 13px 21px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .btn-primary,
+        .next,
+        .primary-action {
+            background: var(--purple);
+            color: var(--white);
+        }
+
+        .btn-primary:hover,
+        .next:hover,
+        .primary-action:hover {
+            background: var(--purple-dark);
+        }
+
+        .btn-primary:disabled,
+        .next:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary,
+        .back,
+        .secondary-action {
+            background: var(--white);
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover,
+        .back:hover,
+        .secondary-action:hover {
+            background: #f5f4f8;
+        }
+
+        .btn-big {
+            padding: 16px 26px;
+            font-size: 16px;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .link-btn {
+            background: none;
+            border: none;
+            padding: 4px 2px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+        }
+
+        .link-btn:hover {
+            color: var(--purple);
+        }
+
+        .link-btn.small {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .back-link {
+            background: none;
+            border: none;
+            padding: 0;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 26px;
+            display: inline-block;
+        }
+
+        .back-link:hover {
+            color: var(--purple);
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        a:focus-visible,
+        .option:focus-visible {
+            outline: 3px solid #c9b3f5;
+            outline-offset: 2px;
+        }
+
+        /* =========================================================
+           1. ЗАСТАВКА
+           ========================================================= */
+        #welcome {
+            width: 100%;
+            padding: 0;
+            flex: 1;
+        }
+
+        #welcome.active {
+            display: flex;
+        }
+
+        .hero {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px 5% 40px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .hero > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero .eyebrow {
+            margin-bottom: 22px;
+        }
+
+        .hero-title {
+            font-size: clamp(54px, 11vw, 132px);
+            font-weight: 800;
+            line-height: 0.92;
+            letter-spacing: -0.045em;
+            text-transform: uppercase;
+            margin-bottom: 22px;
+        }
+
+        .hero-title .line {
+            display: block;
+        }
+
+        .hero-title .line:last-child {
+            color: var(--purple);
+        }
+
+        .hero-sub {
+            color: var(--muted);
+            font-size: clamp(16px, 2vw, 19px);
+            line-height: 1.5;
+            max-width: 480px;
+        }
+
+        /* завитушки-маршруты, сходящиеся в одну точку */
+        .route-strip {
+            width: min(860px, 100%);
+            height: auto;
+            margin: 6px 0 4px;
+            overflow: visible;
+        }
+
+        .route-path {
+            fill: none;
+            stroke: var(--purple-soft);
+            stroke-width: 2.4;
+            stroke-linecap: round;
+            stroke-dasharray: 1;
+            stroke-dashoffset: 1;
+            animation: draw 2.4s cubic-bezier(.6, .1, .3, 1) 0.5s forwards;
+        }
+
+        .route-dots {
+            fill: none;
+            stroke: #cdb8f6;
+            stroke-width: 5;
+            stroke-linecap: round;
+            stroke-dasharray: 0.1 14;
+            opacity: 0;
+            animation: fadeIn 1s ease 2.6s forwards;
+        }
+
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .route-start {
+            fill: #cdb8f6;
+        }
+
+        .meet-point {
+            fill: var(--purple);
+            transform-origin: 500px 132px;
+            transform: scale(0);
+            animation: pop 0.5s cubic-bezier(.3, 1.6, .5, 1) 2.7s forwards;
+        }
+
+        .meet-ring {
+            fill: none;
+            stroke: var(--purple);
+            stroke-width: 2;
+            transform-origin: 500px 132px;
+            opacity: 0;
+            animation: pulse 2.4s ease-out 3.1s infinite;
+        }
+
+        @keyframes pop {
+            to { transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0%   { transform: scale(1);   opacity: 0.6; }
+            100% { transform: scale(3.4); opacity: 0; }
+        }
+
+        /* большие декоративные завитки по бокам */
+        .curl {
+            position: absolute;
+            z-index: 1;
+            width: clamp(180px, 24vw, 340px);
+            pointer-events: none;
+            opacity: 0.9;
+            animation: floaty 9s ease-in-out infinite alternate;
+        }
+
+        .curl path {
+            fill: none;
+            stroke: #d7c6fb;
+            stroke-width: 1.6;
+            stroke-linecap: round;
+            stroke-dasharray: 1;
+            stroke-dashoffset: 1;
+            animation: draw 3s ease 0.2s forwards;
+        }
+
+        .curl-left {
+            left: 3%;
+            top: 12%;
+        }
+
+        .curl-right {
+            right: 3%;
+            bottom: 14%;
+            transform: scaleX(-1);
+            animation-name: floaty-flip;
+            animation-duration: 11s;
+        }
+
+        @keyframes floaty {
+            from { transform: translateY(0) rotate(0deg); }
+            to   { transform: translateY(-14px) rotate(4deg); }
+        }
+
+        @keyframes floaty-flip {
+            from { transform: scaleX(-1) translateY(0) rotate(0deg); }
+            to   { transform: scaleX(-1) translateY(12px) rotate(-4deg); }
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .help-line {
+            margin-top: 46px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .help-line a {
+            color: var(--purple);
+            font-weight: 700;
+            text-decoration: none;
+            border-bottom: 1px solid #d7c6fb;
+        }
+
+        .help-line a:hover {
+            border-color: var(--purple);
+        }
+
+        /* появление элементов заставки по очереди */
+        .rise {
+            opacity: 0;
+            animation: rise 0.8s cubic-bezier(.2, .8, .2, 1) forwards;
+        }
+
+        .d1 { animation-delay: 0.05s; }
+        .d2 { animation-delay: 0.2s; }
+        .d3 { animation-delay: 0.35s; }
+        .d4 { animation-delay: 0.5s; }
+        .d5 { animation-delay: 0.9s; }
+        .d6 { animation-delay: 1.2s; }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =========================================================
+           2. О ПРОЕКТЕ
+           ========================================================= */
+        .about-title {
+            font-size: clamp(40px, 7vw, 82px);
+            font-weight: 800;
+            line-height: 0.98;
+            letter-spacing: -0.04em;
+            text-transform: uppercase;
+            margin-bottom: 26px;
+        }
+
+        .about-title .accent {
+            display: block;
+        }
+
+        .about-lead {
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.6;
+            max-width: 620px;
+            margin-bottom: 56px;
+        }
+
+        .pill {
+            display: block;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 11px 22px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--purple);
+            margin-bottom: 30px;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            margin-bottom: 64px;
+        }
+
+        .about-text p {
+            font-size: 17px;
+            line-height: 1.7;
+            color: var(--text);
+            margin-bottom: 18px;
+        }
+
+        .about-text p.muted {
+            color: var(--muted);
+        }
+
+        .glow-card {
+            position: relative;
+            aspect-ratio: 1 / 0.85;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            background:
+                radial-gradient(circle at 50% 50%, rgba(140, 90, 240, 0.30) 0%, rgba(140, 90, 240, 0.10) 35%, rgba(255, 255, 255, 0) 65%),
+                rgba(255, 255, 255, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .glow-card svg {
+            width: 62%;
+            height: auto;
+            overflow: visible;
+        }
+
+        .glow-ring {
+            fill: none;
+            stroke: var(--purple);
+            stroke-width: 5;
+            filter: drop-shadow(0 0 10px rgba(106, 53, 210, 0.55)) drop-shadow(0 0 26px rgba(106, 53, 210, 0.35));
+        }
+
+        .orbit {
+            transform-origin: 150px 150px;
+            animation: spin 14s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 64px;
+        }
+
+        .step-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px 20px;
+            transition: 0.2s ease;
+        }
+
+        .step-card:hover {
+            border-color: #bca4e9;
+            transform: translateY(-2px);
+        }
+
+        .step-card .num {
+            color: var(--purple);
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .step-card h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .step-card p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .about-final {
+            text-align: center;
+            padding: 10px 0 20px;
+        }
+
+        .about-final h2 {
+            font-size: clamp(30px, 5vw, 52px);
+            font-weight: 800;
+            letter-spacing: -0.035em;
+            line-height: 1.05;
+            margin-bottom: 26px;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .row.center {
+            justify-content: center;
+        }
+
+        /* =========================================================
+           КАРТОЧКИ ВЫБОРА (как в опроснике)
+           ========================================================= */
         .options {
             display: grid;
             gap: 12px;
         }
 
         .option {
-            background: white;
-            border: 1px solid #e5e5ea;
+            background: var(--white);
+            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 17px 19px;
             cursor: pointer;
@@ -128,8 +707,8 @@
         }
 
         .option.selected {
-            background: #f4efff;
-            border-color: #6a35d2;
+            background: var(--lilac);
+            border-color: var(--purple);
         }
 
         .option-title {
@@ -139,9 +718,204 @@
         }
 
         .option-description {
-            color: #5a5a73;
+            color: var(--muted);
             font-size: 14px;
             line-height: 1.45;
+        }
+
+        .option.big {
+            padding: 22px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .option.big .icon {
+            width: 48px;
+            height: 48px;
+            flex: none;
+            border-radius: 14px;
+            background: var(--lilac);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .option.big .arrow {
+            margin-left: auto;
+            color: var(--purple);
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .center-text {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* =========================================================
+           ФОРМЫ
+           ========================================================= */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 7px;
+        }
+
+        .field .hint {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 6px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            font-family: inherit;
+            font-size: 16px;
+            color: var(--text);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 14px 16px;
+            transition: 0.2s ease;
+        }
+
+        input:hover {
+            border-color: #bca4e9;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--purple);
+            background: var(--white);
+            box-shadow: 0 0 0 4px rgba(106, 53, 210, 0.12);
+        }
+
+        input.invalid {
+            border-color: var(--error);
+        }
+
+        .input-wrap input {
+            padding-right: 92px;
+        }
+
+        .toggle-pass {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            padding: 6px 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--purple);
+            border-radius: 9px;
+        }
+
+        .toggle-pass:hover {
+            background: var(--lilac);
+        }
+
+        .form-msg {
+            display: none;
+            font-size: 14px;
+            line-height: 1.45;
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .form-msg.show {
+            display: block;
+        }
+
+        .form-msg.error {
+            background: #fdecef;
+            color: var(--error);
+        }
+
+        .form-msg.ok {
+            background: #e8f6ef;
+            color: var(--success);
+        }
+
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: -2px;
+            margin-right: 8px;
+        }
+
+        /* =========================================================
+           ОПРОСНИК (стили без изменений)
+           ========================================================= */
+        .survey-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .step {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .progress {
+            height: 4px;
+            background: #eeeef3;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 12.5%;
+            background: var(--purple);
+            transition: width 0.3s ease;
+        }
+
+        .question {
+            display: none;
+            animation: appear 0.3s ease;
+        }
+
+        .question.active {
+            display: block;
         }
 
         .navigation {
@@ -151,60 +925,20 @@
             margin-top: 30px;
         }
 
-        button {
-            border: none;
-            border-radius: 13px;
-            padding: 13px 21px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s ease;
-        }
-
-        .back {
-            background: white;
-            color: #5a5a73;
-            border: 1px solid #e5e5ea;
-        }
-
-        .back:hover {
-            background: #f5f4f8;
-        }
-
         .next {
-            background: #6a35d2;
-            color: white;
             margin-left: auto;
             min-width: 120px;
         }
 
-        .next:hover {
-            background: #5928bd;
-        }
-
-        .next:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-        }
-
-        /* RESULT */
-
-        #resultScreen {
-            display: none;
-            animation: appear 0.35s ease;
-        }
-
-        .result-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
+        /* =========================================================
+           ПРОФИЛЬ / ДОМ
+           ========================================================= */
         .result-icon {
             width: 58px;
             height: 58px;
             border-radius: 18px;
             background: #f0e9ff;
-            color: #6a35d2;
+            color: var(--purple);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -212,36 +946,21 @@
             font-size: 25px;
         }
 
-        .result-header h1 {
-            margin-bottom: 10px;
-        }
-
-        .result-header p {
-            color: #5a5a73;
-            line-height: 1.5;
-        }
-
         .profile-card {
-            background: white;
-            border: 1px solid #e5e5ea;
+            background: var(--white);
+            border: 1px solid var(--border);
             border-radius: 17px;
             padding: 20px;
             margin-bottom: 12px;
         }
 
         .profile-title {
-            color: #6a35d2;
+            color: var(--purple);
             font-size: 13px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.4px;
             margin-bottom: 10px;
-        }
-
-        .profile-value {
-            font-size: 16px;
-            font-weight: 600;
-            line-height: 1.5;
         }
 
         .tags {
@@ -251,46 +970,165 @@
         }
 
         .tag {
-            background: #f1edfa;
-            color: #52319a;
+            background: var(--lilac-2);
+            color: var(--tag-text);
             border-radius: 999px;
             padding: 7px 11px;
             font-size: 13px;
             font-weight: 600;
         }
 
-        .result-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 25px;
+        .empty-state {
+            text-align: center;
+            padding: 30px 0 40px;
         }
 
-        .result-actions button {
-            flex: 1;
+        .empty-title {
+            font-size: clamp(38px, 7vw, 72px);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.04em;
+            margin-bottom: 16px;
         }
 
-        .primary-action {
-            background: #6a35d2;
-            color: white;
+        .empty-title .accent {
+            display: block;
         }
 
-        .secondary-action {
-            background: white;
-            color: #5a5a73;
-            border: 1px solid #e5e5ea;
+        .hello {
+            color: var(--muted);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 18px;
+        }
+
+        .hello b {
+            color: var(--purple);
+        }
+
+        .wander {
+            width: 220px;
+            height: 70px;
+            margin: 10px auto 0;
+            display: block;
+            overflow: visible;
+        }
+
+        .wander path {
+            fill: none;
+            stroke: #cdb8f6;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 0.1 12;
+        }
+
+        .wander circle {
+            fill: var(--purple);
+        }
+
+        .section-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin: 10px 0 14px;
+        }
+
+        .demo-badge {
+            position: fixed;
+            left: 14px;
+            bottom: 14px;
+            z-index: 5;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--tag-text);
+            background: rgba(241, 237, 250, 0.92);
+            border: 1px solid #e0d5f7;
+            border-radius: 999px;
+            padding: 7px 12px;
+            display: none;
+        }
+
+        .demo-badge.show {
+            display: block;
+        }
+
+        /* =========================================================
+           ТЕЛЕФОН
+           ========================================================= */
+        @media (max-width: 800px) {
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .steps {
+                grid-template-columns: 1fr;
+            }
+
+            .curl {
+                opacity: 0.5;
+            }
         }
 
         @media (max-width: 600px) {
-            main {
-                padding-top: 40px;
+            header {
+                padding: 18px 5%;
+            }
+
+            .screen {
+                padding-top: 24px;
             }
 
             h1 {
                 font-size: 31px;
             }
 
-            .result-actions {
+            .card {
+                padding: 20px;
+            }
+
+            .hero .eyebrow span {
+                display: none;
+            }
+
+            .hero-actions {
                 flex-direction: column;
+                width: 100%;
+                max-width: 340px;
+            }
+
+            .hero-actions button {
+                width: 100%;
+            }
+
+            .curl-left {
+                top: 4%;
+                left: -14%;
+            }
+
+            .curl-right {
+                bottom: 4%;
+                right: -14%;
+            }
+
+            .result-actions,
+            .row {
+                flex-direction: column;
+            }
+
+            .row button {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
@@ -298,1017 +1136,1865 @@
 
 <body>
 
+<!-- фон -->
+<div class="backdrop" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+</div>
+<canvas id="glyphs" aria-hidden="true"></canvas>
+
+<div class="demo-badge" id="demoBadge" title="Supabase ещё не подключён — аккаунты хранятся только в этом браузере">
+    демо-режим · данные только в этом браузере
+</div>
+
 <div class="app">
 
     <header>
-        <div class="logo">ТочкаВстречи</div>
-        <div class="step" id="stepCounter">1 / 8</div>
+        <div class="logo" id="logo" role="button" tabindex="0">ТочкаВстречи</div>
+        <div class="clock">Москва <b id="clock">--:--</b></div>
     </header>
-
-    <div class="progress">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
 
     <main>
 
-        <!-- ВОПРОС 1 -->
-        <section class="question active" data-key="vibe" data-multiple="true">
-
-            <div class="question-number">01</div>
-
-            <h1>Какой вайб тебе ближе?</h1>
-
-            <p class="subtitle">
-                Можно выбрать несколько вариантов.
-            </p>
-
-            <div class="options">
-
-                <div class="option" data-value="dark">
-                    <div class="option-title">🌑 Тёмный и атмосферный</div>
-                    <div class="option-description">
-                        Ночная Москва, необычные места, немного загадочности.
-                    </div>
-                </div>
-
-                <div class="option" data-value="cozy">
-                    <div class="option-title">☕ Мягкий и уютный</div>
-                    <div class="option-description">
-                        Тёплый свет, спокойные места, кафе и долгие разговоры.
-                    </div>
-                </div>
-
-                <div class="option" data-value="active">
-                    <div class="option-title">⚡ Активный вечер</div>
-                    <div class="option-description">
-                        Хочется много ходить, что-нибудь делать и не сидеть на одном месте.
-                    </div>
-                </div>
-
-                <div class="option" data-value="arthouse">
-                    <div class="option-title">🎞 Артхаусный</div>
-                    <div class="option-description">
-                        Странные, необычные и визуально интересные места.
-                    </div>
-                </div>
-
-                <div class="option" data-value="nature">
-                    <div class="option-title">🌿 Свободный и природный</div>
-                    <div class="option-description">
-                        Парки, вода, простор и возможность просто гулять.
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- ВОПРОС 2 -->
-        <section class="question" data-key="aesthetics" data-multiple="true">
-
-            <div class="question-number">02</div>
-
-            <h1>Какая эстетика тебе близка?</h1>
-
-            <p class="subtitle">
-                Это не про внешность — просто выбери визуальные и культурные вайбы, которые тебе нравятся.
-            </p>
-
-            <div class="options">
-
-                <div class="option" data-value="gothic">
-                    <div class="option-title">🕯️ Gothic</div>
-                    <div class="option-description">
-                        Тёмная романтика, старые здания, драматичная атмосфера.
-                    </div>
-                </div>
-
-                <div class="option" data-value="grunge">
-                    <div class="option-title">🎶 Grunge</div>
-                    <div class="option-description">
-                        Музыка, старые места, граффити, неидеальная городская эстетика.
-                    </div>
-                </div>
-
-                <div class="option" data-value="y2k">
-                    <div class="option-title">💿 Y2K</div>
-                    <div class="option-description">
-                        Ностальгия по 2000-м, яркие детали, поп-культура и ретро-технологии.
-                    </div>
-                </div>
-
-                <div class="option" data-value="street">
-                    <div class="option-title">👟 Street</div>
-                    <div class="option-description">
-                        Современный город, граффити, скейт-парки и уличная культура.
-                    </div>
-                </div>
-
-           
-
-                <div class="option" data-value="coquette">
-                    <div class="option-title">🌸 Coquette</div>
-                    <div class="option-description">
-                        Романтичные детали, красивые кафе, цветы и нежная визуальная атмосфера.
-                    </div>
-                </div>
-
-                <div class="option" data-value="minimalism">
-                    <div class="option-title">◻️ Minimalism</div>
-                    <div class="option-description">
-                        Чистые пространства, спокойные цвета, современная архитектура и простота.
-                    </div>
-                </div>
-
-                <div class="option" data-value="vintage">
-                    <div class="option-title">📷 Vintage</div>
-                    <div class="option-description">
-                        Ретро-места, старые вывески, винтажные магазины и атмосфера прошлых лет.
-                    </div>
-                </div>
-
-                <div class="option" data-value="angelcore">
-                    <div class="option-title">🪽 Angelcore</div>
-                    <div class="option-description">
-                        Светлая, воздушная эстетика, красивые детали и ощущение чего-то необычного.
-                    </div>
-                </div>
-               <div class="option" data-value="cottagecore"> 
-                   <div class="option-title">🪻 Cottagecore</div> 
-                   <div class="option-description"> 
-                        Природа, маленькие уютные места, цветы и спокойная загородная атмосфера. 
-                   </div>
-               </div>
-
-                <div class="option" data-value="none">
-                    <div class="option-title">✨ Я не ориентируюсь на конкретные эстетики</div>
-                    <div class="option-description">
-                        Мне важнее само место и атмосфера, чем определённый визуальный стиль.
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- ВОПРОС 3 -->
-        <section class="question" data-key="cityInterests" data-multiple="true">
-
-            <div class="question-number">03</div>
-
-            <h1>Что тебе интересно находить в городе?</h1>
-
-            <p class="subtitle">
-                Выбери всё, что тебе хочется видеть во время прогулки.
-            </p>
-
-            <div class="options">
-
-                <div class="option" data-value="architecture">
-                    <div class="option-title">🏛 Архитектура</div>
-                    <div class="option-description">
-                        Красивые здания, необычные фасады, дворы и детали города.
-                    </div>
-                </div>
-
-                <div class="option" data-value="street-art">
-                    <div class="option-title">🖋️ Стрит-арт</div>
-                    <div class="option-description">
-                        Граффити, муралы, необычные рисунки и городское искусство.
-                    </div>
-                </div>
-
-                <div class="option" data-value="nature">
-                    <div class="option-title">🪷 Природа</div>
-                    <div class="option-description">
-                        Парки, скверы, набережные, деревья и спокойные зелёные места.
-                    </div>
-                </div>
-
-                <div class="option" data-value="books">
-                    <div class="option-title">📜 Книги</div>
-                    <div class="option-description">
-                        Книжные магазины, библиотеки и места для тех, кто любит читать.
-                    </div>
-                </div>
-
-                <div class="option" data-value="music">
-                    <div class="option-title">🎵 Музыка</div>
-                    <div class="option-description">
-                        Музыкальные магазины, концерты, необычные площадки и музыкальная культура.
-                    </div>
-                </div>
-
-                <div class="option" data-value="food">
-                    <div class="option-title">🍇 Еда</div>
-                    <div class="option-description">
-                        Интересные кафе, необычная еда, десерты и места, куда хочется зайти.
-                    </div>
-                </div>
-
-                <div class="option" data-value="photo">
-                    <div class="option-title">📷 Красивые места</div>
-                    <div class="option-description">
-                        Локации с красивым видом, светом, архитектурой или атмосферой для фото.
-                    </div>
-                </div>
-
-                <div class="option" data-value="pop-culture">
-                    <div class="option-title">🎮 Поп-культура</div>
-                    <div class="option-description">
-                        Игры, кино, комиксы, аниме, тематические магазины и события.
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- ВОПРОС 4 -->
-        <section class="question" data-key="evening" data-multiple="true">
-
-            <div class="question-number">04</div>
-
-            <h1>Как выглядит твой идеальный вечер?</h1>
-
-            <p class="subtitle">
-                Можно выбрать несколько сценариев.
-            </p>
-
-            <div class="options">
-
-                <div class="option" data-value="walk-talk">
-                    <div class="option-title">🚶 Долгая прогулка + разговор</div>
-                    <div class="option-description">
-                        Просто идти, разговаривать и не спешить.
-                    </div>
-                </div>
-
-                <div class="option" data-value="strange-place">
-                    <div class="option-title">🫧 Найти странное или незнакомое место</div>
-                    <div class="option-description">
-                        Исследовать город и случайно находить что-то необычное.
-                    </div>
-                </div>
-
-                <div class="option" data-value="inside">
-                    <div class="option-title">🏫 Зайти куда-нибудь</div>
-                    <div class="option-description">
-                        Магазин, выставка, кафе или другое интересное место по пути.
-                    </div>
-                </div>
-
-                <div class="option" data-value="beautiful-city">
-                    <div class="option-title">🌆 Красивый вечерний город</div>
-                    <div class="option-description">
-                        Огни города, красивые улицы, набережные и приятная атмосфера.
-                    </div>
-                </div>
-
-                <div class="option" data-value="active-evening">
-                    <div class="option-title">⚡ Активный вечер</div>
-                    <div class="option-description">
-                        Много ходить, куда-нибудь заходить и постоянно что-то делать.
-                    </div>
-                </div>
-
-                <div class="option" data-value="quiet">
-                    <div class="option-title">🌙 Тихий вечер</div>
-                    <div class="option-description">
-                        Спокойный маршрут без спешки, шума и большого количества людей.
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- ВОПРОС 5 -->
-        <section class="question" data-key="spontaneity">
-
-            <div class="question-number">05</div>
-
-            <h1>Как ты относишься к спонтанности?</h1>
-
-            <p class="subtitle">
-                Выбери вариант, который больше всего похож на тебя.
-            </p>
-
-            <div class="options">
-
-                <div class="option" data-value="plan">
-                    <div class="option-title">🗺 Мне нужен план</div>
-                    <div class="option-description">
-                        Хочу заранее понимать, куда мы идём и что будем делать.
-                    </div>
-                </div>
-
-                <div class="option" data-value="flexible">
-                    <div class="option-title">↗️ Планируем, но можем отклониться</div>
-                    <div class="option-description">
-                        Основной маршрут нужен, но можно спокойно изменить его по пути.
-                    </div>
-                </div>
-
-                <div class="option" data-value="spontaneous">
-                    <div class="option-title">✨ Чем неожиданнее, тем лучше</div>
-                    <div class="option-description">
-                        Люблю случайные повороты и места, которые не планировала заранее.
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- ВОПРОС 6 -->
-        <section class="question" data-key="time" data-multiple="true">
-
-            <div class="question-number">06</div>
-
-            <h1>Когда тебе больше всего нравится гулять?</h1>
-
-            <p class="subtitle">
-                Можно выбрать несколько вариантов.
-            </p>
-
-            <div class="options">
-
-                <div class="option" data-value="day">
-                    <div class="option-title">☀️ Днём</div>
-                    <div class="option-description">
-                        Когда светло и город активно живёт.
-                    </div>
-                </div>
-
-                <div class="option" data-value="afternoon">
-                    <div class="option-title">🌤 Ближе к вечеру</div>
-                    <div class="option-description">
-                        Когда становится спокойнее и появляется вечерняя атмосфера.
-                    </div>
-                </div>
-
-                <div class="option" data-value="evening">
-                    <div class="option-title">🌆 Вечером</div>
-                    <div class="option-description">
-                        Огни города, кафе и прогулки после обычного дня.
-                    </div>
-                </div>
-
-                <div class="option" data-value="late-evening">
-                    <div class="option-title">🌙 Поздним вечером</div>
-                    <div class="option-description">
-                        Когда на улицах становится тише и город выглядит совсем иначе.
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- ВОПРОС 7 -->
-        <section class="question" data-key="spending" data-multiple="true">
-
-            <div class="question-number">07</div>
-
-            <h1>На что тебе нравится тратить деньги?</h1>
-
-            <p class="subtitle">
-                Выбери всё, что тебе подходит.
-            </p>
-
-            <div class="options">
-
-                <div class="option" data-value="food">
-                    <div class="option-title">🍇 Еда и напитки</div>
-                    <div class="option-description">
-                        Кафе, десерты, напитки и интересные места с едой.
-                    </div>
-                </div>
-
-                <div class="option" data-value="events">
-                    <div class="option-title">🎟 Мероприятия</div>
-                    <div class="option-description">
-                        Концерты, фестивали, лекции и другие события.
-                    </div>
-                </div>
-
-                <div class="option" data-value="museums">
-                    <div class="option-title">🏛 Выставки и музеи</div>
-                    <div class="option-description">
-                        Искусство, история, наука и необычные экспозиции.
-                    </div>
-                </div>
-
-                <div class="option" data-value="shops">
-                    <div class="option-title">🛍 Магазины</div>
-                    <div class="option-description">
-                        Книги, одежда, винил, необычные вещи и тематические магазины.
-                    </div>
-                </div>
-
-                <div class="option" data-value="entertainment">
-                    <div class="option-title">🎮 Развлечения</div>
-                    <div class="option-description">
-                        Игры, активности и места, где можно чем-то заняться.
-                    </div>
-                </div>
-
-                <div class="option" data-value="free">
-                    <div class="option-title">🆓 Предпочитаю бесплатные варианты</div>
-                    <div class="option-description">
-                        Хочу, чтобы прогулка не требовала больших расходов.
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- ВОПРОС 8 -->
-        <section class="question" data-key="dislikes" data-multiple="true">
-
-            <div class="question-number">08</div>
-
-            <h1>Что может испортить прогулку?</h1>
-
-            <p class="subtitle">
-                Это поможет не предлагать тебе неподходящие маршруты.
-            </p>
-
-            <div class="options">
-
-                <div class="option" data-value="crowds">
-                    <div class="option-title">👥 Слишком много людей</div>
-                    <div class="option-description">
-                        Не люблю толпы и переполненные места.
-                    </div>
-                </div>
-
-                <div class="option" data-value="noise">
-                    <div class="option-title">🔊 Шум</div>
-                    <div class="option-description">
-                        Предпочитаю места, где можно спокойно разговаривать и гулять.
-                    </div>
-                </div>
-
-                <div class="option" data-value="walking">
-                    <div class="option-title">🥾 Слишком много ходьбы</div>
-                    <div class="option-description">
-                        Не хочу, чтобы вся прогулка превращалась в длинный марш.
-                    </div>
-                </div>
-
-                <div class="option" data-value="expensive">
-                    <div class="option-title">💸 Дорогие места</div>
-                    <div class="option-description">
-                        Не хочу тратить много денег во время прогулки.
-                    </div>
-                </div>
-
-                <div class="option" data-value="schedule">
-                    <div class="option-title">⏱ Слишком плотный план</div>
-                    <div class="option-description">
-                        Не люблю, когда всё расписано по минутам.
-                    </div>
-                </div>
-
-                <div class="option" data-value="boring">
-                    <div class="option-title">😐 Скучные достопримечательности</div>
-                    <div class="option-description">
-                        Хочется чего-то живого, необычного или действительно интересного.
-                    </div>
-                </div>
-
-                <div class="option" data-value="transport">
-                    <div class="option-title">🚇 Слишком много транспорта</div>
-                    <div class="option-description">
-                        Предпочитаю больше гулять и меньше переезжать между местами.
-                    </div>
-                </div>
-
-                <div class="option" data-value="none">
-                    <div class="option-title">✨ Ничего из этого</div>
-                    <div class="option-description">
-                        Обычно мне легко адаптироваться к разным вариантам прогулок.
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- РЕЗУЛЬТАТ -->
-        <section id="resultScreen">
-
-            <div class="result-header">
-
-                <div class="result-icon">✦</div>
-
-                <h1>Твой профиль готов</h1>
-
-                <p>
-                    Мы запомнили твои предпочтения.<br>
-                    Теперь они будут использоваться при создании прогулок.
+        <!-- =====================================================
+             1. ЗАСТАВКА
+             ===================================================== -->
+        <section class="screen active" id="welcome">
+            <div class="hero">
+
+                <!-- завитки по бокам -->
+                <svg class="curl curl-left" viewBox="0 0 300 300" aria-hidden="true">
+                    <path pathLength="1" d="M20 210 C 10 90, 170 30, 240 110 C 300 180, 220 270, 150 225 C 90 186, 140 110, 200 140 C 240 160, 230 210, 195 205"/>
+                </svg>
+                <svg class="curl curl-right" viewBox="0 0 300 300" aria-hidden="true">
+                    <path pathLength="1" d="M30 60 C 120 0, 260 60, 230 150 C 205 225, 110 230, 105 170 C 100 115, 180 110, 190 160 C 198 200, 150 230, 80 280"/>
+                </svg>
+
+                <div class="eyebrow rise d1">прогулки по Москве <span>· под твой вайб</span></div>
+
+                <h1 class="hero-title rise d2">
+                    <span class="line">Точка</span>
+                    <span class="line">Встречи</span>
+                </h1>
+
+                <p class="hero-sub rise d3">
+                    Прогулка, которую не пришлось придумывать.
                 </p>
 
+                <!-- два пути сходятся в одной точке -->
+                <svg class="route-strip rise d4" viewBox="0 0 1000 170" aria-hidden="true">
+                    <path class="route-dots" pathLength="100" d="M14 60 C 90 8, 196 18, 214 82 C 230 138, 150 152, 150 104 C 150 54, 262 42, 332 92 C 392 134, 444 133, 490 132"/>
+                    <path class="route-dots" pathLength="100" d="M986 60 C 910 8, 804 18, 786 82 C 770 138, 850 152, 850 104 C 850 54, 738 42, 668 92 C 608 134, 556 133, 510 132"/>
+                    <path class="route-path" pathLength="1" d="M14 60 C 90 8, 196 18, 214 82 C 230 138, 150 152, 150 104 C 150 54, 262 42, 332 92 C 392 134, 444 133, 490 132"/>
+                    <path class="route-path" pathLength="1" d="M986 60 C 910 8, 804 18, 786 82 C 770 138, 850 152, 850 104 C 850 54, 738 42, 668 92 C 608 134, 556 133, 510 132"/>
+                    <circle class="route-start" cx="14" cy="60" r="6"/>
+                    <circle class="route-start" cx="986" cy="60" r="6"/>
+                    <circle class="meet-ring" cx="500" cy="132" r="9"/>
+                    <circle class="meet-point" cx="500" cy="132" r="9"/>
+                </svg>
+
+                <div class="hero-actions rise d5">
+                    <button class="btn-primary btn-big" onclick="go('authChoice')">Вход / Регистрация →</button>
+                    <button class="btn-secondary btn-big glass" onclick="go('about')">О проекте</button>
+                </div>
+
+                <p class="help-line rise d6">
+                    Проблемы со входом или сайтом? Пишите!<br>
+                    <!-- ПОКА НЕ РАБОЧАЯ ПОЧТА — потом замени на настоящую -->
+                    <a href="mailto:help@tochka-vstrechi.ru">help@tochka-vstrechi.ru</a>
+                </p>
             </div>
-
-            <div id="profileResults"></div>
-
-            <div class="result-actions">
-
-                <button class="secondary-action" onclick="editProfile()">
-                    Изменить ответы
-                </button>
-
-                <button class="primary-action" onclick="createWalk()">
-                    Создать прогулку →
-                </button>
-
-            </div>
-
         </section>
 
 
-        <div class="navigation" id="navigation">
+        <!-- =====================================================
+             2. О ПРОЕКТЕ
+             ===================================================== -->
+        <section class="screen wide" id="about">
 
-            <button class="back" id="backBtn" onclick="previousQuestion()">
-                ← Назад
-            </button>
+            <button class="back-link" onclick="go('welcome')">← На главную</button>
 
-            <button class="next" id="nextBtn" onclick="nextQuestion()" disabled>
-                Далее →
-            </button>
+            <div class="eyebrow">Главная <span>— о проекте</span></div>
 
-        </div>
+            <h1 class="about-title">
+                Не знаешь, куда пойти?
+                <span class="accent">Давай придумаем вместе.</span>
+            </h1>
+
+            <p class="about-lead">
+                ТочкаВстречи подбирает прогулки по городу под твои интересы,
+                настроение и компанию — чтобы не тратить час на планирование.
+            </p>
+
+            <div class="pill">Наша идея</div>
+
+            <div class="about-grid">
+                <div class="about-text">
+                    <p>
+                        В ТочкеВстречи ты рассказываешь немного о себе — что любишь,
+                        какой атмосфере отдаёшь предпочтение и что точно не твоё.
+                    </p>
+                    <p class="muted">
+                        А дальше мы подбираем идеи для прогулок, мест и маршрутов
+                        под твой сегодняшний вайб: с кем ты идёшь, сколько есть времени,
+                        какой бюджет и хочется ли спокойно или энергично.
+                    </p>
+                    <p class="muted">
+                        После прогулки можно отметить, что понравилось, — и следующие
+                        маршруты станут ещё точнее.
+                    </p>
+                </div>
+
+                <div class="glow-card" aria-hidden="true">
+                    <svg viewBox="0 0 300 300">
+                        <circle class="glow-ring" cx="150" cy="150" r="110"/>
+                        <g class="orbit">
+                            <circle cx="150" cy="40" r="7" fill="#a77bf3"/>
+                            <circle cx="260" cy="150" r="5" fill="#cdb8f6"/>
+                        </g>
+                        <!-- метка -->
+                        <path d="M150 214 C 132 190, 104 166, 104 128 A 46 46 0 1 1 196 128 C 196 166, 168 190, 150 214 Z"
+                              fill="#ffffff" stroke="#6a35d2" stroke-width="5"
+                              style="filter: drop-shadow(0 0 12px rgba(106,53,210,.45))"/>
+                        <circle cx="141" cy="128" r="15" fill="#a77bf3"/>
+                        <circle cx="159" cy="128" r="15" fill="#6a35d2" fill-opacity="0.85"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="pill">Как это работает</div>
+
+            <div class="steps">
+                <div class="step-card">
+                    <div class="num">01</div>
+                    <h3>Расскажи о себе</h3>
+                    <p>Короткий опрос: вайб, эстетика, интересы и то, что может испортить прогулку.</p>
+                </div>
+                <div class="step-card">
+                    <div class="num">02</div>
+                    <h3>Настрой прогулку</h3>
+                    <p>С кем идёшь, сколько времени, бюджет и какой будет прогулка — спокойной или энергичной.</p>
+                </div>
+                <div class="step-card">
+                    <div class="num">03</div>
+                    <h3>Получи маршрут</h3>
+                    <p>Готовый путь по городу на карте — останется только выйти из дома.</p>
+                </div>
+            </div>
+
+            <div class="about-final">
+                <h2>Каждый маршрут — <span class="accent">своя точка встречи.</span></h2>
+                <div class="row center">
+                    <button class="btn-primary btn-big" onclick="go('authChoice')">Попробовать →</button>
+                    <button class="btn-secondary btn-big" onclick="go('welcome')">На главную</button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             3. ВЫБОР: ВХОД ИЛИ РЕГИСТРАЦИЯ
+             ===================================================== -->
+        <section class="screen" id="authChoice">
+
+            <button class="back-link" onclick="go('welcome')">← На главную</button>
+
+            <div class="question-number">Добро пожаловать</div>
+            <h1>Рады тебя видеть</h1>
+            <p class="subtitle">Войди в аккаунт или создай новый — это займёт пару минут.</p>
+
+            <div class="options">
+                <div class="option big" role="button" tabindex="0" onclick="go('login')">
+                    <div class="icon">🔑</div>
+                    <div>
+                        <div class="option-title">Вход</div>
+                        <div class="option-description">У меня уже есть аккаунт.</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </div>
+
+                <div class="option big" role="button" tabindex="0" onclick="go('registerIntro')">
+                    <div class="icon">✨</div>
+                    <div>
+                        <div class="option-title">Регистрация</div>
+                        <div class="option-description">Я здесь впервые — хочу пройти опрос и создать аккаунт.</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </div>
+            </div>
+
+            <div class="center-text">
+                <button class="link-btn small" onclick="go('forgot')">Забыли пароль?</button>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             4. ВХОД
+             ===================================================== -->
+        <section class="screen" id="login">
+
+            <button class="back-link" onclick="go('authChoice')">← Назад</button>
+
+            <div class="question-number">Вход</div>
+            <h1>С возвращением</h1>
+            <p class="subtitle">Введи почту или юзернейм и пароль.</p>
+
+            <form class="card" id="loginForm" novalidate>
+                <div class="form-msg" id="loginMsg"></div>
+
+                <div class="field">
+                    <label for="loginId">Почта или юзернейм</label>
+                    <input id="loginId" type="text" autocomplete="username" placeholder="maria@mail.ru или maria_walks">
+                </div>
+
+                <div class="field">
+                    <label for="loginPass">Пароль</label>
+                    <div class="input-wrap">
+                        <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••">
+                        <button type="button" class="toggle-pass" data-for="loginPass">показать</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary btn-full btn-big" id="loginBtn">Войти</button>
+
+                <div class="form-footer">
+                    <button type="button" class="link-btn small" onclick="go('forgot')">Забыли пароль?</button>
+                    <button type="button" class="link-btn" onclick="go('registerIntro')">Нет аккаунта? <span class="accent">Регистрация</span></button>
+                </div>
+            </form>
+        </section>
+
+
+        <!-- =====================================================
+             5а. РЕГИСТРАЦИЯ: ВСТУПЛЕНИЕ
+             ===================================================== -->
+        <section class="screen" id="registerIntro">
+
+            <button class="back-link" onclick="go('authChoice')">← Назад</button>
+
+            <div class="question-number">Регистрация · шаг 1 из 2</div>
+            <h1>Давай познакомимся</h1>
+            <p class="subtitle">
+                Сначала 8 коротких вопросов о том, что тебе нравится.
+                Так мы поймём, какие прогулки тебе подойдут. Это займёт пару минут.
+            </p>
+
+            <div class="profile-card">
+                <div class="profile-title">Что спросим</div>
+                <div class="tags">
+                    <span class="tag">🌑 вайб</span>
+                    <span class="tag">🖤 эстетика</span>
+                    <span class="tag">🏛 интересы в городе</span>
+                    <span class="tag">🌆 идеальный вечер</span>
+                    <span class="tag">✨ спонтанность</span>
+                    <span class="tag">🌙 время прогулок</span>
+                    <span class="tag">💸 траты</span>
+                    <span class="tag">🚫 что раздражает</span>
+                </div>
+            </div>
+
+            <div class="navigation">
+                <button class="btn-primary btn-big next" onclick="startSurvey()">Пройти опрос →</button>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             5б. ОПРОСНИК (вопросы без изменений)
+             ===================================================== -->
+        <section class="screen" id="survey">
+
+            <div class="survey-top">
+                <div class="step">Знакомство</div>
+                <div class="step" id="stepCounter">1 / 8</div>
+            </div>
+
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <!-- ВОПРОС 1 -->
+            <section class="question active" data-key="vibe" data-multiple="true">
+    
+                <div class="question-number">01</div>
+    
+                <h1>Какой вайб тебе ближе?</h1>
+    
+                <p class="subtitle">
+                    Можно выбрать несколько вариантов.
+                </p>
+    
+                <div class="options">
+    
+                    <div class="option" data-value="dark">
+                        <div class="option-title">🌑 Тёмный и атмосферный</div>
+                        <div class="option-description">
+                            Ночная Москва, необычные места, немного загадочности.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="cozy">
+                        <div class="option-title">☕ Мягкий и уютный</div>
+                        <div class="option-description">
+                            Тёплый свет, спокойные места, кафе и долгие разговоры.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="active">
+                        <div class="option-title">⚡ Активный вечер</div>
+                        <div class="option-description">
+                            Хочется много ходить, что-нибудь делать и не сидеть на одном месте.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="arthouse">
+                        <div class="option-title">🎞 Артхаусный</div>
+                        <div class="option-description">
+                            Странные, необычные и визуально интересные места.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="nature">
+                        <div class="option-title">🌿 Свободный и природный</div>
+                        <div class="option-description">
+                            Парки, вода, простор и возможность просто гулять.
+                        </div>
+                    </div>
+    
+                </div>
+            </section>
+    
+    
+            <!-- ВОПРОС 2 -->
+            <section class="question" data-key="aesthetics" data-multiple="true">
+    
+                <div class="question-number">02</div>
+    
+                <h1>Какая эстетика тебе близка?</h1>
+    
+                <p class="subtitle">
+                    Это не про внешность — просто выбери визуальные и культурные вайбы, которые тебе нравятся.
+                </p>
+    
+                <div class="options">
+    
+                    <div class="option" data-value="gothic">
+                        <div class="option-title">🕯️ Gothic</div>
+                        <div class="option-description">
+                            Тёмная романтика, старые здания, драматичная атмосфера.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="grunge">
+                        <div class="option-title">🎶 Grunge</div>
+                        <div class="option-description">
+                            Музыка, старые места, граффити, неидеальная городская эстетика.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="y2k">
+                        <div class="option-title">💿 Y2K</div>
+                        <div class="option-description">
+                            Ностальгия по 2000-м, яркие детали, поп-культура и ретро-технологии.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="street">
+                        <div class="option-title">👟 Street</div>
+                        <div class="option-description">
+                            Современный город, граффити, скейт-парки и уличная культура.
+                        </div>
+                    </div>
+    
+               
+    
+                    <div class="option" data-value="coquette">
+                        <div class="option-title">🌸 Coquette</div>
+                        <div class="option-description">
+                            Романтичные детали, красивые кафе, цветы и нежная визуальная атмосфера.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="minimalism">
+                        <div class="option-title">◻️ Minimalism</div>
+                        <div class="option-description">
+                            Чистые пространства, спокойные цвета, современная архитектура и простота.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="vintage">
+                        <div class="option-title">📷 Vintage</div>
+                        <div class="option-description">
+                            Ретро-места, старые вывески, винтажные магазины и атмосфера прошлых лет.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="angelcore">
+                        <div class="option-title">🪽 Angelcore</div>
+                        <div class="option-description">
+                            Светлая, воздушная эстетика, красивые детали и ощущение чего-то необычного.
+                        </div>
+                    </div>
+                   <div class="option" data-value="cottagecore"> 
+                       <div class="option-title">🪻 Cottagecore</div> 
+                       <div class="option-description"> 
+                            Природа, маленькие уютные места, цветы и спокойная загородная атмосфера. 
+                       </div>
+                   </div>
+    
+                    <div class="option" data-value="none">
+                        <div class="option-title">✨ Я не ориентируюсь на конкретные эстетики</div>
+                        <div class="option-description">
+                            Мне важнее само место и атмосфера, чем определённый визуальный стиль.
+                        </div>
+                    </div>
+    
+                </div>
+            </section>
+    
+    
+            <!-- ВОПРОС 3 -->
+            <section class="question" data-key="cityInterests" data-multiple="true">
+    
+                <div class="question-number">03</div>
+    
+                <h1>Что тебе интересно находить в городе?</h1>
+    
+                <p class="subtitle">
+                    Выбери всё, что тебе хочется видеть во время прогулки.
+                </p>
+    
+                <div class="options">
+    
+                    <div class="option" data-value="architecture">
+                        <div class="option-title">🏛 Архитектура</div>
+                        <div class="option-description">
+                            Красивые здания, необычные фасады, дворы и детали города.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="street-art">
+                        <div class="option-title">🖋️ Стрит-арт</div>
+                        <div class="option-description">
+                            Граффити, муралы, необычные рисунки и городское искусство.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="nature">
+                        <div class="option-title">🪷 Природа</div>
+                        <div class="option-description">
+                            Парки, скверы, набережные, деревья и спокойные зелёные места.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="books">
+                        <div class="option-title">📜 Книги</div>
+                        <div class="option-description">
+                            Книжные магазины, библиотеки и места для тех, кто любит читать.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="music">
+                        <div class="option-title">🎵 Музыка</div>
+                        <div class="option-description">
+                            Музыкальные магазины, концерты, необычные площадки и музыкальная культура.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="food">
+                        <div class="option-title">🍇 Еда</div>
+                        <div class="option-description">
+                            Интересные кафе, необычная еда, десерты и места, куда хочется зайти.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="photo">
+                        <div class="option-title">📷 Красивые места</div>
+                        <div class="option-description">
+                            Локации с красивым видом, светом, архитектурой или атмосферой для фото.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="pop-culture">
+                        <div class="option-title">🎮 Поп-культура</div>
+                        <div class="option-description">
+                            Игры, кино, комиксы, аниме, тематические магазины и события.
+                        </div>
+                    </div>
+    
+                </div>
+            </section>
+    
+    
+            <!-- ВОПРОС 4 -->
+            <section class="question" data-key="evening" data-multiple="true">
+    
+                <div class="question-number">04</div>
+    
+                <h1>Как выглядит твой идеальный вечер?</h1>
+    
+                <p class="subtitle">
+                    Можно выбрать несколько сценариев.
+                </p>
+    
+                <div class="options">
+    
+                    <div class="option" data-value="walk-talk">
+                        <div class="option-title">🚶 Долгая прогулка + разговор</div>
+                        <div class="option-description">
+                            Просто идти, разговаривать и не спешить.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="strange-place">
+                        <div class="option-title">🫧 Найти странное или незнакомое место</div>
+                        <div class="option-description">
+                            Исследовать город и случайно находить что-то необычное.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="inside">
+                        <div class="option-title">🏫 Зайти куда-нибудь</div>
+                        <div class="option-description">
+                            Магазин, выставка, кафе или другое интересное место по пути.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="beautiful-city">
+                        <div class="option-title">🌆 Красивый вечерний город</div>
+                        <div class="option-description">
+                            Огни города, красивые улицы, набережные и приятная атмосфера.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="active-evening">
+                        <div class="option-title">⚡ Активный вечер</div>
+                        <div class="option-description">
+                            Много ходить, куда-нибудь заходить и постоянно что-то делать.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="quiet">
+                        <div class="option-title">🌙 Тихий вечер</div>
+                        <div class="option-description">
+                            Спокойный маршрут без спешки, шума и большого количества людей.
+                        </div>
+                    </div>
+    
+                </div>
+            </section>
+    
+    
+            <!-- ВОПРОС 5 -->
+            <section class="question" data-key="spontaneity">
+    
+                <div class="question-number">05</div>
+    
+                <h1>Как ты относишься к спонтанности?</h1>
+    
+                <p class="subtitle">
+                    Выбери вариант, который больше всего похож на тебя.
+                </p>
+    
+                <div class="options">
+    
+                    <div class="option" data-value="plan">
+                        <div class="option-title">🗺 Мне нужен план</div>
+                        <div class="option-description">
+                            Хочу заранее понимать, куда мы идём и что будем делать.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="flexible">
+                        <div class="option-title">↗️ Планируем, но можем отклониться</div>
+                        <div class="option-description">
+                            Основной маршрут нужен, но можно спокойно изменить его по пути.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="spontaneous">
+                        <div class="option-title">✨ Чем неожиданнее, тем лучше</div>
+                        <div class="option-description">
+                            Люблю случайные повороты и места, которые не планировала заранее.
+                        </div>
+                    </div>
+    
+                </div>
+            </section>
+    
+    
+            <!-- ВОПРОС 6 -->
+            <section class="question" data-key="time" data-multiple="true">
+    
+                <div class="question-number">06</div>
+    
+                <h1>Когда тебе больше всего нравится гулять?</h1>
+    
+                <p class="subtitle">
+                    Можно выбрать несколько вариантов.
+                </p>
+    
+                <div class="options">
+    
+                    <div class="option" data-value="day">
+                        <div class="option-title">☀️ Днём</div>
+                        <div class="option-description">
+                            Когда светло и город активно живёт.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="afternoon">
+                        <div class="option-title">🌤 Ближе к вечеру</div>
+                        <div class="option-description">
+                            Когда становится спокойнее и появляется вечерняя атмосфера.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="evening">
+                        <div class="option-title">🌆 Вечером</div>
+                        <div class="option-description">
+                            Огни города, кафе и прогулки после обычного дня.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="late-evening">
+                        <div class="option-title">🌙 Поздним вечером</div>
+                        <div class="option-description">
+                            Когда на улицах становится тише и город выглядит совсем иначе.
+                        </div>
+                    </div>
+    
+                </div>
+            </section>
+    
+    
+            <!-- ВОПРОС 7 -->
+            <section class="question" data-key="spending" data-multiple="true">
+    
+                <div class="question-number">07</div>
+    
+                <h1>На что тебе нравится тратить деньги?</h1>
+    
+                <p class="subtitle">
+                    Выбери всё, что тебе подходит.
+                </p>
+    
+                <div class="options">
+    
+                    <div class="option" data-value="food">
+                        <div class="option-title">🍇 Еда и напитки</div>
+                        <div class="option-description">
+                            Кафе, десерты, напитки и интересные места с едой.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="events">
+                        <div class="option-title">🎟 Мероприятия</div>
+                        <div class="option-description">
+                            Концерты, фестивали, лекции и другие события.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="museums">
+                        <div class="option-title">🏛 Выставки и музеи</div>
+                        <div class="option-description">
+                            Искусство, история, наука и необычные экспозиции.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="shops">
+                        <div class="option-title">🛍 Магазины</div>
+                        <div class="option-description">
+                            Книги, одежда, винил, необычные вещи и тематические магазины.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="entertainment">
+                        <div class="option-title">🎮 Развлечения</div>
+                        <div class="option-description">
+                            Игры, активности и места, где можно чем-то заняться.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="free">
+                        <div class="option-title">🆓 Предпочитаю бесплатные варианты</div>
+                        <div class="option-description">
+                            Хочу, чтобы прогулка не требовала больших расходов.
+                        </div>
+                    </div>
+    
+                </div>
+            </section>
+    
+    
+            <!-- ВОПРОС 8 -->
+            <section class="question" data-key="dislikes" data-multiple="true">
+    
+                <div class="question-number">08</div>
+    
+                <h1>Что может испортить прогулку?</h1>
+    
+                <p class="subtitle">
+                    Это поможет не предлагать тебе неподходящие маршруты.
+                </p>
+    
+                <div class="options">
+    
+                    <div class="option" data-value="crowds">
+                        <div class="option-title">👥 Слишком много людей</div>
+                        <div class="option-description">
+                            Не люблю толпы и переполненные места.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="noise">
+                        <div class="option-title">🔊 Шум</div>
+                        <div class="option-description">
+                            Предпочитаю места, где можно спокойно разговаривать и гулять.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="walking">
+                        <div class="option-title">🥾 Слишком много ходьбы</div>
+                        <div class="option-description">
+                            Не хочу, чтобы вся прогулка превращалась в длинный марш.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="expensive">
+                        <div class="option-title">💸 Дорогие места</div>
+                        <div class="option-description">
+                            Не хочу тратить много денег во время прогулки.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="schedule">
+                        <div class="option-title">⏱ Слишком плотный план</div>
+                        <div class="option-description">
+                            Не люблю, когда всё расписано по минутам.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="boring">
+                        <div class="option-title">😐 Скучные достопримечательности</div>
+                        <div class="option-description">
+                            Хочется чего-то живого, необычного или действительно интересного.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="transport">
+                        <div class="option-title">🚇 Слишком много транспорта</div>
+                        <div class="option-description">
+                            Предпочитаю больше гулять и меньше переезжать между местами.
+                        </div>
+                    </div>
+    
+                    <div class="option" data-value="none">
+                        <div class="option-title">✨ Ничего из этого</div>
+                        <div class="option-description">
+                            Обычно мне легко адаптироваться к разным вариантам прогулок.
+                        </div>
+                    </div>
+    
+                </div>
+            </section>
+
+            <div class="navigation" id="navigation">
+                <button class="back" id="backBtn" onclick="previousQuestion()">
+                    ← Назад
+                </button>
+                <button class="next" id="nextBtn" onclick="nextQuestion()" disabled>
+                    Далее →
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             5в. РЕГИСТРАЦИЯ: АККАУНТ
+             ===================================================== -->
+        <section class="screen" id="register">
+
+            <button class="back-link" onclick="backToSurvey()">← К опросу</button>
+
+            <div class="question-number">Регистрация · шаг 2 из 2</div>
+            <h1>Последний шаг — аккаунт</h1>
+            <p class="subtitle">Ответы сохранятся в твой профиль, и по ним мы будем собирать прогулки.</p>
+
+            <form class="card" id="registerForm" novalidate>
+                <div class="form-msg" id="registerMsg"></div>
+
+                <div class="field">
+                    <label for="regEmail">Почта</label>
+                    <input id="regEmail" type="email" autocomplete="email" placeholder="maria@mail.ru">
+                </div>
+
+                <div class="field">
+                    <label for="regUser">Юзернейм</label>
+                    <input id="regUser" type="text" autocomplete="username" placeholder="maria_walks">
+                    <div class="hint">3–20 символов: латинские буквы, цифры, точка и _</div>
+                </div>
+
+                <div class="field">
+                    <label for="regPass">Пароль</label>
+                    <div class="input-wrap">
+                        <input id="regPass" type="password" autocomplete="new-password" placeholder="минимум 6 символов">
+                        <button type="button" class="toggle-pass" data-for="regPass">показать</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="regPass2">Повтори пароль</label>
+                    <div class="input-wrap">
+                        <input id="regPass2" type="password" autocomplete="new-password" placeholder="ещё раз">
+                        <button type="button" class="toggle-pass" data-for="regPass2">показать</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary btn-full btn-big" id="registerBtn">Создать аккаунт</button>
+
+                <div class="form-footer">
+                    <span></span>
+                    <button type="button" class="link-btn" onclick="go('login')">Уже есть аккаунт? <span class="accent">Вход</span></button>
+                </div>
+            </form>
+        </section>
+
+
+        <!-- =====================================================
+             5г. ПОДТВЕРДИ ПОЧТУ (если в Supabase включено подтверждение)
+             ===================================================== -->
+        <section class="screen" id="checkEmail">
+            <div class="empty-state">
+                <div class="result-icon">✉</div>
+                <h1>Проверь почту</h1>
+                <p class="subtitle">
+                    Мы отправили письмо на <b id="checkEmailAddr"></b>.<br>
+                    Перейди по ссылке из письма, а потом войди в аккаунт.
+                </p>
+                <button class="btn-primary btn-big" onclick="go('login')">Ко входу →</button>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             6. ЗАБЫЛИ ПАРОЛЬ
+             ===================================================== -->
+        <section class="screen" id="forgot">
+
+            <button class="back-link" onclick="go('login')">← Назад ко входу</button>
+
+            <div class="question-number">Восстановление</div>
+            <h1>Забыли пароль?</h1>
+            <p class="subtitle">
+                Введи почту — пришлём ссылку, по которой можно придумать новый пароль.
+            </p>
+
+            <form class="card" id="forgotForm" novalidate>
+                <div class="form-msg" id="forgotMsg"></div>
+
+                <div class="field">
+                    <label for="forgotEmail">Почта</label>
+                    <input id="forgotEmail" type="email" autocomplete="email" placeholder="maria@mail.ru">
+                </div>
+
+                <button type="submit" class="btn-primary btn-full btn-big" id="forgotBtn">Отправить ссылку</button>
+            </form>
+        </section>
+
+
+        <!-- =====================================================
+             6б. НОВЫЙ ПАРОЛЬ (открывается по ссылке из письма)
+             ===================================================== -->
+        <section class="screen" id="newPassword">
+
+            <div class="question-number">Восстановление</div>
+            <h1>Новый пароль</h1>
+            <p class="subtitle">Придумай новый пароль для своего аккаунта.</p>
+
+            <form class="card" id="newPassForm" novalidate>
+                <div class="form-msg" id="newPassMsg"></div>
+
+                <div class="field">
+                    <label for="newPass">Новый пароль</label>
+                    <div class="input-wrap">
+                        <input id="newPass" type="password" autocomplete="new-password" placeholder="минимум 6 символов">
+                        <button type="button" class="toggle-pass" data-for="newPass">показать</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="newPass2">Повтори пароль</label>
+                    <div class="input-wrap">
+                        <input id="newPass2" type="password" autocomplete="new-password" placeholder="ещё раз">
+                        <button type="button" class="toggle-pass" data-for="newPass2">показать</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary btn-full btn-big" id="newPassBtn">Сохранить</button>
+            </form>
+        </section>
+
+
+        <!-- =====================================================
+             7. ПОСЛЕ ВХОДА (пока пусто)
+             ===================================================== -->
+        <section class="screen" id="home">
+
+            <div class="empty-state">
+                <p class="hello">Привет, <b id="homeUser">@user</b> 👋</p>
+
+                <h1 class="empty-title">
+                    Пока здесь пусто,
+                    <span class="accent">скоро обнова :)</span>
+                </h1>
+
+                <svg class="wander" viewBox="0 0 220 70" aria-hidden="true">
+                    <path id="wanderPath" d="M10 50 C 50 0, 90 70, 130 30 C 160 0, 190 40, 210 20"/>
+                    <circle r="6">
+                        <animateMotion dur="4s" repeatCount="indefinite" rotate="auto">
+                            <mpath href="#wanderPath"/>
+                        </animateMotion>
+                    </circle>
+                </svg>
+            </div>
+
+            <div id="homeProfile"></div>
+
+            <div class="row center" style="margin-top: 24px;">
+                <button class="btn-secondary" onclick="logout()">Выйти из аккаунта</button>
+            </div>
+        </section>
 
     </main>
-
 </div>
 
 
 <script>
-
-    const questions = [...document.querySelectorAll(".question")];
-
-    let currentQuestion = 0;
-
-    const answers = {
-        vibe: [],
-        aesthetics: [],
-        cityInterests: [],
-        evening: [],
-        spontaneity: null,
-        time: [],
-        spending: [],
-        dislikes: []
-    };
+/* =============================================================
+   НАСТРОЙКИ SUPABASE
+   -------------------------------------------------------------
+   Пока строки пустые, сайт работает в ДЕМО-РЕЖИМЕ:
+   аккаунты хранятся только в этом браузере (localStorage).
+   Чтобы включить настоящую регистрацию — вставь сюда данные
+   из Supabase: Project Settings → API (Data API).
+   ============================================================= */
+const SUPABASE_URL = "";   // например: "https://abcdefgh.supabase.co"
+const SUPABASE_KEY = "";   // Publishable key (или anon public key)
 
 
-    const labels = {
+/* =============================================================
+   ЭКРАНЫ
+   ============================================================= */
+const screens = [...document.querySelectorAll(".screen")];
+let currentScreen = "welcome";
 
-        vibe: {
-            dark: "Тёмный и атмосферный",
-            cozy: "Мягкий и уютный",
-            active: "Активный вечер",
-            arthouse: "Артхаусный",
-            nature: "Свободный и природный"
-        },
+function go(id) {
+    screens.forEach(s => s.classList.toggle("active", s.id === id));
+    currentScreen = id;
+    window.scrollTo(0, 0);
 
-        aesthetics: {
-            gothic: "Gothic",
-            "dark-academia": "Dark academia",
-            "light-academia": "Light academia",
-            grunge: "Grunge",
-            y2k: "Y2K",
-            street: "Street",
-            indie: "Indie",
-            punk: "Punk",
-            coquette: "Coquette",
-            minimalism: "Minimalism",
-            vintage: "Vintage",
-            angelcore: "Angelcore",
-            cottagecore: "Cottagecore",
-            none: "Не ориентируюсь на конкретные эстетики"
-        },
+    // сбрасываем сообщения форм при переходе
+    document.querySelectorAll(".form-msg").forEach(m => {
+        m.className = "form-msg";
+        m.textContent = "";
+    });
+}
 
-        cityInterests: {
-            architecture: "Архитектура",
-            "street-art": "Стрит-арт",
-            nature: "Природа",
-            books: "Книги",
-            music: "Музыка",
-            food: "Еда",
-            photo: "Красивые места",
-            "pop-culture": "Поп-культура"
-        },
+document.getElementById("logo").addEventListener("click", () => {
+    go(currentUser ? "home" : "welcome");
+});
 
-        evening: {
-            "walk-talk": "Долгая прогулка + разговор",
-            "strange-place": "Странные и незнакомые места",
-            inside: "Зайти куда-нибудь",
-            "beautiful-city": "Красивый вечерний город",
-            "active-evening": "Активный вечер",
-            quiet: "Тихий вечер"
-        },
-
-        spontaneity: {
-            plan: "Мне нужен план",
-            flexible: "Планируем, но можем отклониться",
-            spontaneous: "Чем неожиданнее, тем лучше"
-        },
-
-        time: {
-            day: "Днём",
-            afternoon: "Ближе к вечеру",
-            evening: "Вечером",
-            "late-evening": "Поздним вечером"
-        },
-
-        spending: {
-            food: "Еда и напитки",
-            events: "Мероприятия",
-            museums: "Выставки и музеи",
-            shops: "Магазины",
-            entertainment: "Развлечения",
-            free: "Предпочитаю бесплатные варианты"
-        },
-
-        dislikes: {
-            crowds: "Слишком много людей",
-            noise: "Шум",
-            walking: "Слишком много ходьбы",
-            expensive: "Дорогие места",
-            schedule: "Слишком плотный план",
-            boring: "Скучные достопримечательности",
-            transport: "Слишком много транспорта",
-            none: "Ничего из этого"
+// карточки-кнопки открываются и с клавиатуры (Enter / пробел)
+document.querySelectorAll('[role="button"]').forEach(el => {
+    el.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            el.click();
         }
-    };
+    });
+});
 
 
-    function updateScreen() {
-
-        questions.forEach((question, index) => {
-            question.classList.toggle(
-                "active",
-                index === currentQuestion
-            );
+/* =============================================================
+   ЧАСЫ «МОСКВА 14:32»
+   ============================================================= */
+function tickClock() {
+    document.getElementById("clock").textContent =
+        new Date().toLocaleTimeString("ru-RU", {
+            timeZone: "Europe/Moscow",
+            hour: "2-digit",
+            minute: "2-digit"
         });
+}
+tickClock();
+setInterval(tickClock, 10000);
 
-        const progress =
-            ((currentQuestion + 1) / questions.length) * 100;
 
-        document.getElementById("progressBar").style.width =
-            progress + "%";
+/* =============================================================
+   ФОН: СИМВОЛЫ, КОТОРЫЕ ПРОЯВЛЯЮТСЯ ЗА КУРСОРОМ
+   ============================================================= */
+(function glyphField() {
+    const canvas = document.getElementById("glyphs");
+    const ctx = canvas.getContext("2d");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        document.getElementById("stepCounter").textContent =
-            `${currentQuestion + 1} / ${questions.length}`;
+    const CELL = 22;                  // размер клетки сетки
+    const RADIUS = 150;               // радиус вокруг курсора
+    const SYMBOLS = ["›", "·", "○", "–", "+", "›", "◦", "›"];
+    const COLORS = ["#c9b3f5", "#a77bf3", "#8a5ae6", "#6a35d2"];
 
-        document.getElementById("backBtn").style.visibility =
-            currentQuestion === 0 ? "hidden" : "visible";
+    let w, h, cols, rows, energy, glyph, dpr;
+    let pointer = { x: -9999, y: -9999, active: false, last: 0 };
+    let t = 0;
 
-        restoreCurrentSelections();
-
-        updateNextButton();
+    function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        w = window.innerWidth;
+        h = window.innerHeight;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        cols = Math.ceil(w / CELL) + 1;
+        rows = Math.ceil(h / CELL) + 1;
+        energy = new Float32Array(cols * rows);
+        glyph = new Uint8Array(cols * rows).map(() => Math.floor(Math.random() * SYMBOLS.length));
     }
 
+    function excite(px, py, strength) {
+        const c0 = Math.max(0, Math.floor((px - RADIUS) / CELL));
+        const c1 = Math.min(cols - 1, Math.ceil((px + RADIUS) / CELL));
+        const r0 = Math.max(0, Math.floor((py - RADIUS) / CELL));
+        const r1 = Math.min(rows - 1, Math.ceil((py + RADIUS) / CELL));
 
-    function updateNextButton() {
+        for (let r = r0; r <= r1; r++) {
+            for (let c = c0; c <= c1; c++) {
+                const dx = c * CELL + CELL / 2 - px;
+                const dy = r * CELL + CELL / 2 - py;
+                const d = Math.sqrt(dx * dx + dy * dy);
+                if (d > RADIUS) continue;
 
-        const question = questions[currentQuestion];
+                // мягкое «пятно» + немного шума, чтобы край был живым
+                let f = 1 - d / RADIUS;
+                f = f * f * strength * (0.75 + Math.random() * 0.25);
 
-        const key = question.dataset.key;
+                const i = r * cols + c;
+                if (f > energy[i]) energy[i] = f;
+            }
+        }
+    }
 
-        let hasAnswer;
+    function frame(now) {
+        t = now || 0;
+        ctx.clearRect(0, 0, w, h);
 
-        if (question.dataset.multiple === "true") {
-
-            hasAnswer = answers[key].length > 0;
-
-        } else {
-
-            hasAnswer = answers[key] !== null;
-
+        // если курсора давно не было — по экрану медленно «гуляет» невидимая точка
+        const idle = !pointer.active || t - pointer.last > 2500;
+        if (idle && !reduceMotion) {
+            const gx = w * (0.5 + 0.36 * Math.sin(t / 5200));
+            const gy = h * (0.5 + 0.30 * Math.sin(t / 3700 + 1.3));
+            excite(gx, gy, 0.55);
+        } else if (pointer.active) {
+            excite(pointer.x, pointer.y, 1);
         }
 
-        document.getElementById("nextBtn").disabled = !hasAnswer;
+        ctx.font = "600 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
 
-        document.getElementById("nextBtn").textContent =
-            currentQuestion === questions.length - 1
-                ? "Готово ✓"
-                : "Далее →";
-    }
-
-
-    function restoreCurrentSelections() {
-
-        const question = questions[currentQuestion];
-
-        const key = question.dataset.key;
-
-        question.querySelectorAll(".option").forEach(option => {
-
-            const value = option.dataset.value;
-
-            if (question.dataset.multiple === "true") {
-
-                option.classList.toggle(
-                    "selected",
-                    answers[key].includes(value)
-                );
-
-            } else {
-
-                option.classList.toggle(
-                    "selected",
-                    answers[key] === value
-                );
-
+        for (let i = 0; i < energy.length; i++) {
+            const e = energy[i];
+            if (e < 0.03) {
+                energy[i] = 0;
+                continue;
             }
 
-        });
-    }
-
-
-    function selectOption(option) {
-
-        const question = option.closest(".question");
-
-        const key = question.dataset.key;
-
-        const value = option.dataset.value;
-
-
-        if (question.dataset.multiple === "true") {
-
-            if (value === "none") {
-
-                answers[key] = ["none"];
-
-            } else {
-
-                answers[key] =
-                    answers[key].filter(item => item !== "none");
-
-                if (answers[key].includes(value)) {
-
-                    answers[key] =
-                        answers[key].filter(item => item !== value);
-
-                } else {
-
-                    answers[key].push(value);
-                }
+            // иногда символ меняется — эффект «мерцания»
+            if (Math.random() < 0.02) {
+                glyph[i] = Math.floor(Math.random() * SYMBOLS.length);
             }
 
-        } else {
+            const c = i % cols;
+            const r = (i - c) / cols;
+            const colorIndex = Math.min(COLORS.length - 1, Math.floor(e * COLORS.length));
 
-            answers[key] = value;
+            ctx.globalAlpha = Math.min(1, e * 1.15);
+            ctx.fillStyle = COLORS[colorIndex];
+            ctx.fillText(SYMBOLS[glyph[i]], c * CELL + CELL / 2, r * CELL + CELL / 2);
 
+            energy[i] = e * 0.955;   // плавное затухание
         }
 
-
-        restoreCurrentSelections();
-
-        updateNextButton();
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(frame);
     }
 
+    function onMove(x, y) {
+        pointer.x = x;
+        pointer.y = y;
+        pointer.active = true;
+        pointer.last = t;
+    }
 
-    document.querySelectorAll(".option").forEach(option => {
+    window.addEventListener("pointermove", e => onMove(e.clientX, e.clientY), { passive: true });
+    window.addEventListener("touchmove", e => {
+        const p = e.touches[0];
+        if (p) onMove(p.clientX, p.clientY);
+    }, { passive: true });
+    document.addEventListener("pointerleave", () => { pointer.active = false; });
+    window.addEventListener("resize", resize);
 
-        option.addEventListener("click", () => {
-            selectOption(option);
-        });
+    resize();
+    requestAnimationFrame(frame);
+})();
 
+
+/* =============================================================
+   ХРАНИЛИЩЕ В БРАУЗЕРЕ (с защитой от ошибок)
+   ============================================================= */
+const memoryStore = {};
+const store = {
+    get(key) {
+        try {
+            const raw = localStorage.getItem(key);
+            return raw === null ? null : JSON.parse(raw);
+        } catch (e) {
+            return key in memoryStore ? memoryStore[key] : null;
+        }
+    },
+    set(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (e) {
+            memoryStore[key] = value;
+        }
+    },
+    remove(key) {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            delete memoryStore[key];
+        }
+    }
+};
+
+
+/* =============================================================
+   ОПРОСНИК (логика как в исходном файле)
+   ============================================================= */
+const questions = [...document.querySelectorAll(".question")];
+
+let currentQuestion = 0;
+
+const emptyAnswers = () => ({
+    vibe: [],
+    aesthetics: [],
+    cityInterests: [],
+    evening: [],
+    spontaneity: null,
+    time: [],
+    spending: [],
+    dislikes: []
+});
+
+let answers = emptyAnswers();
+
+const labels = {
+    vibe: {
+        dark: "Тёмный и атмосферный",
+        cozy: "Мягкий и уютный",
+        active: "Активный вечер",
+        arthouse: "Артхаусный",
+        nature: "Свободный и природный"
+    },
+    aesthetics: {
+        gothic: "Gothic",
+        "dark-academia": "Dark academia",
+        "light-academia": "Light academia",
+        grunge: "Grunge",
+        y2k: "Y2K",
+        street: "Street",
+        indie: "Indie",
+        punk: "Punk",
+        coquette: "Coquette",
+        minimalism: "Minimalism",
+        vintage: "Vintage",
+        angelcore: "Angelcore",
+        cottagecore: "Cottagecore",
+        none: "Не ориентируюсь на конкретные эстетики"
+    },
+    cityInterests: {
+        architecture: "Архитектура",
+        "street-art": "Стрит-арт",
+        nature: "Природа",
+        books: "Книги",
+        music: "Музыка",
+        food: "Еда",
+        photo: "Красивые места",
+        "pop-culture": "Поп-культура"
+    },
+    evening: {
+        "walk-talk": "Долгая прогулка + разговор",
+        "strange-place": "Странные и незнакомые места",
+        inside: "Зайти куда-нибудь",
+        "beautiful-city": "Красивый вечерний город",
+        "active-evening": "Активный вечер",
+        quiet: "Тихий вечер"
+    },
+    spontaneity: {
+        plan: "Мне нужен план",
+        flexible: "Планируем, но можем отклониться",
+        spontaneous: "Чем неожиданнее, тем лучше"
+    },
+    time: {
+        day: "Днём",
+        afternoon: "Ближе к вечеру",
+        evening: "Вечером",
+        "late-evening": "Поздним вечером"
+    },
+    spending: {
+        food: "Еда и напитки",
+        events: "Мероприятия",
+        museums: "Выставки и музеи",
+        shops: "Магазины",
+        entertainment: "Развлечения",
+        free: "Предпочитаю бесплатные варианты"
+    },
+    dislikes: {
+        crowds: "Слишком много людей",
+        noise: "Шум",
+        walking: "Слишком много ходьбы",
+        expensive: "Дорогие места",
+        schedule: "Слишком плотный план",
+        boring: "Скучные достопримечательности",
+        transport: "Слишком много транспорта",
+        none: "Ничего из этого"
+    }
+};
+
+function startSurvey() {
+    answers = emptyAnswers();
+    currentQuestion = 0;
+    go("survey");
+    updateScreen();
+}
+
+function backToSurvey() {
+    currentQuestion = questions.length - 1;
+    go("survey");
+    updateScreen();
+}
+
+function updateScreen() {
+    questions.forEach((question, index) => {
+        question.classList.toggle("active", index === currentQuestion);
     });
 
+    const progress = ((currentQuestion + 1) / questions.length) * 100;
+    document.getElementById("progressBar").style.width = progress + "%";
+    document.getElementById("stepCounter").textContent =
+        `${currentQuestion + 1} / ${questions.length}`;
 
-    function nextQuestion() {
+    restoreCurrentSelections();
+    updateNextButton();
+}
 
-        if (currentQuestion < questions.length - 1) {
+function updateNextButton() {
+    const question = questions[currentQuestion];
+    const key = question.dataset.key;
 
-            currentQuestion++;
+    const hasAnswer = question.dataset.multiple === "true"
+        ? answers[key].length > 0
+        : answers[key] !== null;
 
-            updateScreen();
+    const nextBtn = document.getElementById("nextBtn");
+    nextBtn.disabled = !hasAnswer;
+    nextBtn.textContent = currentQuestion === questions.length - 1 ? "Готово ✓" : "Далее →";
+}
 
+function restoreCurrentSelections() {
+    const question = questions[currentQuestion];
+    const key = question.dataset.key;
+
+    question.querySelectorAll(".option").forEach(option => {
+        const value = option.dataset.value;
+        option.classList.toggle(
+            "selected",
+            question.dataset.multiple === "true"
+                ? answers[key].includes(value)
+                : answers[key] === value
+        );
+    });
+}
+
+function selectOption(option) {
+    const question = option.closest(".question");
+    const key = question.dataset.key;
+    const value = option.dataset.value;
+
+    if (question.dataset.multiple === "true") {
+        if (value === "none") {
+            answers[key] = ["none"];
         } else {
-
-            saveProfile();
-
-            showResults();
-        }
-    }
-
-
-    function previousQuestion() {
-
-        if (currentQuestion > 0) {
-
-            currentQuestion--;
-
-            updateScreen();
-        }
-    }
-
-
-    function saveProfile() {
-
-        localStorage.setItem(
-            "tochkaVstrechiProfile",
-            JSON.stringify(answers)
-        );
-    }
-
-
-    function showResults() {
-
-        document.querySelectorAll(".question").forEach(question => {
-            question.classList.remove("active");
-        });
-
-        document.getElementById("navigation").style.display =
-            "none";
-
-        document.getElementById("resultScreen").style.display =
-            "block";
-
-        document.getElementById("stepCounter").textContent =
-            "Профиль";
-
-        document.getElementById("progressBar").style.width =
-            "100%";
-
-        renderProfile();
-    }
-
-
-    function renderProfile() {
-
-        const container =
-            document.getElementById("profileResults");
-
-        container.innerHTML = "";
-
-
-        const sections = [
-
-            {
-                title: "Твой вайб",
-                key: "vibe",
-                type: "tags"
-            },
-
-            {
-                title: "Эстетика",
-                key: "aesthetics",
-                type: "tags"
-            },
-
-            {
-                title: "Что искать в городе",
-                key: "cityInterests",
-                type: "tags"
-            },
-
-            {
-                title: "Идеальный вечер",
-                key: "evening",
-                type: "tags"
-            },
-
-            {
-                title: "Спонтанность",
-                key: "spontaneity",
-                type: "tags"
-            },
-
-            {
-                title: "Когда гулять",
-                key: "time",
-                type: "tags"
-            },
-
-            {
-                title: "На что тратить деньги",
-                key: "spending",
-                type: "tags"
-            },
-
-            {
-                title: "Что лучше избегать",
-                key: "dislikes",
-                type: "tags"
-            }
-
-        ];
-
-
-        sections.forEach(section => {
-
-            const values = answers[section.key];
-
-            if (
-                values === null ||
-                values === undefined ||
-                (Array.isArray(values) && values.length === 0)
-            ) {
-                return;
-            }
-
-
-            const card =
-                document.createElement("div");
-
-            card.className = "profile-card";
-
-
-            const title =
-                document.createElement("div");
-
-            title.className = "profile-title";
-
-            title.textContent = section.title;
-
-            card.appendChild(title);
-
-
-            if (section.type === "text") {
-
-                const value =
-                    document.createElement("div");
-
-                value.className = "profile-value";
-
-                value.textContent =
-                    labels[section.key][values];
-
-                card.appendChild(value);
-
+            answers[key] = answers[key].filter(item => item !== "none");
+            if (answers[key].includes(value)) {
+                answers[key] = answers[key].filter(item => item !== value);
             } else {
-
-                const tags =
-                    document.createElement("div");
-
-                tags.className = "tags";
-
-
-                const items = Array.isArray(values)
-                    ? values
-                    : [values];
-
-                items.forEach(item => {
-
-                    const tag =
-                        document.createElement("span");
-
-                    tag.className = "tag";
-
-                    tag.textContent =
-                        labels[section.key][item];
-
-                    tags.appendChild(tag);
-
-                });
-
-
-                card.appendChild(tags);
+                answers[key].push(value);
             }
+        }
+    } else {
+        answers[key] = value;
+    }
 
+    restoreCurrentSelections();
+    updateNextButton();
+}
 
-            container.appendChild(card);
-
+questions.forEach(q => {
+    q.querySelectorAll(".option").forEach(option => {
+        option.setAttribute("tabindex", "0");
+        option.addEventListener("click", () => selectOption(option));
+        option.addEventListener("keydown", e => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                selectOption(option);
+            }
         });
-    }
+    });
+});
 
-
-    function editProfile() {
-
-        document.getElementById("resultScreen").style.display =
-            "none";
-
-        document.getElementById("navigation").style.display =
-            "flex";
-
-        currentQuestion = 0;
-
+function nextQuestion() {
+    if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
         updateScreen();
+        window.scrollTo(0, 0);
+    } else {
+        // опрос пройден → переходим к созданию аккаунта
+        store.set("tochkaVstrechiProfile", answers);
+        go("register");
     }
+}
+
+function previousQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        updateScreen();
+    } else {
+        go("registerIntro");
+    }
+}
+
+function renderProfile(container, data) {
+    container.innerHTML = "";
+    if (!data) return;
+
+    const sections = [
+        { title: "Твой вайб", key: "vibe" },
+        { title: "Эстетика", key: "aesthetics" },
+        { title: "Что искать в городе", key: "cityInterests" },
+        { title: "Идеальный вечер", key: "evening" },
+        { title: "Спонтанность", key: "spontaneity" },
+        { title: "Когда гулять", key: "time" },
+        { title: "На что тратить деньги", key: "spending" },
+        { title: "Что лучше избегать", key: "dislikes" }
+    ];
+
+    const label = document.createElement("div");
+    label.className = "section-label";
+    label.textContent = "Твой профиль";
+    container.appendChild(label);
+
+    sections.forEach(section => {
+        const values = data[section.key];
+        if (values === null || values === undefined || (Array.isArray(values) && values.length === 0)) {
+            return;
+        }
+
+        const card = document.createElement("div");
+        card.className = "profile-card";
+
+        const title = document.createElement("div");
+        title.className = "profile-title";
+        title.textContent = section.title;
+        card.appendChild(title);
+
+        const tags = document.createElement("div");
+        tags.className = "tags";
+
+        (Array.isArray(values) ? values : [values]).forEach(item => {
+            const tag = document.createElement("span");
+            tag.className = "tag";
+            tag.textContent = (labels[section.key] && labels[section.key][item]) || item;
+            tags.appendChild(tag);
+        });
+
+        card.appendChild(tags);
+        container.appendChild(card);
+    });
+}
 
 
-    function createWalk() {
+/* =============================================================
+   ПРОВЕРКИ ПОЛЕЙ И СООБЩЕНИЯ
+   ============================================================= */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const USER_RE = /^[a-zA-Z0-9_.]{3,20}$/;
 
-        alert(
-            "Экран создания прогулки подключим следующим этапом."
+function showMsg(id, text, type = "error") {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = "form-msg show " + type;
+}
+
+function hideMsg(id) {
+    document.getElementById(id).className = "form-msg";
+}
+
+function markInvalid(...inputs) {
+    document.querySelectorAll("input.invalid").forEach(i => i.classList.remove("invalid"));
+    inputs.forEach(i => {
+        const el = document.getElementById(i);
+        if (el) el.classList.add("invalid");
+    });
+    if (inputs[0]) document.getElementById(inputs[0]).focus();
+}
+
+function setLoading(btnId, loading, text) {
+    const btn = document.getElementById(btnId);
+    if (loading) {
+        btn.dataset.text = btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>' + (text || "Секунду…");
+    } else {
+        btn.disabled = false;
+        btn.textContent = btn.dataset.text || btn.textContent;
+    }
+}
+
+document.querySelectorAll("input").forEach(i => {
+    i.addEventListener("input", () => i.classList.remove("invalid"));
+});
+
+document.querySelectorAll(".toggle-pass").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const input = document.getElementById(btn.dataset.for);
+        const show = input.type === "password";
+        input.type = show ? "text" : "password";
+        btn.textContent = show ? "скрыть" : "показать";
+    });
+});
+
+// понятные сообщения вместо английских ошибок Supabase
+function humanError(err) {
+    const m = ((err && err.message) || String(err || "")).toLowerCase();
+    if (m.includes("invalid login")) return "Неверный логин или пароль.";
+    if (m.includes("already registered") || m.includes("already exists")) return "Аккаунт с такой почтой уже есть. Попробуй войти.";
+    if (m.includes("email not confirmed")) return "Почта ещё не подтверждена — открой письмо и перейди по ссылке.";
+    if (m.includes("rate limit") || m.includes("too many")) return "Слишком много попыток. Подожди немного и попробуй снова.";
+    if (m.includes("password") && m.includes("6")) return "Пароль должен быть не короче 6 символов.";
+    if (m.includes("same") && m.includes("password")) return "Новый пароль должен отличаться от старого.";
+    if (m.includes("failed to fetch") || m.includes("network")) return "Нет связи с сервером. Проверь интернет.";
+    return "Что-то пошло не так. Попробуй ещё раз или напиши нам.";
+}
+
+
+/* =============================================================
+   АККАУНТЫ: два «движка»
+   1) Supabase — настоящая база (если вставлены ключи)
+   2) Демо — localStorage, только для показа на одном устройстве
+   ============================================================= */
+let currentUser = null;     // { username, email, survey }
+let sb = null;              // клиент Supabase
+
+const isConfigured = SUPABASE_URL.trim() !== "" && SUPABASE_KEY.trim() !== "";
+
+
+/* ---------- Демо-движок ---------- */
+async function hashPassword(text) {
+    try {
+        const data = new TextEncoder().encode("tv::" + text);
+        const buf = await crypto.subtle.digest("SHA-256", data);
+        return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+    } catch (e) {
+        // запасной простой хэш, если браузер не дал crypto.subtle
+        let h = 0;
+        for (const ch of "tv::" + text) h = (h * 31 + ch.charCodeAt(0)) | 0;
+        return "x" + h;
+    }
+}
+
+const demo = {
+    users() {
+        return store.get("tv_users") || [];
+    },
+    save(users) {
+        store.set("tv_users", users);
+    },
+    find(identifier) {
+        const id = identifier.trim().toLowerCase();
+        return this.users().find(u =>
+            u.email.toLowerCase() === id || u.username.toLowerCase() === id
         );
+    },
+
+    async restore() {
+        const id = store.get("tv_session");
+        const user = id && this.users().find(u => u.id === id);
+        return user ? { username: user.username, email: user.email, survey: user.survey } : null;
+    },
+
+    async login(identifier, password) {
+        const user = this.find(identifier);
+        if (!user || user.pass !== await hashPassword(password)) {
+            throw new Error("Invalid login credentials");
+        }
+        store.set("tv_session", user.id);
+        return { username: user.username, email: user.email, survey: user.survey };
+    },
+
+    async signUp(email, username, password, survey) {
+        const users = this.users();
+        if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+            throw new Error("User already registered");
+        }
+        if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+            throw new Error("USERNAME_TAKEN");
+        }
+        const user = {
+            id: "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            email,
+            username,
+            pass: await hashPassword(password),
+            survey,
+            created: new Date().toISOString()
+        };
+        users.push(user);
+        this.save(users);
+        store.set("tv_session", user.id);
+        return { user: { username, email, survey }, needsConfirm: false };
+    },
+
+    async resetRequest() {
+        // в демо письма не отправляются — просто показываем успех
+        await new Promise(r => setTimeout(r, 500));
+    },
+
+    async updatePassword() {
+        throw new Error("В демо-режиме смена пароля по ссылке недоступна.");
+    },
+
+    async logout() {
+        store.remove("tv_session");
+    }
+};
+
+
+/* ---------- Supabase-движок ---------- */
+const cloud = {
+    async profileFor(user) {
+        const { data } = await sb
+            .from("profiles")
+            .select("username, survey")
+            .eq("id", user.id)
+            .maybeSingle();
+
+        const meta = user.user_metadata || {};
+        return {
+            username: (data && data.username) || meta.username || user.email,
+            email: user.email,
+            survey: (data && data.survey) || meta.survey || null
+        };
+    },
+
+    async restore() {
+        const { data } = await sb.auth.getSession();
+        return data.session ? this.profileFor(data.session.user) : null;
+    },
+
+    async login(identifier, password) {
+        let email = identifier.trim();
+
+        // вход по юзернейму: сначала узнаём почту
+        if (!email.includes("@")) {
+            const { data, error } = await sb.rpc("email_for_username", { p_username: email });
+            if (error || !data) throw new Error("Invalid login credentials");
+            email = data;
+        }
+
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        return this.profileFor(data.user);
+    },
+
+    async signUp(email, username, password, survey) {
+        const { data: taken, error: rpcError } = await sb.rpc("username_taken", { p_username: username });
+        if (rpcError) throw rpcError;
+        if (taken) throw new Error("USERNAME_TAKEN");
+
+        const { data, error } = await sb.auth.signUp({
+            email,
+            password,
+            options: {
+                data: { username, survey },
+                emailRedirectTo: location.origin + location.pathname
+            }
+        });
+        if (error) throw error;
+
+        // Supabase так сообщает, что почта уже занята
+        if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+            throw new Error("User already registered");
+        }
+
+        return {
+            user: { username, email, survey },
+            needsConfirm: !data.session
+        };
+    },
+
+    async resetRequest(email) {
+        const { error } = await sb.auth.resetPasswordForEmail(email, {
+            redirectTo: location.origin + location.pathname
+        });
+        if (error) throw error;
+    },
+
+    async updatePassword(password) {
+        const { data, error } = await sb.auth.updateUser({ password });
+        if (error) throw error;
+        return this.profileFor(data.user);
+    },
+
+    async logout() {
+        await sb.auth.signOut();
+    }
+};
+
+let auth = demo;
+
+
+/* =============================================================
+   ФОРМЫ
+   ============================================================= */
+
+// ---------- ВХОД ----------
+document.getElementById("loginForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    hideMsg("loginMsg");
+
+    const id = document.getElementById("loginId").value.trim();
+    const pass = document.getElementById("loginPass").value;
+
+    if (!id) {
+        markInvalid("loginId");
+        return showMsg("loginMsg", "Введи почту или юзернейм.");
+    }
+    if (!pass) {
+        markInvalid("loginPass");
+        return showMsg("loginMsg", "Введи пароль.");
     }
 
-    updateScreen();
+    setLoading("loginBtn", true, "Входим…");
+    try {
+        const user = await auth.login(id, pass);
+        enterApp(user);
+        document.getElementById("loginForm").reset();
+    } catch (err) {
+        showMsg("loginMsg", humanError(err));
+    } finally {
+        setLoading("loginBtn", false);
+    }
+});
 
+
+// ---------- РЕГИСТРАЦИЯ ----------
+document.getElementById("registerForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    hideMsg("registerMsg");
+
+    const email = document.getElementById("regEmail").value.trim();
+    const username = document.getElementById("regUser").value.trim();
+    const pass = document.getElementById("regPass").value;
+    const pass2 = document.getElementById("regPass2").value;
+
+    if (!EMAIL_RE.test(email)) {
+        markInvalid("regEmail");
+        return showMsg("registerMsg", "Похоже, в почте ошибка. Пример: maria@mail.ru");
+    }
+    if (!USER_RE.test(username)) {
+        markInvalid("regUser");
+        return showMsg("registerMsg", "Юзернейм: 3–20 символов, только латиница, цифры, точка и _.");
+    }
+    if (pass.length < 6) {
+        markInvalid("regPass");
+        return showMsg("registerMsg", "Пароль должен быть не короче 6 символов.");
+    }
+    if (pass !== pass2) {
+        markInvalid("regPass2");
+        return showMsg("registerMsg", "Пароли не совпадают.");
+    }
+
+    const survey = store.get("tochkaVstrechiProfile") || answers;
+
+    setLoading("registerBtn", true, "Создаём аккаунт…");
+    try {
+        const result = await auth.signUp(email, username, pass, survey);
+        document.getElementById("registerForm").reset();
+
+        if (result.needsConfirm) {
+            document.getElementById("checkEmailAddr").textContent = email;
+            go("checkEmail");
+        } else {
+            enterApp(result.user);
+        }
+    } catch (err) {
+        if (err && err.message === "USERNAME_TAKEN") {
+            markInvalid("regUser");
+            showMsg("registerMsg", "Такой юзернейм уже занят — придумай другой.");
+        } else {
+            showMsg("registerMsg", humanError(err));
+        }
+    } finally {
+        setLoading("registerBtn", false);
+    }
+});
+
+
+// ---------- ЗАБЫЛИ ПАРОЛЬ ----------
+document.getElementById("forgotForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    hideMsg("forgotMsg");
+
+    const email = document.getElementById("forgotEmail").value.trim();
+    if (!EMAIL_RE.test(email)) {
+        markInvalid("forgotEmail");
+        return showMsg("forgotMsg", "Похоже, в почте ошибка. Пример: maria@mail.ru");
+    }
+
+    setLoading("forgotBtn", true, "Отправляем…");
+    try {
+        await auth.resetRequest(email);
+        // специально не говорим, есть ли такой аккаунт — так безопаснее
+        showMsg(
+            "forgotMsg",
+            auth === demo
+                ? "Готово! В демо-режиме письма не отправляются — подключи Supabase, и сюда будет приходить настоящая ссылка."
+                : "Если аккаунт с этой почтой существует, мы отправили письмо со ссылкой. Проверь и папку «Спам».",
+            "ok"
+        );
+        document.getElementById("forgotForm").reset();
+    } catch (err) {
+        showMsg("forgotMsg", humanError(err));
+    } finally {
+        setLoading("forgotBtn", false);
+    }
+});
+
+
+// ---------- НОВЫЙ ПАРОЛЬ ----------
+document.getElementById("newPassForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    hideMsg("newPassMsg");
+
+    const pass = document.getElementById("newPass").value;
+    const pass2 = document.getElementById("newPass2").value;
+
+    if (pass.length < 6) {
+        markInvalid("newPass");
+        return showMsg("newPassMsg", "Пароль должен быть не короче 6 символов.");
+    }
+    if (pass !== pass2) {
+        markInvalid("newPass2");
+        return showMsg("newPassMsg", "Пароли не совпадают.");
+    }
+
+    setLoading("newPassBtn", true, "Сохраняем…");
+    try {
+        const user = await auth.updatePassword(pass);
+        document.getElementById("newPassForm").reset();
+        enterApp(user);
+    } catch (err) {
+        showMsg("newPassMsg", err.message && err.message.startsWith("В демо") ? err.message : humanError(err));
+    } finally {
+        setLoading("newPassBtn", false);
+    }
+});
+
+
+/* =============================================================
+   ВОШЛИ / ВЫШЛИ
+   ============================================================= */
+function enterApp(user) {
+    currentUser = user;
+    document.getElementById("homeUser").textContent = "@" + (user.username || "user");
+    renderProfile(document.getElementById("homeProfile"), user.survey);
+    go("home");
+}
+
+async function logout() {
+    try {
+        await auth.logout();
+    } catch (e) { /* ничего страшного */ }
+    currentUser = null;
+    go("welcome");
+}
+
+
+/* =============================================================
+   ЗАПУСК
+   ============================================================= */
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+}
+
+let recoveryMode = false;
+
+async function init() {
+    if (isConfigured) {
+        try {
+            await loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2");
+            sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            auth = cloud;
+
+            // человек пришёл по ссылке «сбросить пароль» из письма
+            sb.auth.onAuthStateChange(event => {
+                if (event === "PASSWORD_RECOVERY") {
+                    recoveryMode = true;
+                    go("newPassword");
+                }
+            });
+        } catch (e) {
+            console.warn("Supabase не загрузился — включаю демо-режим", e);
+            auth = demo;
+        }
+    }
+
+    document.getElementById("demoBadge").classList.toggle("show", auth === demo);
+
+    const isRecovery = recoveryMode || location.hash.includes("type=recovery");
+
+    try {
+        const user = await auth.restore();
+        if (user && !isRecovery && !recoveryMode) {
+            enterApp(user);
+        }
+    } catch (e) {
+        console.warn(e);
+    }
+
+    if (isRecovery) go("newPassword");
+}
+
+init();
 </script>
 
 </body>
 </html>
-
-
