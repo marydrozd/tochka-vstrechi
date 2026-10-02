@@ -2080,8 +2080,8 @@
    Чтобы включить настоящую регистрацию — вставь сюда данные
    из Supabase: Project Settings → API (Data API).
    ============================================================= */
-const SUPABASE_URL = "https://jhaauzgpykbcxljtkaxh.supabase.co/rest/v1/";   // например: "https://abcdefgh.supabase.co"
-const SUPABASE_KEY = "sb_publishable_Jb48K6JnxX2uKLp7SaHYMQ__Zs9XaiY";   // Publishable key (или anon public key)
+const SUPABASE_URL = "";   // например: "https://abcdefgh.supabase.co"
+const SUPABASE_KEY = "";   // Publishable key (или anon public key)
 
 
 /* =============================================================
@@ -2588,15 +2588,30 @@ document.querySelectorAll(".toggle-pass").forEach(btn => {
 
 // понятные сообщения вместо английских ошибок Supabase
 function humanError(err) {
-    const m = ((err && err.message) || String(err || "")).toLowerCase();
+    const raw = (err && (err.message || err.error_description || err.code)) || String(err || "");
+    const m = raw.toLowerCase();
+    console.warn("Ошибка:", err);
+
     if (m.includes("invalid login")) return "Неверный логин или пароль.";
     if (m.includes("already registered") || m.includes("already exists")) return "Аккаунт с такой почтой уже есть. Попробуй войти.";
     if (m.includes("email not confirmed")) return "Почта ещё не подтверждена — открой письмо и перейди по ссылке.";
+    if (m.includes("error sending") || m.includes("sending confirmation") || m.includes("sending recovery"))
+        return "Supabase не смог отправить письмо. Выключи «Confirm email» в Authentication → Sign In / Providers (или подключи свою почту SMTP).";
     if (m.includes("rate limit") || m.includes("too many")) return "Слишком много попыток. Подожди немного и попробуй снова.";
+    if (m.includes("could not find the function") || m.includes("schema cache") || m.includes("does not exist"))
+        return "База не настроена: в Supabase → SQL Editor нужно запустить файл supabase-setup.sql.";
+    if (m.includes("database error saving new user"))
+        return "Ошибка базы при создании профиля. Проверь, что supabase-setup.sql запущен полностью, без ошибок.";
+    if (m.includes("invalid api key") || m.includes("no api key") || m.includes("jwt"))
+        return "Неверный ключ Supabase. Проверь строку SUPABASE_KEY в index.html.";
+    if (m.includes("signups not allowed") || m.includes("signup is disabled"))
+        return "В Supabase выключена регистрация. Включи «Allow new users to sign up» в Authentication → Sign In / Providers.";
     if (m.includes("password") && m.includes("6")) return "Пароль должен быть не короче 6 символов.";
     if (m.includes("same") && m.includes("password")) return "Новый пароль должен отличаться от старого.";
-    if (m.includes("failed to fetch") || m.includes("network")) return "Нет связи с сервером. Проверь интернет.";
-    return "Что-то пошло не так. Попробуй ещё раз или напиши нам.";
+    if (m.includes("failed to fetch") || m.includes("network") || m.includes("load failed"))
+        return "Нет связи с Supabase. Проверь интернет и строку SUPABASE_URL в index.html.";
+
+    return "Что-то пошло не так. Техническая причина: " + raw;
 }
 
 
