@@ -601,6 +601,11 @@
             overflow: hidden;
         }
 
+        .about-logo {
+            width: 70%;
+            height: auto;
+        }
+
         .glow-card svg {
             width: 62%;
             height: auto;
@@ -1246,20 +1251,8 @@
                     </p>
                 </div>
 
-                <div class="glow-card" aria-hidden="true">
-                    <svg viewBox="0 0 300 300">
-                        <circle class="glow-ring" cx="150" cy="150" r="110"/>
-                        <g class="orbit">
-                            <circle cx="150" cy="40" r="7" fill="#a77bf3"/>
-                            <circle cx="260" cy="150" r="5" fill="#cdb8f6"/>
-                        </g>
-                        <!-- метка -->
-                        <path d="M150 214 C 132 190, 104 166, 104 128 A 46 46 0 1 1 196 128 C 196 166, 168 190, 150 214 Z"
-                              fill="#ffffff" stroke="#6a35d2" stroke-width="5"
-                              style="filter: drop-shadow(0 0 12px rgba(106,53,210,.45))"/>
-                        <circle cx="141" cy="128" r="15" fill="#a77bf3"/>
-                        <circle cx="159" cy="128" r="15" fill="#6a35d2" fill-opacity="0.85"/>
-                    </svg>
+                <div class="glow-card">
+                    <img src="logo-animated.svg" alt="Логотип Точка Встречи" class="about-logo">
                 </div>
             </div>
 
@@ -2080,8 +2073,8 @@
    Чтобы включить настоящую регистрацию — вставь сюда данные
    из Supabase: Project Settings → API (Data API).
    ============================================================= */
-const SUPABASE_URL = "https://jhaauzgpykbcxljtkaxh.supabase.co";   // например: "https://abcdefgh.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpoYWF1emdweWtiY3hsanRrYXhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTAwMDcsImV4cCI6MjEwNjUyNjAwN30.U2TgluUg4NZopX7ymQxUitmb2l73ske9hLPivFRz_sw";   // Publishable key (или anon public key)
+const SUPABASE_URL = "";   // например: "https://abcdefgh.supabase.co"
+const SUPABASE_KEY = "";   // Publishable key (или anon public key)
 
 
 /* =============================================================
