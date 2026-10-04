@@ -64,8 +64,8 @@
         .blob {
             position: absolute;
             border-radius: 50%;
-            filter: blur(70px);
-            opacity: 0.75;
+            opacity: 0.9;
+            will-change: transform;
             animation: drift 22s ease-in-out infinite alternate;
         }
 
@@ -74,7 +74,7 @@
             height: 46vw;
             min-width: 340px;
             min-height: 340px;
-            background: #ddcdfd;
+            background: radial-gradient(circle, rgba(221, 205, 253, 1) 0%, rgba(221, 205, 253, 0.55) 40%, rgba(221, 205, 253, 0) 70%);
             top: -12%;
             right: -8%;
         }
@@ -84,7 +84,7 @@
             height: 38vw;
             min-width: 280px;
             min-height: 280px;
-            background: #dce6f3;
+            background: radial-gradient(circle, rgba(220, 230, 243, 1) 0%, rgba(220, 230, 243, 0.55) 40%, rgba(220, 230, 243, 0) 70%);
             bottom: -14%;
             left: -10%;
             animation-duration: 28s;
@@ -95,7 +95,7 @@
             height: 30vw;
             min-width: 220px;
             min-height: 220px;
-            background: #cfdcef;
+            background: radial-gradient(circle, rgba(207, 220, 239, 1) 0%, rgba(207, 220, 239, 0.55) 40%, rgba(207, 220, 239, 0) 70%);
             top: 38%;
             left: 52%;
             opacity: 0.6;
@@ -500,9 +500,8 @@
         }
 
         .glass {
-            background: rgba(255, 255, 255, 0.72);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+
         }
 
         .help-line {
@@ -1118,8 +1117,7 @@
             inset: 0;
             z-index: 20;
             background: rgba(30, 27, 47, 0.22);
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.25s ease;
@@ -1899,9 +1897,7 @@
             padding: 12px 12px 12px 20px;
             border-radius: 18px;
             border: 1px solid var(--blue-mid);
-            background: rgba(255, 255, 255, 0.86);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.97);
             box-shadow: 0 14px 40px rgba(74, 100, 137, 0.16);
         }
 
@@ -3368,6 +3364,7 @@ function go(id) {
         b.classList.toggle("active", b.dataset.go === id);
     });
 
+    if (window.glyphWake) window.glyphWake();
     if (id === "myWalks") renderWalks();
     if (id === "profile") renderProfilePage();
     if (id === "home") updateWalksCount();
@@ -3416,25 +3413,47 @@ setInterval(tickClock, 10000);
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const CELL = 22;                  // размер клетки сетки
-    const RADIUS = 150;               // радиус вокруг курсора
+    const RADIUS = 140;               // радиус вокруг курсора
     const SYMBOLS = ["›", "·", "○", "–", "+", "›", "◦", "›"];
     const COLORS = ["#b0c4de", "#c9b3f5", "#8a5ae6", "#6a35d2"];
 
     let w, h, cols, rows, energy, glyph, dpr;
-    let pointer = { x: -9999, y: -9999, active: false, last: 0 };
-    let t = 0;
+    let sprites = [];                 // заранее нарисованные символы — так намного быстрее
+    const active = new Set();         // только клетки, которые сейчас светятся
+    const pointer = { x: 0, y: 0, moved: 0 };
+    let running = false;
+    let lastMove = -1e9;
+
+    function buildSprites() {
+        const size = Math.ceil(CELL * dpr);
+        sprites = COLORS.map(color => SYMBOLS.map(symbol => {
+            const c = document.createElement("canvas");
+            c.width = c.height = size;
+            const x = c.getContext("2d");
+            x.scale(dpr, dpr);
+            x.font = "600 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            x.textAlign = "center";
+            x.textBaseline = "middle";
+            x.fillStyle = color;
+            x.fillText(symbol, CELL / 2, CELL / 2);
+            return c;
+        }));
+    }
 
     function resize() {
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        dpr = Math.min(window.devicePixelRatio || 1, 1.5);
         w = window.innerWidth;
         h = window.innerHeight;
-        canvas.width = w * dpr;
-        canvas.height = h * dpr;
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         cols = Math.ceil(w / CELL) + 1;
         rows = Math.ceil(h / CELL) + 1;
         energy = new Float32Array(cols * rows);
         glyph = new Uint8Array(cols * rows).map(() => Math.floor(Math.random() * SYMBOLS.length));
+        active.clear();
+        buildSprites();
+        wake();
     }
 
     function excite(px, py, strength) {
@@ -3442,74 +3461,86 @@ setInterval(tickClock, 10000);
         const c1 = Math.min(cols - 1, Math.ceil((px + RADIUS) / CELL));
         const r0 = Math.max(0, Math.floor((py - RADIUS) / CELL));
         const r1 = Math.min(rows - 1, Math.ceil((py + RADIUS) / CELL));
+        const R2 = RADIUS * RADIUS;
 
         for (let r = r0; r <= r1; r++) {
             for (let c = c0; c <= c1; c++) {
                 const dx = c * CELL + CELL / 2 - px;
                 const dy = r * CELL + CELL / 2 - py;
-                const d = Math.sqrt(dx * dx + dy * dy);
-                if (d > RADIUS) continue;
+                const d2 = dx * dx + dy * dy;
+                if (d2 > R2) continue;
 
-                // мягкое «пятно» + немного шума, чтобы край был живым
-                let f = 1 - d / RADIUS;
+                let f = 1 - Math.sqrt(d2) / RADIUS;
                 f = f * f * strength * (0.75 + Math.random() * 0.25);
 
                 const i = r * cols + c;
-                if (f > energy[i]) energy[i] = f;
+                if (f > energy[i]) {
+                    energy[i] = f;
+                    active.add(i);
+                }
             }
         }
     }
 
+    // «призрак» гуляет по экрану только на заставке и только если мышь не двигается
+    function ghostOn(now) {
+        return !reduceMotion &&
+            typeof currentScreen !== "undefined" && currentScreen === "welcome" &&
+            now - lastMove > 2500 &&
+            !document.hidden;
+    }
+
     function frame(now) {
-        t = now || 0;
         ctx.clearRect(0, 0, w, h);
 
-        // если курсора давно не было — по экрану медленно «гуляет» невидимая точка
-        const idle = !pointer.active || t - pointer.last > 2500;
-        if (idle && !reduceMotion) {
-            const gx = w * (0.5 + 0.36 * Math.sin(t / 5200));
-            const gy = h * (0.5 + 0.30 * Math.sin(t / 3700 + 1.3));
-            excite(gx, gy, 0.55);
-        } else if (pointer.active) {
+        if (now - lastMove < 120) {
             excite(pointer.x, pointer.y, 1);
+        } else if (ghostOn(now)) {
+            const gx = w * (0.5 + 0.36 * Math.sin(now / 5200));
+            const gy = h * (0.5 + 0.30 * Math.sin(now / 3700 + 1.3));
+            excite(gx, gy, 0.55);
         }
 
-        ctx.font = "600 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        for (let i = 0; i < energy.length; i++) {
+        for (const i of active) {
             const e = energy[i];
             if (e < 0.03) {
                 energy[i] = 0;
+                active.delete(i);
                 continue;
             }
-
-            // иногда символ меняется — эффект «мерцания»
-            if (Math.random() < 0.02) {
-                glyph[i] = Math.floor(Math.random() * SYMBOLS.length);
-            }
+            if (Math.random() < 0.02) glyph[i] = Math.floor(Math.random() * SYMBOLS.length);
 
             const c = i % cols;
             const r = (i - c) / cols;
             const colorIndex = Math.min(COLORS.length - 1, Math.floor(e * COLORS.length));
 
             ctx.globalAlpha = Math.min(1, e * 1.15);
-            ctx.fillStyle = COLORS[colorIndex];
-            ctx.fillText(SYMBOLS[glyph[i]], c * CELL + CELL / 2, r * CELL + CELL / 2);
-
-            energy[i] = e * 0.955;   // плавное затухание
+            ctx.drawImage(sprites[colorIndex][glyph[i]], c * CELL, r * CELL, CELL, CELL);
+            energy[i] = e * 0.955;
         }
-
         ctx.globalAlpha = 1;
+
+        // ничего не светится и курсор стоит — останавливаемся, чтобы не грузить компьютер
+        if (active.size === 0 && now - lastMove >= 120 && !ghostOn(now)) {
+            running = false;
+            return;
+        }
         requestAnimationFrame(frame);
     }
+
+    function wake() {
+        if (!running) {
+            running = true;
+            requestAnimationFrame(frame);
+        }
+    }
+    window.glyphWake = wake;
 
     function onMove(x, y) {
         pointer.x = x;
         pointer.y = y;
-        pointer.active = true;
-        pointer.last = t;
+        lastMove = performance.now();
+        wake();
     }
 
     window.addEventListener("pointermove", e => onMove(e.clientX, e.clientY), { passive: true });
@@ -3517,11 +3548,10 @@ setInterval(tickClock, 10000);
         const p = e.touches[0];
         if (p) onMove(p.clientX, p.clientY);
     }, { passive: true });
-    document.addEventListener("pointerleave", () => { pointer.active = false; });
     window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) wake(); });
 
     resize();
-    requestAnimationFrame(frame);
 })();
 
 
