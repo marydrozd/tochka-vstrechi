@@ -23,6 +23,12 @@
             --bg: #f9f9fb;
             --white: #ffffff;
             --error: #c4314b;
+
+            /* второй цвет — светлый серо-голубой (RGB 176, 196, 222) */
+            --blue: #b0c4de;
+            --blue-mid: #d6e1ee;
+            --blue-soft: #eef3f9;
+            --blue-ink: #4a6489;
             --success: #1f8a5b;
         }
 
@@ -78,7 +84,7 @@
             height: 38vw;
             min-width: 280px;
             min-height: 280px;
-            background: #e9e1ff;
+            background: #dce6f3;
             bottom: -14%;
             left: -10%;
             animation-duration: 28s;
@@ -89,10 +95,10 @@
             height: 30vw;
             min-width: 220px;
             min-height: 220px;
-            background: #d4c9ff;
+            background: #cfdcef;
             top: 38%;
             left: 52%;
-            opacity: 0.45;
+            opacity: 0.6;
             animation-duration: 34s;
         }
 
@@ -393,7 +399,7 @@
 
         .route-dots {
             fill: none;
-            stroke: #cdb8f6;
+            stroke: var(--blue);
             stroke-width: 5;
             stroke-linecap: round;
             stroke-dasharray: 0.1 14;
@@ -410,7 +416,7 @@
         }
 
         .route-start {
-            fill: #cdb8f6;
+            fill: var(--blue);
         }
 
         .meet-point {
@@ -463,6 +469,10 @@
             top: 12%;
         }
 
+        .curl-right path {
+            stroke: #c6d5e8;
+        }
+
         .curl-right {
             right: 3%;
             bottom: 14%;
@@ -506,7 +516,7 @@
             color: var(--purple);
             font-weight: 700;
             text-decoration: none;
-            border-bottom: 1px solid #d7c6fb;
+            border-bottom: 1px solid var(--blue);
         }
 
         .help-line a:hover {
@@ -557,7 +567,8 @@
 
         .pill {
             display: block;
-            border: 1px solid var(--border);
+            border: 1px solid var(--blue-mid);
+            background: rgba(238, 243, 249, 0.6);
             border-radius: 999px;
             padding: 11px 22px;
             font-size: 12px;
@@ -644,7 +655,7 @@
         }
 
         .step-card:hover {
-            border-color: #bca4e9;
+            border-color: var(--blue);
             transform: translateY(-2px);
         }
 
@@ -910,7 +921,7 @@
         .progress-bar {
             height: 100%;
             width: 12.5%;
-            background: var(--purple);
+            background: linear-gradient(90deg, var(--purple), #9c8fe0 70%, var(--blue));
             transition: width 0.3s ease;
         }
 
@@ -1062,7 +1073,887 @@
         /* =========================================================
            ТЕЛЕФОН
            ========================================================= */
+        /* =========================================================
+           ШАПКА ПОСЛЕ ВХОДА + МЕНЮ СПРАВА
+           ========================================================= */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .menu-btn {
+            display: none;
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border-radius: 13px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .menu-btn span {
+            display: block;
+            width: 18px;
+            height: 2px;
+            border-radius: 2px;
+            background: var(--text);
+        }
+
+        .menu-btn:hover {
+            border-color: var(--blue);
+            background: var(--blue-soft);
+        }
+
+        body.logged .menu-btn {
+            display: flex;
+        }
+
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            background: rgba(30, 27, 47, 0.22);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .drawer-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            z-index: 21;
+            width: min(340px, 88vw);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 22px;
+            background: var(--white);
+            box-shadow: -20px 0 60px rgba(60, 40, 120, 0.12);
+            transform: translateX(105%);
+            transition: transform 0.3s cubic-bezier(.2, .8, .2, 1);
+            overflow-y: auto;
+        }
+
+        .drawer.open {
+            transform: none;
+        }
+
+        .drawer-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 18px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .avatar {
+            flex: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--purple), var(--blue));
+            color: var(--white);
+            font-size: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .avatar.big {
+            width: 72px;
+            height: 72px;
+            border-radius: 22px;
+            font-size: 30px;
+        }
+
+        .drawer-name {
+            font-weight: 800;
+            word-break: break-all;
+        }
+
+        .drawer-mail {
+            color: var(--muted);
+            font-size: 13px;
+            word-break: break-all;
+        }
+
+        .drawer-close {
+            margin-left: auto;
+            padding: 8px 11px;
+            background: none;
+            color: var(--muted);
+            font-size: 18px;
+        }
+
+        .drawer-close:hover {
+            background: var(--blue-soft);
+        }
+
+        .drawer-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 2px;
+            text-align: left;
+            background: none;
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .drawer-item .ic {
+            flex: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--lilac);
+            font-size: 17px;
+        }
+
+        .drawer-item .ic.blue {
+            background: var(--blue-soft);
+        }
+
+        .drawer-item:hover,
+        .drawer-item.active {
+            background: var(--blue-soft);
+        }
+
+        .drawer-item.active .ic {
+            background: var(--white);
+        }
+
+        .drawer-item.logout {
+            color: var(--error);
+        }
+
+        .drawer-item.logout .ic {
+            background: #fdecef;
+        }
+
+        .drawer-item .count-badge {
+            margin-left: auto;
+        }
+
+        .drawer-sep {
+            height: 1px;
+            margin: 10px 0;
+            background: var(--border);
+        }
+
+        .drawer-foot {
+            margin-top: auto;
+            padding-top: 20px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* =========================================================
+           ГЛАВНАЯ ПОСЛЕ ВХОДА
+           ========================================================= */
+        .home-title {
+            font-size: clamp(38px, 6vw, 64px);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.04em;
+            margin-bottom: 14px;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .action-card {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 230px;
+            padding: 26px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            text-align: left;
+            font-weight: 400;
+        }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 40px rgba(80, 60, 160, 0.13);
+        }
+
+        .action-card.main {
+            border: none;
+            background: linear-gradient(145deg, #7a45e0 0%, #5a2cc2 100%);
+            color: var(--white);
+        }
+
+        .action-card.quick {
+            border-color: var(--blue-mid);
+            background: linear-gradient(145deg, #f3f7fb 0%, #dbe5f2 100%);
+        }
+
+        .action-card .ic {
+            width: 54px;
+            height: 54px;
+            border-radius: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 25px;
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .action-card.quick .ic {
+            background: var(--blue);
+        }
+
+        .action-card .go {
+            position: absolute;
+            top: 26px;
+            right: 26px;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .action-card.quick .go {
+            color: var(--purple);
+        }
+
+        .action-card .card-title {
+            margin: auto 0 8px;
+            padding-top: 26px;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .action-card .card-text {
+            max-width: 68%;
+            font-size: 15px;
+            line-height: 1.5;
+            opacity: 0.85;
+        }
+
+        .home-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .soft-link {
+            padding: 11px 16px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .soft-link:hover {
+            border-color: var(--blue);
+            background: var(--blue-soft);
+        }
+
+        .count-badge {
+            margin-left: 6px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: var(--blue-soft);
+            color: var(--blue-ink);
+            font-size: 12px;
+        }
+
+        /* =========================================================
+           КОНСТРУКТОР ПРОГУЛКИ
+           ========================================================= */
+        .block {
+            margin-bottom: 30px;
+        }
+
+        .block-title {
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .block-hint {
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+        }
+
+        .chip {
+            padding: 11px 16px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .chip:hover {
+            border-color: #bca4e9;
+        }
+
+        .chip.selected {
+            border-color: var(--purple);
+            background: var(--lilac);
+            color: var(--purple-dark);
+        }
+
+        .sub-block {
+            margin-top: 14px;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px dashed var(--blue);
+            background: var(--blue-soft);
+        }
+
+        .counter {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--white);
+        }
+
+        .counter button {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 10px;
+            background: var(--blue-soft);
+            color: var(--blue-ink);
+            font-size: 20px;
+        }
+
+        .counter button:hover {
+            background: var(--blue);
+            color: var(--white);
+        }
+
+        .counter b {
+            min-width: 48px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .friend-status {
+            margin-top: 10px;
+            color: var(--blue-ink);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .friend-status:empty {
+            display: none;
+        }
+
+        .survey-note {
+            margin: -22px 0 26px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: var(--blue-soft);
+            color: var(--blue-ink);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* =========================================================
+           «СКОРО ДОБАВИМ КАРТЫ»
+           ========================================================= */
+        .map-placeholder {
+            width: 100%;
+            margin-bottom: 30px;
+            border-radius: 24px;
+            border: 1px solid var(--blue-mid);
+            overflow: hidden;
+            background: var(--blue-soft);
+        }
+
+        .map-placeholder svg {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .map-route {
+            fill: none;
+            stroke: var(--purple);
+            stroke-width: 5;
+            stroke-linecap: round;
+            stroke-dasharray: 2 14;
+            animation: march 1.2s linear infinite;
+        }
+
+        @keyframes march {
+            to { stroke-dashoffset: -16; }
+        }
+
+        .soon-title {
+            font-size: clamp(34px, 6vw, 56px);
+            font-weight: 800;
+            line-height: 1.02;
+            letter-spacing: -0.04em;
+            margin-bottom: 14px;
+        }
+
+        .soon-title .accent {
+            display: block;
+        }
+
+        /* =========================================================
+           ВАШИ МАРШРУТЫ
+           ========================================================= */
+        .walk-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 12px;
+            padding: 18px 20px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: var(--white);
+        }
+
+        .walk-ic {
+            flex: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--lilac);
+            font-size: 21px;
+        }
+
+        .walk-ic.quick {
+            background: var(--blue-soft);
+        }
+
+        .walk-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .walk-title {
+            margin-bottom: 4px;
+            font-weight: 800;
+        }
+
+        .walk-meta {
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .tag.blue {
+            background: var(--blue-soft);
+            color: var(--blue-ink);
+        }
+
+        .walk-del {
+            flex: none;
+            padding: 6px 8px;
+            background: none;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .walk-del:hover,
+        .walk-del.confirm {
+            color: var(--error);
+        }
+
+        .status {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--blue-soft);
+            color: var(--blue-ink);
+            font-size: 11px;
+            font-weight: 700;
+            vertical-align: 2px;
+        }
+
+        /* =========================================================
+           ПРОФИЛЬ
+           ========================================================= */
+        .profile-head {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 26px;
+        }
+
+        .profile-head h1 {
+            margin: 0 0 4px;
+            word-break: break-all;
+        }
+
+
+        /* =========================================================
+           ГЛАВНАЯ — ДЕКОР
+           ========================================================= */
+        #home {
+            position: relative;
+        }
+
+        .home-inner {
+            position: relative;
+            z-index: 2;
+        }
+
+        .home-curl {
+            z-index: 0;
+            opacity: 0.7;
+        }
+
+        #home .curl-left {
+            left: -9%;
+            top: 0;
+        }
+
+        #home .curl-right {
+            right: -9%;
+            top: 46%;
+            bottom: auto;
+        }
+
+        .action-card .card-art {
+            position: absolute;
+            right: -6px;
+            bottom: -6px;
+            width: 40%;
+            height: auto;
+            pointer-events: none;
+        }
+
+        .action-card.main .ic,
+        .action-card.quick .ic {
+            color: var(--white);
+        }
+
+        .action-card > *:not(.card-art):not(.go) {
+            position: relative;
+        }
+
+        .home-strip {
+            margin-top: 34px;
+            text-align: center;
+        }
+
+        .home-strip .route-strip {
+            width: min(760px, 100%);
+            margin: 0 auto;
+            display: block;
+        }
+
+        .home-quote {
+            margin-top: 6px;
+            font-size: clamp(20px, 3vw, 28px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        /* =========================================================
+           КАРТОЧКИ ВОПРОСОВ (построить / быстрый маршрут)
+           ========================================================= */
+        .q-card {
+            margin-bottom: 14px;
+            padding: 22px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .q-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .q-num {
+            flex: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--lilac), var(--blue-soft));
+            color: var(--purple);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .q-title {
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        .q-sub {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* сегменты: одна строка равных кнопок */
+        .seg {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            padding: 5px;
+            border-radius: 15px;
+            background: var(--blue-soft);
+        }
+
+        .seg .chip {
+            padding: 12px 6px;
+            border: none;
+            border-radius: 11px;
+            background: transparent;
+            color: var(--blue-ink);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .seg .chip:hover {
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .seg .chip.selected {
+            background: var(--white);
+            color: var(--purple);
+            box-shadow: 0 4px 14px rgba(74, 100, 137, 0.15);
+        }
+
+        /* карточки-варианты */
+        .opt-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .opt-grid.two {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .chip.opt {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            padding: 16px 16px 16px;
+            border-radius: 16px;
+            text-align: left;
+        }
+
+        .opt-title {
+            font-size: 15px;
+            font-weight: 700;
+            padding-right: 22px;
+        }
+
+        .opt-desc {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.35;
+        }
+
+        .chip.opt::after {
+            content: "";
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            transition: 0.2s ease;
+        }
+
+        .chip.opt.selected::after {
+            border-color: var(--purple);
+            background: radial-gradient(circle, var(--purple) 0 4px, var(--white) 5px);
+        }
+
+        .chip.opt.selected .opt-title {
+            color: var(--purple-dark);
+        }
+
+        .nick-block {
+            margin-top: 12px;
+        }
+
+        .nick-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nick-input {
+            position: relative;
+            flex: 1;
+        }
+
+        .nick-input .at {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--purple);
+            font-weight: 800;
+            pointer-events: none;
+        }
+
+        .nick-input input {
+            padding-left: 34px;
+            background: var(--white);
+        }
+
+        .friend-status.bad {
+            color: var(--error);
+        }
+
+        .sub-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .sub-row .block-hint {
+            margin: 0;
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon svg {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--purple);
+            pointer-events: none;
+        }
+
+        .input-icon input {
+            padding-left: 44px;
+        }
+
+        /* нижняя панель */
+        .builder-bar {
+            position: sticky;
+            bottom: 14px;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-top: 22px;
+            padding: 12px 12px 12px 20px;
+            border-radius: 18px;
+            border: 1px solid var(--blue-mid);
+            background: rgba(255, 255, 255, 0.86);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 14px 40px rgba(74, 100, 137, 0.16);
+        }
+
+        .builder-bar .btn-big {
+            flex: none;
+            white-space: nowrap;
+        }
+
+        .bar-summary {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .bar-summary b {
+            color: var(--text);
+        }
+
+        @media (max-width: 600px) {
+            .opt-grid,
+            .opt-grid.two {
+                grid-template-columns: 1fr;
+            }
+
+            .seg .chip {
+                font-size: 13px;
+                padding: 11px 2px;
+            }
+
+            .q-card {
+                padding: 18px;
+            }
+
+            .builder-bar {
+                padding: 10px 10px 10px 14px;
+            }
+
+            .builder-bar .btn-big {
+                padding: 14px 18px;
+            }
+
+            .bar-summary {
+                font-size: 13px;
+            }
+        }
+
         @media (max-width: 800px) {
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
             .about-grid {
                 grid-template-columns: 1fr;
             }
@@ -1153,11 +2044,41 @@
     демо-режим · данные только в этом браузере
 </div>
 
+<!-- меню справа (видно только после входа) -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeMenu()"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="Меню">
+    <div class="drawer-head">
+        <div class="avatar" id="drawerAvatar">?</div>
+        <div>
+            <div class="drawer-name" id="drawerName">@user</div>
+            <div class="drawer-mail" id="drawerMail"></div>
+        </div>
+        <button class="drawer-close" onclick="closeMenu()" aria-label="Закрыть меню">✕</button>
+    </div>
+
+    <button class="drawer-item" data-go="home"><span class="ic">🧭</span>Главная</button>
+    <button class="drawer-item" data-go="profile"><span class="ic">👤</span>Профиль</button>
+    <button class="drawer-item" data-go="myWalks"><span class="ic blue">🗺</span>Ваши маршруты<span class="count-badge" id="walksCount" hidden>0</span></button>
+    <button class="drawer-item" data-go="about"><span class="ic blue">✦</span>О проекте</button>
+    <!-- сюда потом можно добавить новые пункты меню -->
+
+    <div class="drawer-sep"></div>
+    <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
+
+    <div class="drawer-foot">Скоро здесь появится больше 💜</div>
+</aside>
+
+
 <div class="app">
 
     <header>
         <div class="logo" id="logo" role="button" tabindex="0">ТочкаВстречи</div>
-        <div class="clock">Москва <b id="clock">--:--</b></div>
+        <div class="header-right">
+            <div class="clock">Москва <b id="clock">--:--</b></div>
+            <button class="menu-btn" id="menuBtn" aria-label="Открыть меню" onclick="openMenu()">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
     </header>
 
     <main>
@@ -1207,7 +2128,7 @@
                 <p class="help-line rise d6">
                     Проблемы со входом или сайтом? Пишите!<br>
                     <!-- ПОКА НЕ РАБОЧАЯ ПОЧТА — потом замени на настоящую -->
-                    <a href="mailto:tochka.vashei.vstrechi@gmail.com">tochka.vashei.vstrechi@gmail.com</a>
+                    <a href="mailto:help@tochka-vstrechi.ru">help@tochka-vstrechi.ru</a>
                 </p>
             </div>
         </section>
@@ -1218,7 +2139,7 @@
              ===================================================== -->
         <section class="screen wide" id="about">
 
-            <button class="back-link" onclick="go('welcome')">← На главную</button>
+            <button class="back-link" onclick="goHome()">← На главную</button>
 
             <div class="eyebrow">Главная <span>— о проекте</span></div>
 
@@ -1279,8 +2200,8 @@
             <div class="about-final">
                 <h2>Каждый маршрут — <span class="accent">своя точка встречи.</span></h2>
                 <div class="row center">
-                    <button class="btn-primary btn-big" onclick="go('authChoice')">Попробовать →</button>
-                    <button class="btn-secondary btn-big" onclick="go('welcome')">На главную</button>
+                    <button class="btn-primary btn-big" onclick="tryNow()">Попробовать →</button>
+                    <button class="btn-secondary btn-big" onclick="goHome()">На главную</button>
                 </div>
             </div>
         </section>
@@ -1400,13 +2321,16 @@
         <section class="screen" id="survey">
 
             <div class="survey-top">
-                <div class="step">Знакомство</div>
+                <div class="step" id="surveyLabel">Знакомство</div>
                 <div class="step" id="stepCounter">1 / 8</div>
             </div>
 
             <div class="progress">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
+
+            <p class="survey-note" id="surveyNote" hidden></p>
+            <div class="form-msg" id="surveyMsg"></div>
             <!-- ВОПРОС 1 -->
             <section class="question active" data-key="vibe" data-multiple="true">
     
@@ -2031,50 +2955,397 @@
 
 
         <!-- =====================================================
-             7. ПОСЛЕ ВХОДА (пока пусто)
+             7. ГЛАВНАЯ ПОСЛЕ ВХОДА
              ===================================================== -->
-        <section class="screen" id="home">
+        <section class="screen wide" id="home">
 
-            <div class="empty-state">
+            <!-- завитки по бокам -->
+            <svg class="curl curl-left home-curl" viewBox="0 0 300 300" aria-hidden="true">
+                <path pathLength="1" d="M20 210 C 10 90, 170 30, 240 110 C 300 180, 220 270, 150 225 C 90 186, 140 110, 200 140 C 240 160, 230 210, 195 205"/>
+            </svg>
+            <svg class="curl curl-right home-curl" viewBox="0 0 300 300" aria-hidden="true">
+                <path pathLength="1" d="M30 60 C 120 0, 260 60, 230 150 C 205 225, 110 230, 105 170 C 100 115, 180 110, 190 160 C 198 200, 150 230, 80 280"/>
+            </svg>
+
+            <div class="home-inner">
                 <p class="hello">Привет, <b id="homeUser">@user</b> 👋</p>
+                <h1 class="home-title">Куда пойдём <span class="accent">сегодня?</span></h1>
+                <p class="subtitle">Выбери, как собрать прогулку.</p>
 
-                <h1 class="empty-title">
-                    Пока здесь пусто,
-                    <span class="accent">скоро обнова :)</span>
-                </h1>
+                <div class="action-grid">
+                    <button class="action-card main" onclick="startBuilder()">
+                        <!-- декоративный маршрут в углу -->
+                        <svg class="card-art" viewBox="0 0 200 160" aria-hidden="true">
+                            <path d="M10 150 C 50 90, 80 130, 110 90 C 135 55, 160 80, 182 40" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 12"/>
+                            <circle cx="10" cy="150" r="7" fill="rgba(255,255,255,.35)"/>
+                            <path d="M182 44 C 174 33, 164 25, 164 13 A 18 18 0 1 1 200 13 C 200 25, 190 33, 182 44 Z" fill="rgba(255,255,255,.4)"/>
+                        </svg>
+                        <span class="ic">
+                            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+                        </span>
+                        <span class="go">→</span>
+                        <span class="card-title">Построить маршрут</span>
+                        <span class="card-text">Учтём, с кем ты идёшь, сколько есть времени, бюджет и настроение.</span>
+                    </button>
 
-                <svg class="wander" viewBox="0 0 220 70" aria-hidden="true">
-                    <path id="wanderPath" d="M10 50 C 50 0, 90 70, 130 30 C 160 0, 190 40, 210 20"/>
-                    <circle r="6">
-                        <animateMotion dur="4s" repeatCount="indefinite" rotate="auto">
-                            <mpath href="#wanderPath"/>
-                        </animateMotion>
-                    </circle>
+                    <button class="action-card quick" onclick="startQuick()">
+                        <svg class="card-art" viewBox="0 0 200 160" aria-hidden="true">
+                            <circle cx="140" cy="90" r="58" fill="none" stroke="rgba(106,53,210,.12)" stroke-width="10"/>
+                            <path d="M140 90 L140 55 M140 90 L165 105" stroke="rgba(106,53,210,.18)" stroke-width="8" stroke-linecap="round"/>
+                        </svg>
+                        <span class="ic">
+                            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
+                        </span>
+                        <span class="go">→</span>
+                        <span class="card-title">Быстрый маршрут</span>
+                        <span class="card-text">Только время и точка старта — остальное подберём по твоему профилю.</span>
+                    </button>
+                </div>
+
+                <!-- два пути сходятся в точке встречи -->
+                <div class="home-strip" aria-hidden="true">
+                    <svg class="route-strip" viewBox="0 0 1000 170">
+                        <path class="route-dots" pathLength="100" d="M14 60 C 90 8, 196 18, 214 82 C 230 138, 150 152, 150 104 C 150 54, 262 42, 332 92 C 392 134, 444 133, 490 132"/>
+                        <path class="route-dots" pathLength="100" d="M986 60 C 910 8, 804 18, 786 82 C 770 138, 850 152, 850 104 C 850 54, 738 42, 668 92 C 608 134, 556 133, 510 132"/>
+                        <path class="route-path" pathLength="1" d="M14 60 C 90 8, 196 18, 214 82 C 230 138, 150 152, 150 104 C 150 54, 262 42, 332 92 C 392 134, 444 133, 490 132"/>
+                        <path class="route-path" pathLength="1" d="M986 60 C 910 8, 804 18, 786 82 C 770 138, 850 152, 850 104 C 850 54, 738 42, 668 92 C 608 134, 556 133, 510 132"/>
+                        <circle class="route-start" cx="14" cy="60" r="6"/>
+                        <circle class="route-start" cx="986" cy="60" r="6"/>
+                        <circle class="meet-ring" cx="500" cy="132" r="9"/>
+                        <circle class="meet-point" cx="500" cy="132" r="9"/>
+                    </svg>
+                    <p class="home-quote">Каждый маршрут — <span class="accent">своя точка встречи</span></p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             8. ПОСТРОИТЬ МАРШРУТ — вопросы о сегодняшней прогулке
+             ===================================================== -->
+        <section class="screen" id="walkBuilder">
+
+            <button class="back-link" onclick="go('home')">← На главную</button>
+
+            <div class="question-number">Новая прогулка</div>
+            <h1>Построить маршрут</h1>
+            <p class="subtitle">Пять коротких вопросов о сегодняшней прогулке. Твои интересы из профиля мы уже учли.</p>
+
+            <div class="form-msg" id="builderMsg"></div>
+
+            <!-- 01 -->
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">01</span>
+                    <div>
+                        <div class="q-title">С кем сегодня гуляем?</div>
+                        <div class="q-sub">От этого зависит, какие места подойдут.</div>
+                    </div>
+                </div>
+
+                <div class="chips opt-grid" data-draft="walk" data-field="company" data-single>
+                    <button type="button" class="chip opt" data-value="solo">
+                        <span class="opt-title">Один / одна</span>
+                        <span class="opt-desc">Прогулка для себя</span>
+                    </button>
+                    <button type="button" class="chip opt" data-value="friends">
+                        <span class="opt-title">С друзьями</span>
+                        <span class="opt-desc">Компания от двух человек</span>
+                    </button>
+                    <button type="button" class="chip opt" data-value="person">
+                        <span class="opt-title">С конкретным человеком</span>
+                        <span class="opt-desc">Друг, свидание, родные</span>
+                    </button>
+                </div>
+
+                <div class="sub-block" id="friendsBlock" hidden>
+                    <div class="sub-row">
+                        <div class="block-hint">Сколько вас, включая тебя?</div>
+                        <div class="counter">
+                            <button type="button" onclick="changeCount(-1)" aria-label="Меньше">−</button>
+                            <b id="peopleCount">3</b>
+                            <button type="button" onclick="changeCount(1)" aria-label="Больше">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sub-block" id="personBlock" hidden>
+                    <div class="block-hint">Чьи интересы учитывать?</div>
+                    <div class="chips opt-grid" data-draft="walk" data-field="personMode" data-single>
+                        <button type="button" class="chip opt" data-value="nick">
+                            <span class="opt-title">Ввести его юзернейм</span>
+                            <span class="opt-desc">Если у него есть аккаунт</span>
+                        </button>
+                        <button type="button" class="chip opt" data-value="survey">
+                            <span class="opt-title">Пройти опрос за него</span>
+                            <span class="opt-desc">8 вопросов о его вкусах</span>
+                        </button>
+                        <button type="button" class="chip opt" data-value="mine">
+                            <span class="opt-title">По моим интересам</span>
+                            <span class="opt-desc">Если не знаешь, что ему нравится</span>
+                        </button>
+                    </div>
+
+                    <div class="nick-block" id="nickBlock" hidden>
+                        <div class="nick-row">
+                            <div class="nick-input">
+                                <span class="at">@</span>
+                                <input id="friendNick" type="text" maxlength="20" autocomplete="off" placeholder="юзернейм друга">
+                            </div>
+                            <button type="button" class="btn-primary" id="findBtn" onclick="findFriend()">Найти</button>
+                        </div>
+                    </div>
+
+                    <div class="friend-status" id="friendStatus"></div>
+                </div>
+            </div>
+
+            <!-- 02 -->
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">02</span>
+                    <div>
+                        <div class="q-title">Сколько есть времени?</div>
+                        <div class="q-sub">Подберём столько мест, чтобы не бежать.</div>
+                    </div>
+                </div>
+                <div class="chips seg" data-draft="walk" data-field="time" data-single>
+                    <button type="button" class="chip" data-value="30">30 мин</button>
+                    <button type="button" class="chip" data-value="60">1 ч</button>
+                    <button type="button" class="chip" data-value="120">2 ч</button>
+                    <button type="button" class="chip" data-value="180">3 ч</button>
+                    <button type="button" class="chip" data-value="240">4+ ч</button>
+                </div>
+            </div>
+
+            <!-- 03 -->
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">03</span>
+                    <div>
+                        <div class="q-title">Бюджет на человека</div>
+                        <div class="q-sub">Кафе, билеты, покупки — всё вместе.</div>
+                    </div>
+                </div>
+                <div class="chips seg" data-draft="walk" data-field="budget" data-single>
+                    <button type="button" class="chip" data-value="0">0 ₽</button>
+                    <button type="button" class="chip" data-value="500">до 500 ₽</button>
+                    <button type="button" class="chip" data-value="1500">до 1500 ₽</button>
+                    <button type="button" class="chip" data-value="3000">до 3000 ₽</button>
+                    <button type="button" class="chip" data-value="any">неважно</button>
+                </div>
+            </div>
+
+            <!-- 04 -->
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">04</span>
+                    <div>
+                        <div class="q-title">Какая будет прогулка?</div>
+                        <div class="q-sub">Темп и настроение.</div>
+                    </div>
+                </div>
+                <div class="chips opt-grid" data-draft="walk" data-field="pace" data-single>
+                    <button type="button" class="chip opt" data-value="calm">
+                        <span class="opt-title">Спокойная</span>
+                        <span class="opt-desc">Без спешки, больше остановок</span>
+                    </button>
+                    <button type="button" class="chip opt" data-value="active">
+                        <span class="opt-title">Энергичная</span>
+                        <span class="opt-desc">Много ходьбы и новых мест</span>
+                    </button>
+                    <button type="button" class="chip opt" data-value="mixed">
+                        <span class="opt-title">Смешанная</span>
+                        <span class="opt-desc">Понемногу всего</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 05 -->
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">05</span>
+                    <div>
+                        <div class="q-title">Откуда начинаем?</div>
+                        <div class="q-sub">Станция метро, адрес или известное место.</div>
+                    </div>
+                </div>
+                <div class="input-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+                    <input id="builderStart" type="text" maxlength="120" placeholder="Например: м. Китай-город">
+                </div>
+            </div>
+
+            <!-- нижняя панель с итогом -->
+            <div class="builder-bar">
+                <div class="bar-summary" id="builderSummary">Ответь на вопросы выше</div>
+                <button class="btn-primary btn-big" id="builderBtn" onclick="submitBuilder()">Готово ✓</button>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             9. БЫСТРЫЙ МАРШРУТ
+             ===================================================== -->
+        <section class="screen" id="quickWalk">
+
+            <button class="back-link" onclick="go('home')">← На главную</button>
+
+            <div class="question-number">Быстрый маршрут</div>
+            <h1>Всего два вопроса</h1>
+            <p class="subtitle">Остальное подберём по твоему профилю.</p>
+
+            <div class="form-msg" id="quickMsg"></div>
+
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">01</span>
+                    <div>
+                        <div class="q-title">Сколько есть времени?</div>
+                        <div class="q-sub">Подберём столько мест, чтобы не бежать.</div>
+                    </div>
+                </div>
+                <div class="chips seg" data-draft="quick" data-field="time" data-single>
+                    <button type="button" class="chip" data-value="30">30 мин</button>
+                    <button type="button" class="chip" data-value="60">1 ч</button>
+                    <button type="button" class="chip" data-value="120">2 ч</button>
+                    <button type="button" class="chip" data-value="180">3 ч</button>
+                    <button type="button" class="chip" data-value="240">4+ ч</button>
+                </div>
+            </div>
+
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">02</span>
+                    <div>
+                        <div class="q-title">Откуда начинаем?</div>
+                        <div class="q-sub">Станция метро, адрес или известное место.</div>
+                    </div>
+                </div>
+                <div class="input-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+                    <input id="quickStart" type="text" maxlength="120" placeholder="Например: м. Китай-город">
+                </div>
+            </div>
+
+            <div class="builder-bar">
+                <div class="bar-summary" id="quickSummary">Выбери время и точку старта</div>
+                <button class="btn-primary btn-big" id="quickBtn" onclick="submitQuick()">Построить ⚡</button>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             10. СКОРО ДОБАВИМ КАРТЫ
+             ===================================================== -->
+        <section class="screen" id="routeSoon">
+
+            <div class="map-placeholder" aria-hidden="true">
+                <svg viewBox="0 0 600 240">
+                    <defs>
+                        <pattern id="mapGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+                            <path d="M30 0 L0 0 0 30" fill="none" stroke="#d6e1ee" stroke-width="1"/>
+                        </pattern>
+                    </defs>
+                    <rect width="600" height="240" fill="#eef3f9"/>
+                    <rect width="600" height="240" fill="url(#mapGrid)"/>
+                    <!-- «улицы» -->
+                    <path d="M0 70 C 150 60, 260 110, 600 90" stroke="#ffffff" stroke-width="14" fill="none"/>
+                    <path d="M0 180 C 200 170, 380 200, 600 160" stroke="#ffffff" stroke-width="10" fill="none"/>
+                    <path d="M210 0 C 230 80, 190 160, 230 240" stroke="#ffffff" stroke-width="12" fill="none"/>
+                    <path d="M440 0 C 420 90, 470 170, 450 240" stroke="#ffffff" stroke-width="9" fill="none"/>
+                    <!-- парк и вода -->
+                    <ellipse cx="520" cy="200" rx="70" ry="34" fill="#dfe9f4"/>
+                    <rect x="300" y="20" width="90" height="46" rx="14" fill="#e6dcfb"/>
+                    <!-- маршрут -->
+                    <path class="map-route" d="M70 185 C 140 120, 190 150, 230 120 C 280 80, 330 150, 380 120 C 430 90, 470 70, 530 60"/>
+                    <circle cx="70" cy="185" r="10" fill="#b0c4de" stroke="#ffffff" stroke-width="4"/>
+                    <circle cx="230" cy="120" r="7" fill="#a77bf3" stroke="#ffffff" stroke-width="3"/>
+                    <circle cx="380" cy="120" r="7" fill="#a77bf3" stroke="#ffffff" stroke-width="3"/>
+                    <path d="M530 62 C 520 48, 506 38, 506 22 A 24 24 0 1 1 554 22 C 554 38, 540 48, 530 62 Z" fill="#6a35d2"/>
+                    <circle cx="530" cy="22" r="9" fill="#ffffff"/>
                 </svg>
             </div>
 
-            <div id="homeProfile"></div>
+            <h1 class="soon-title">
+                Маршрут почти готов,
+                <span class="accent">скоро добавим карты :)</span>
+            </h1>
+            <p class="subtitle">
+                Мы сохранили параметры прогулки в «Ваши маршруты». Как только подключим карты,
+                здесь появится настоящий путь по городу.
+            </p>
 
-            <div class="row center" style="margin-top: 24px;">
-                <button class="btn-secondary" onclick="logout()">Выйти из аккаунта</button>
+            <div class="profile-card">
+                <div class="profile-title">Параметры прогулки</div>
+                <div class="tags" id="soonTags"></div>
+            </div>
+
+            <div class="row" style="margin-top: 22px;">
+                <button class="btn-primary btn-big" onclick="go('myWalks')">Ваши маршруты</button>
+                <button class="btn-secondary btn-big" onclick="go('home')">На главную</button>
             </div>
         </section>
+
+
+        <!-- =====================================================
+             11. ВАШИ МАРШРУТЫ
+             ===================================================== -->
+        <section class="screen" id="myWalks">
+
+            <button class="back-link" onclick="go('home')">← На главную</button>
+
+            <div class="question-number">Меню</div>
+            <h1>Ваши маршруты</h1>
+            <p class="subtitle">Здесь хранятся все прогулки, которые ты собирал(а).</p>
+
+            <div class="form-msg" id="walksMsg"></div>
+            <div id="walksList"></div>
+        </section>
+
+
+        <!-- =====================================================
+             12. ПРОФИЛЬ
+             ===================================================== -->
+        <section class="screen" id="profile">
+
+            <button class="back-link" onclick="go('home')">← На главную</button>
+
+            <div class="profile-head">
+                <div class="avatar big" id="profileAvatar">?</div>
+                <div>
+                    <h1 id="profileName">@user</h1>
+                    <div class="drawer-mail" id="profileMail"></div>
+                </div>
+            </div>
+
+            <div class="form-msg" id="profileMsg"></div>
+            <div id="profilePrefs"></div>
+
+            <div class="row" style="margin-top: 22px;">
+                <button class="btn-primary btn-big" onclick="editPreferences()">✎ Изменить предпочтения</button>
+            </div>
+        </section>
+
 
     </main>
 </div>
 
 
+<!-- ключи Supabase лежат в отдельном файле, чтобы не вставлять их заново при каждом обновлении -->
+<script src="config.js"></script>
+
 <script>
 /* =============================================================
    НАСТРОЙКИ SUPABASE
    -------------------------------------------------------------
-   Пока строки пустые, сайт работает в ДЕМО-РЕЖИМЕ:
-   аккаунты хранятся только в этом браузере (localStorage).
-   Чтобы включить настоящую регистрацию — вставь сюда данные
-   из Supabase: Project Settings → API (Data API).
+   Ключи теперь хранятся в отдельном файле config.js
+   (он лежит рядом с index.html). Если файла нет или он пустой,
+   сайт работает в ДЕМО-РЕЖИМЕ: аккаунты только в этом браузере.
    ============================================================= */
-const SUPABASE_URL = "https://jhaauzgpykbcxljtkaxh.supabase.co";   // например: "https://abcdefgh.supabase.co"
-const SUPABASE_KEY = "sb_publishable_Jb48K6JnxX2uKLp7SaHYMQ__Zs9XaiY";   // Publishable key (или anon public key)
+const CONFIG = window.TV_CONFIG || {};
+const SUPABASE_URL = (CONFIG.url || "").trim();
+const SUPABASE_KEY = (CONFIG.key || "").trim();
 
 
 /* =============================================================
@@ -2083,10 +3354,24 @@ const SUPABASE_KEY = "sb_publishable_Jb48K6JnxX2uKLp7SaHYMQ__Zs9XaiY";   // Publ
 const screens = [...document.querySelectorAll(".screen")];
 let currentScreen = "welcome";
 
+const PRIVATE_SCREENS = ["home", "walkBuilder", "quickWalk", "routeSoon", "myWalks", "profile"];
+
 function go(id) {
+    // экраны после входа не открываются без аккаунта
+    if (PRIVATE_SCREENS.includes(id) && !currentUser) id = "welcome";
+
     screens.forEach(s => s.classList.toggle("active", s.id === id));
     currentScreen = id;
     window.scrollTo(0, 0);
+    closeMenu();
+
+    document.querySelectorAll(".drawer-item[data-go]").forEach(b => {
+        b.classList.toggle("active", b.dataset.go === id);
+    });
+
+    if (id === "myWalks") renderWalks();
+    if (id === "profile") renderProfilePage();
+    if (id === "home") updateWalksCount();
 
     // сбрасываем сообщения форм при переходе
     document.querySelectorAll(".form-msg").forEach(m => {
@@ -2095,9 +3380,7 @@ function go(id) {
     });
 }
 
-document.getElementById("logo").addEventListener("click", () => {
-    go(currentUser ? "home" : "welcome");
-});
+document.getElementById("logo").addEventListener("click", () => goHome());
 
 // карточки-кнопки открываются и с клавиатуры (Enter / пробел)
 document.querySelectorAll('[role="button"]').forEach(el => {
@@ -2136,7 +3419,7 @@ setInterval(tickClock, 10000);
     const CELL = 22;                  // размер клетки сетки
     const RADIUS = 150;               // радиус вокруг курсора
     const SYMBOLS = ["›", "·", "○", "–", "+", "›", "◦", "›"];
-    const COLORS = ["#c9b3f5", "#a77bf3", "#8a5ae6", "#6a35d2"];
+    const COLORS = ["#b0c4de", "#c9b3f5", "#8a5ae6", "#6a35d2"];
 
     let w, h, cols, rows, energy, glyph, dpr;
     let pointer = { x: -9999, y: -9999, active: false, last: 0 };
@@ -2366,14 +3649,37 @@ const labels = {
     }
 };
 
-function startSurvey() {
-    answers = emptyAnswers();
+// режимы опроса: "register" — при регистрации, "edit" — изменение
+// предпочтений в профиле, "friend" — опрос за другого человека
+let surveyMode = "register";
+
+const SURVEY_MODES = {
+    register: { label: "Знакомство", note: "", done: "Готово ✓" },
+    edit: { label: "Изменение предпочтений", note: "Твои прошлые ответы уже отмечены — поменяй то, что хочется.", done: "Сохранить ✓" },
+    friend: { label: "Опрос за друга", note: "Отвечай так, как ответил(а) бы человек, с которым идёшь гулять.", done: "Готово ✓" }
+};
+
+function openSurvey(mode, preset) {
+    surveyMode = mode;
+    answers = Object.assign(emptyAnswers(), preset ? JSON.parse(JSON.stringify(preset)) : {});
     currentQuestion = 0;
+
+    const cfg = SURVEY_MODES[mode];
+    document.getElementById("surveyLabel").textContent = cfg.label;
+    const note = document.getElementById("surveyNote");
+    note.textContent = cfg.note;
+    note.hidden = !cfg.note;
+
     go("survey");
     updateScreen();
 }
 
+function startSurvey() {
+    openSurvey("register");
+}
+
 function backToSurvey() {
+    surveyMode = "register";
     currentQuestion = questions.length - 1;
     go("survey");
     updateScreen();
@@ -2403,7 +3709,9 @@ function updateNextButton() {
 
     const nextBtn = document.getElementById("nextBtn");
     nextBtn.disabled = !hasAnswer;
-    nextBtn.textContent = currentQuestion === questions.length - 1 ? "Готово ✓" : "Далее →";
+    nextBtn.textContent = currentQuestion === questions.length - 1
+        ? SURVEY_MODES[surveyMode].done
+        : "Далее →";
 }
 
 function restoreCurrentSelections() {
@@ -2463,6 +3771,12 @@ function nextQuestion() {
         currentQuestion++;
         updateScreen();
         window.scrollTo(0, 0);
+    } else if (surveyMode === "edit") {
+        saveSurvey();
+    } else if (surveyMode === "friend") {
+        walkDraft.friendSurvey = JSON.parse(JSON.stringify(answers));
+        go("walkBuilder");
+        updateFriendStatus();
     } else {
         // опрос пройден → переходим к созданию аккаунта
         store.set("tochkaVstrechiProfile", answers);
@@ -2474,12 +3788,17 @@ function previousQuestion() {
     if (currentQuestion > 0) {
         currentQuestion--;
         updateScreen();
+    } else if (surveyMode === "edit") {
+        go("profile");
+    } else if (surveyMode === "friend") {
+        go("walkBuilder");
+        updateFriendStatus();
     } else {
         go("registerIntro");
     }
 }
 
-function renderProfile(container, data) {
+function renderProfile(container, data, labelText = "Твой профиль") {
     container.innerHTML = "";
     if (!data) return;
 
@@ -2496,7 +3815,7 @@ function renderProfile(container, data) {
 
     const label = document.createElement("div");
     label.className = "section-label";
-    label.textContent = "Твой профиль";
+    label.textContent = labelText;
     container.appendChild(label);
 
     sections.forEach(section => {
@@ -2592,7 +3911,9 @@ function humanError(err) {
         return "Supabase не смог отправить письмо. Выключи «Confirm email» в Authentication → Sign In / Providers (или подключи свою почту SMTP).";
     if (m.includes("rate limit") || m.includes("too many")) return "Слишком много попыток. Подожди немного и попробуй снова.";
     if (m.includes("could not find the function") || m.includes("schema cache") || m.includes("does not exist"))
-        return "База не настроена: в Supabase → SQL Editor нужно запустить файл supabase-setup.sql.";
+        return "База не настроена: в Supabase → SQL Editor запусти недостающий SQL-файл (supabase-friends.sql или supabase-walks.sql).";
+    if (m.includes("permission denied") || m.includes("row-level security"))
+        return "Нет доступа к таблице. Запусти ещё раз supabase-walks.sql в Supabase → SQL Editor.";
     if (m.includes("database error saving new user"))
         return "Ошибка базы при создании профиля. Проверь, что supabase-setup.sql запущен полностью, без ошибок.";
     if (m.includes("invalid api key") || m.includes("no api key") || m.includes("jwt"))
@@ -2650,7 +3971,7 @@ const demo = {
     async restore() {
         const id = store.get("tv_session");
         const user = id && this.users().find(u => u.id === id);
-        return user ? { username: user.username, email: user.email, survey: user.survey } : null;
+        return user ? { id: user.id, username: user.username, email: user.email, survey: user.survey } : null;
     },
 
     async login(identifier, password) {
@@ -2659,7 +3980,7 @@ const demo = {
             throw new Error("Invalid login credentials");
         }
         store.set("tv_session", user.id);
-        return { username: user.username, email: user.email, survey: user.survey };
+        return { id: user.id, username: user.username, email: user.email, survey: user.survey };
     },
 
     async signUp(email, username, password, survey) {
@@ -2681,7 +4002,7 @@ const demo = {
         users.push(user);
         this.save(users);
         store.set("tv_session", user.id);
-        return { user: { username, email, survey }, needsConfirm: false };
+        return { user: { id: user.id, username, email, survey }, needsConfirm: false };
     },
 
     async resetRequest() {
@@ -2695,6 +4016,44 @@ const demo = {
 
     async logout() {
         store.remove("tv_session");
+    },
+
+    async updateSurvey(survey) {
+        const users = this.users();
+        const user = users.find(u => u.id === store.get("tv_session"));
+        if (!user) throw new Error("Not logged in");
+        user.survey = survey;
+        this.save(users);
+    },
+
+    walksKey() {
+        return "tv_walks_" + store.get("tv_session");
+    },
+
+    async listWalks() {
+        return store.get(this.walksKey()) || [];
+    },
+
+    async addWalk(walk) {
+        const list = await this.listWalks();
+        const item = {
+            ...walk,
+            id: "w" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+            created_at: new Date().toISOString()
+        };
+        list.unshift(item);
+        store.set(this.walksKey(), list);
+        return item;
+    },
+
+    async findFriend(username) {
+        const user = this.users().find(u => u.username.toLowerCase() === username.toLowerCase());
+        return user ? { username: user.username, survey: user.survey } : null;
+    },
+
+    async deleteWalk(id) {
+        const list = await this.listWalks();
+        store.set(this.walksKey(), list.filter(w => w.id !== id));
     }
 };
 
@@ -2710,6 +4069,7 @@ const cloud = {
 
         const meta = user.user_metadata || {};
         return {
+            id: user.id,
             username: (data && data.username) || meta.username || user.email,
             email: user.email,
             survey: (data && data.survey) || meta.survey || null
@@ -2757,7 +4117,7 @@ const cloud = {
         }
 
         return {
-            user: { username, email, survey },
+            user: { id: data.user && data.user.id, username, email, survey },
             needsConfirm: !data.session
         };
     },
@@ -2777,6 +4137,59 @@ const cloud = {
 
     async logout() {
         await sb.auth.signOut();
+    },
+
+    async uid() {
+        const { data } = await sb.auth.getUser();
+        if (!data || !data.user) throw new Error("Not logged in");
+        return data.user.id;
+    },
+
+    async updateSurvey(survey) {
+        const id = await this.uid();
+        const { data, error } = await sb
+            .from("profiles")
+            .update({ survey })
+            .eq("id", id)
+            .select("id");
+        if (error) throw error;
+
+        // если строки профиля почему-то нет — сохраняем ответы в данные аккаунта
+        if (!data || !data.length) {
+            const { error: metaError } = await sb.auth.updateUser({ data: { survey } });
+            if (metaError) throw metaError;
+        }
+    },
+
+    async listWalks() {
+        const { data, error } = await sb
+            .from("walks")
+            .select("id, kind, title, params, created_at")
+            .order("created_at", { ascending: false });
+        if (error) throw error;
+        return data || [];
+    },
+
+    async addWalk(walk) {
+        const { data, error } = await sb
+            .from("walks")
+            .insert({ kind: walk.kind, title: walk.title, params: walk.params })
+            .select("id, kind, title, params, created_at")
+            .single();
+        if (error) throw error;
+        return data;
+    },
+
+    async findFriend(username) {
+        const { data, error } = await sb.rpc("survey_for_username", { p_username: username });
+        if (error) throw error;
+        const row = Array.isArray(data) ? data[0] : data;
+        return row ? { username: row.username, survey: row.survey } : null;
+    },
+
+    async deleteWalk(id) {
+        const { error } = await sb.from("walks").delete().eq("id", id);
+        if (error) throw error;
     }
 };
 
@@ -2936,8 +4349,8 @@ document.getElementById("newPassForm").addEventListener("submit", async e => {
    ============================================================= */
 function enterApp(user) {
     currentUser = user;
-    document.getElementById("homeUser").textContent = "@" + (user.username || "user");
-    renderProfile(document.getElementById("homeProfile"), user.survey);
+    document.body.classList.add("logged");
+    fillUserInfo();
     go("home");
 }
 
@@ -2946,7 +4359,542 @@ async function logout() {
         await auth.logout();
     } catch (e) { /* ничего страшного */ }
     currentUser = null;
+    document.body.classList.remove("logged");
+    closeMenu();
     go("welcome");
+}
+
+
+/* =============================================================
+   МЕНЮ СПРАВА
+   ============================================================= */
+function openMenu() {
+    document.getElementById("drawer").classList.add("open");
+    document.getElementById("drawerOverlay").classList.add("open");
+    document.getElementById("drawer").setAttribute("aria-hidden", "false");
+}
+
+function closeMenu() {
+    document.getElementById("drawer").classList.remove("open");
+    document.getElementById("drawerOverlay").classList.remove("open");
+    document.getElementById("drawer").setAttribute("aria-hidden", "true");
+}
+
+document.querySelectorAll(".drawer-item[data-go]").forEach(btn => {
+    btn.addEventListener("click", () => go(btn.dataset.go));
+});
+
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeMenu();
+});
+
+function goHome() {
+    go(currentUser ? "home" : "welcome");
+}
+
+function tryNow() {
+    go(currentUser ? "home" : "authChoice");
+}
+
+function fillUserInfo() {
+    if (!currentUser) return;
+    const name = currentUser.username || "user";
+    const letter = name.charAt(0) || "?";
+
+    document.getElementById("homeUser").textContent = "@" + name;
+    document.getElementById("drawerName").textContent = "@" + name;
+    document.getElementById("drawerMail").textContent = currentUser.email || "";
+    document.getElementById("drawerAvatar").textContent = letter;
+    document.getElementById("profileName").textContent = "@" + name;
+    document.getElementById("profileMail").textContent = currentUser.email || "";
+    document.getElementById("profileAvatar").textContent = letter;
+}
+
+
+/* =============================================================
+   ПРОФИЛЬ И ИЗМЕНЕНИЕ ПРЕДПОЧТЕНИЙ
+   ============================================================= */
+function renderProfilePage() {
+    fillUserInfo();
+    const box = document.getElementById("profilePrefs");
+
+    if (!currentUser || !currentUser.survey) {
+        box.innerHTML = "";
+        const card = document.createElement("div");
+        card.className = "profile-card";
+        card.textContent = "Предпочтения пока не заполнены — нажми «Изменить предпочтения», чтобы пройти опрос.";
+        box.appendChild(card);
+        return;
+    }
+
+    renderProfile(box, currentUser.survey, "Твои предпочтения");
+}
+
+function editPreferences() {
+    openSurvey("edit", currentUser && currentUser.survey);
+}
+
+async function saveSurvey() {
+    const btn = document.getElementById("nextBtn");
+    const survey = JSON.parse(JSON.stringify(answers));
+
+    btn.disabled = true;
+    btn.textContent = "Сохраняем…";
+
+    try {
+        await auth.updateSurvey(survey);
+        currentUser.survey = survey;
+        go("profile");
+        showMsg("profileMsg", "Предпочтения обновлены ✓", "ok");
+    } catch (err) {
+        showMsg("surveyMsg", humanError(err));
+        updateNextButton();
+    }
+}
+
+
+/* =============================================================
+   ПОДПИСИ ДЛЯ ПАРАМЕТРОВ ПРОГУЛКИ
+   ============================================================= */
+const TIME_LABELS = { 30: "30 мин", 60: "1 ч", 120: "2 ч", 180: "3 ч", 240: "4+ ч" };
+const BUDGET_LABELS = { "0": "0 ₽", "500": "до 500 ₽", "1500": "до 1500 ₽", "3000": "до 3000 ₽", any: "бюджет неважен" };
+const GOAL_LABELS = {
+    walk: "походить", sit: "посидеть", eat: "поесть",
+    shop: "что-нибудь купить", see: "интересные места", fun: "развлечься"
+};
+const PACE_LABELS = { calm: "спокойная", active: "энергичная", mixed: "смешанная" };
+const COMPANY_LABELS = { solo: "один / одна", friends: "с друзьями", person: "с конкретным человеком" };
+
+
+/* =============================================================
+   ПОСТРОИТЬ МАРШРУТ / БЫСТРЫЙ МАРШРУТ
+   ============================================================= */
+let walkDraft = null;
+let quickDraft = null;
+
+function newWalkDraft() {
+    return {
+        company: null,
+        people: 3,
+        personMode: null,
+        friendSurvey: null,
+        friendUsername: null,
+        nickSurvey: null,
+        time: null,
+        budget: null,
+        pace: null
+    };
+}
+
+function draftFor(name) {
+    return name === "quick" ? quickDraft : walkDraft;
+}
+
+function syncChips(draftName) {
+    const draft = draftFor(draftName);
+    if (!draft) return;
+
+    document.querySelectorAll(`.chips[data-draft="${draftName}"]`).forEach(group => {
+        const value = draft[group.dataset.field];
+        group.querySelectorAll(".chip").forEach(chip => {
+            chip.classList.toggle(
+                "selected",
+                Array.isArray(value) ? value.includes(chip.dataset.value) : value === chip.dataset.value
+            );
+        });
+    });
+}
+
+document.querySelectorAll(".chips[data-field]").forEach(group => {
+    group.querySelectorAll(".chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+            const draft = draftFor(group.dataset.draft);
+            const field = group.dataset.field;
+            const value = chip.dataset.value;
+            if (!draft) return;
+
+            if (group.hasAttribute("data-single")) {
+                draft[field] = value;
+            } else {
+                draft[field] = draft[field].includes(value)
+                    ? draft[field].filter(v => v !== value)
+                    : [...draft[field], value];
+            }
+
+            syncChips(group.dataset.draft);
+
+            if (field === "company") updateCompanyBlocks();
+            updateSummaries();
+            if (field === "personMode") {
+                updateFriendStatus();
+                if (value === "survey") openSurvey("friend", walkDraft.friendSurvey);
+            }
+        });
+    });
+});
+
+function updateCompanyBlocks() {
+    document.getElementById("friendsBlock").hidden = walkDraft.company !== "friends";
+    document.getElementById("personBlock").hidden = walkDraft.company !== "person";
+    document.getElementById("peopleCount").textContent = walkDraft.people;
+    updateFriendStatus();
+}
+
+function changeCount(delta) {
+    walkDraft.people = Math.min(20, Math.max(2, walkDraft.people + delta));
+    document.getElementById("peopleCount").textContent = walkDraft.people;
+    updateSummaries();
+}
+
+function updateFriendStatus() {
+    const el = document.getElementById("friendStatus");
+    el.classList.remove("bad");
+    document.getElementById("nickBlock").hidden = walkDraft.personMode !== "nick";
+
+    if (walkDraft.personMode === "nick") {
+        el.textContent = walkDraft.friendUsername
+            ? `✓ Нашли @${walkDraft.friendUsername} — учтём его интересы.`
+            : "";
+    } else if (walkDraft.personMode === "survey") {
+        el.textContent = walkDraft.friendSurvey
+            ? "✓ Опрос за друга пройден — учтём его интересы. Нажми ещё раз, чтобы изменить ответы."
+            : "";
+    } else if (walkDraft.personMode === "mine") {
+        el.textContent = "Подберём прогулку по твоим интересам.";
+    } else {
+        el.textContent = "";
+    }
+}
+
+async function findFriend() {
+    const input = document.getElementById("friendNick");
+    const el = document.getElementById("friendStatus");
+    const nick = input.value.trim().replace(/^@/, "");
+
+    walkDraft.friendUsername = null;
+    walkDraft.nickSurvey = null;
+    el.classList.remove("bad");
+
+    if (!USER_RE.test(nick)) {
+        el.classList.add("bad");
+        el.textContent = "Юзернейм: 3–20 символов, латиница, цифры, точка и _.";
+        input.focus();
+        return;
+    }
+    if (currentUser && nick.toLowerCase() === (currentUser.username || "").toLowerCase()) {
+        el.classList.add("bad");
+        el.textContent = "Это твой юзернейм 🙂 Для себя выбери «По моим интересам».";
+        return;
+    }
+
+    setLoading("findBtn", true, "Ищем…");
+    try {
+        const friend = await auth.findFriend(nick);
+        if (!friend) {
+            el.classList.add("bad");
+            el.textContent = `Пользователя @${nick} не нашли. Проверь юзернейм или пройди опрос за него.`;
+        } else if (!friend.survey) {
+            el.classList.add("bad");
+            el.textContent = `@${friend.username} ещё не заполнил(а) опрос. Пройди опрос за него.`;
+        } else {
+            walkDraft.friendUsername = friend.username;
+            walkDraft.nickSurvey = friend.survey;
+            updateFriendStatus();
+        }
+    } catch (err) {
+        el.classList.add("bad");
+        el.textContent = humanError(err);
+    } finally {
+        setLoading("findBtn", false);
+        updateSummaries();
+    }
+}
+
+document.getElementById("friendNick").addEventListener("input", e => {
+    // «@» уже нарисован слева — второй не нужен
+    if (e.target.value.startsWith("@")) e.target.value = e.target.value.replace(/^@+/, "");
+});
+
+document.getElementById("friendNick").addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        findFriend();
+    }
+});
+
+function startBuilder() {
+    walkDraft = newWalkDraft();
+    document.getElementById("builderStart").value = "";
+    document.getElementById("friendNick").value = "";
+    syncChips("walk");
+    updateCompanyBlocks();
+    updateSummaries();
+    go("walkBuilder");
+}
+
+function startQuick() {
+    quickDraft = { time: null };
+    document.getElementById("quickStart").value = "";
+    syncChips("quick");
+    updateSummaries();
+    go("quickWalk");
+}
+
+function updateSummaries() {
+    if (walkDraft) {
+        const d = walkDraft;
+        const parts = [];
+        if (d.company === "friends") parts.push(`с друзьями, ${d.people} чел.`);
+        else if (d.company === "person" && d.friendUsername) parts.push("с @" + d.friendUsername);
+        else if (d.company) parts.push(COMPANY_LABELS[d.company]);
+        if (d.time) parts.push(TIME_LABELS[d.time]);
+        if (d.budget) parts.push(BUDGET_LABELS[d.budget]);
+        if (d.pace) parts.push(PACE_LABELS[d.pace]);
+        const el = document.getElementById("builderSummary");
+        el.innerHTML = "";
+        if (parts.length) {
+            const b = document.createElement("b");
+            b.textContent = parts.join(" · ");
+            el.append("Сегодня: ", b);
+        } else {
+            el.textContent = "Ответь на вопросы выше";
+        }
+    }
+    if (quickDraft) {
+        const el = document.getElementById("quickSummary");
+        const start = document.getElementById("quickStart").value.trim();
+        const parts = [];
+        if (quickDraft.time) parts.push(TIME_LABELS[quickDraft.time]);
+        if (start) parts.push("от «" + start + "»");
+        el.innerHTML = "";
+        if (parts.length) {
+            const b = document.createElement("b");
+            b.textContent = parts.join(" · ");
+            el.append(b);
+        } else {
+            el.textContent = "Выбери время и точку старта";
+        }
+    }
+}
+
+document.getElementById("quickStart").addEventListener("input", updateSummaries);
+
+function builderError(text) {
+    showMsg("builderMsg", text);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function submitBuilder() {
+    const d = walkDraft;
+    const start = document.getElementById("builderStart").value.trim();
+
+    if (!d.company) return builderError("Выбери, с кем сегодня гуляешь.");
+    if (d.company === "person" && !d.personMode) return builderError("Выбери, чьи интересы учитывать.");
+    if (d.company === "person" && d.personMode === "nick" && !d.friendUsername) {
+        return builderError("Введи юзернейм друга и нажми «Найти» — или выбери другой вариант.");
+    }
+    if (d.company === "person" && d.personMode === "survey" && !d.friendSurvey) {
+        return builderError("Пройди короткий опрос за друга или выбери «Подобрать по моим интересам».");
+    }
+    if (!d.time) return builderError("Выбери, сколько времени на прогулку.");
+    if (!d.budget) return builderError("Выбери бюджет.");
+    if (!d.pace) return builderError("Выбери, какой будет прогулка.");
+    if (!start) {
+        document.getElementById("builderStart").focus();
+        return builderError("Напиши, откуда начинаем.");
+    }
+
+    const params = {
+        company: d.company,
+        people: d.company === "friends" ? d.people : (d.company === "person" ? 2 : 1),
+        personMode: d.company === "person" ? d.personMode : null,
+        friendSurvey: d.company !== "person" ? null
+            : d.personMode === "survey" ? d.friendSurvey
+            : d.personMode === "nick" ? d.nickSurvey
+            : null,
+        friendUsername: d.company === "person" && d.personMode === "nick" ? d.friendUsername : null,
+        time: Number(d.time),
+        budget: d.budget,
+        pace: d.pace,
+        start
+    };
+
+    const companyShort = { solo: "соло", friends: "с друзьями", person: "вдвоём" }[d.company];
+    const title = params.friendUsername
+        ? `Прогулка с @${params.friendUsername} · ${TIME_LABELS[params.time]}`
+        : `Прогулка ${companyShort} · ${TIME_LABELS[params.time]}`;
+
+    await saveWalk("full", title, params, "builderBtn", "builderMsg");
+}
+
+async function submitQuick() {
+    const start = document.getElementById("quickStart").value.trim();
+
+    if (!quickDraft.time) return showMsg("quickMsg", "Выбери, сколько времени на прогулку.");
+    if (!start) {
+        document.getElementById("quickStart").focus();
+        return showMsg("quickMsg", "Напиши, откуда начинаем.");
+    }
+
+    const params = { time: Number(quickDraft.time), start };
+    const title = `Быстрая прогулка · ${TIME_LABELS[params.time]}`;
+
+    await saveWalk("quick", title, params, "quickBtn", "quickMsg");
+}
+
+async function saveWalk(kind, title, params, btnId, msgId) {
+    setLoading(btnId, true, "Сохраняем…");
+    try {
+        const walk = await auth.addWalk({ kind, title, params });
+        renderTags(document.getElementById("soonTags"), walkTags(walk));
+        go("routeSoon");
+        updateWalksCount();
+    } catch (err) {
+        showMsg(msgId, humanError(err));
+    } finally {
+        setLoading(btnId, false);
+    }
+}
+
+function walkTags(walk) {
+    const p = walk.params || {};
+    const tags = [];
+
+    if (walk.kind === "quick") tags.push({ text: "быстрый маршрут", blue: true });
+    if (p.time) tags.push({ text: TIME_LABELS[p.time], blue: true });
+    if (p.start) tags.push({ text: "старт: " + p.start, blue: true });
+
+    if (p.company) {
+        let text = COMPANY_LABELS[p.company];
+        if (p.company === "friends") text += ` · ${p.people} чел.`;
+        tags.push({ text });
+    }
+    if (p.personMode === "survey") tags.push({ text: "учтём интересы друга" });
+    if (p.personMode === "nick" && p.friendUsername) tags.push({ text: "интересы @" + p.friendUsername });
+    if (p.personMode === "mine") tags.push({ text: "по моим интересам" });
+    if (p.budget) tags.push({ text: BUDGET_LABELS[p.budget] });
+    if (p.pace) tags.push({ text: PACE_LABELS[p.pace] + " прогулка" });
+    if (walk.kind === "quick") tags.push({ text: "по твоему профилю" });
+
+    return tags;
+}
+
+function renderTags(container, tags) {
+    container.innerHTML = "";
+    tags.forEach(t => {
+        const span = document.createElement("span");
+        span.className = "tag" + (t.blue ? " blue" : "");
+        span.textContent = t.text;
+        container.appendChild(span);
+    });
+}
+
+
+/* =============================================================
+   ВАШИ МАРШРУТЫ
+   ============================================================= */
+async function updateWalksCount() {
+    const badge = document.getElementById("walksCount");
+    if (!badge) return;
+    try {
+        const list = await auth.listWalks();
+        badge.textContent = list.length;
+        badge.hidden = list.length === 0;
+    } catch (e) {
+        badge.hidden = true;
+    }
+}
+
+function formatDate(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return "";
+    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "long" }) +
+        ", " + d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+}
+
+async function renderWalks() {
+    const box = document.getElementById("walksList");
+    box.innerHTML = '<p class="subtitle">Загружаем…</p>';
+
+    let list;
+    try {
+        list = await auth.listWalks();
+    } catch (err) {
+        box.innerHTML = "";
+        showMsg("walksMsg", humanError(err));
+        return;
+    }
+
+    box.innerHTML = "";
+
+    if (!list.length) {
+        const empty = document.createElement("div");
+        empty.className = "profile-card empty-walks";
+        empty.innerHTML =
+            '<div class="profile-title">Пока ничего нету</div>' +
+            '<p class="subtitle" style="margin-bottom:16px">Собери первую прогулку — она появится здесь.</p>' +
+            '<div class="row">' +
+            '<button class="btn-primary" onclick="startBuilder()">🧭 Построить маршрут</button>' +
+            '<button class="btn-secondary" onclick="startQuick()">⚡ Быстрый маршрут</button>' +
+            '</div>';
+        box.appendChild(empty);
+        return;
+    }
+
+    list.forEach(walk => {
+        const card = document.createElement("div");
+        card.className = "walk-card";
+
+        const ic = document.createElement("div");
+        ic.className = "walk-ic" + (walk.kind === "quick" ? " quick" : "");
+        ic.textContent = walk.kind === "quick" ? "⚡" : "🧭";
+
+        const body = document.createElement("div");
+        body.className = "walk-body";
+
+        const title = document.createElement("div");
+        title.className = "walk-title";
+        title.textContent = walk.title || "Прогулка";
+        const status = document.createElement("span");
+        status.className = "status";
+        status.textContent = "карта скоро";
+        title.appendChild(status);
+
+        const meta = document.createElement("div");
+        meta.className = "walk-meta";
+        meta.textContent = formatDate(walk.created_at);
+
+        const tags = document.createElement("div");
+        tags.className = "tags";
+        renderTags(tags, walkTags(walk));
+
+        body.append(title, meta, tags);
+
+        const del = document.createElement("button");
+        del.className = "walk-del";
+        del.textContent = "Удалить";
+        del.addEventListener("click", async () => {
+            if (!del.classList.contains("confirm")) {
+                del.classList.add("confirm");
+                del.textContent = "Точно удалить?";
+                setTimeout(() => {
+                    del.classList.remove("confirm");
+                    del.textContent = "Удалить";
+                }, 3000);
+                return;
+            }
+            try {
+                await auth.deleteWalk(walk.id);
+                renderWalks();
+                updateWalksCount();
+            } catch (err) {
+                showMsg("walksMsg", humanError(err));
+            }
+        });
+
+        card.append(ic, body, del);
+        box.appendChild(card);
+    });
 }
 
 
