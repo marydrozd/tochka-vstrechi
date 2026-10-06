@@ -1524,6 +1524,101 @@
             to { stroke-dashoffset: -16; }
         }
 
+        .route-map {
+            position: relative;
+            width: 100%;
+            height: clamp(300px, 52vh, 480px);
+            margin-bottom: 16px;
+            border-radius: 24px;
+            border: 1px solid var(--blue-mid);
+            overflow: hidden;
+            background: #eef3f9;
+        }
+
+        .route-map-msg {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+            color: #5b6478;
+            font-weight: 600;
+            z-index: 2;
+            background: #eef3f9;
+        }
+
+        .route-map-msg.hidden { display: none; }
+
+        .route-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 26px;
+        }
+
+        .route-stops {
+            list-style: none;
+            counter-reset: stop;
+            margin: 0;
+            padding: 0;
+        }
+
+        .route-stops li {
+            counter-increment: stop;
+            position: relative;
+            padding: 10px 0 10px 44px;
+            border-bottom: 1px solid var(--blue-mid);
+        }
+
+        .route-stops li:last-child { border-bottom: 0; }
+
+        .route-stops li::before {
+            content: counter(stop);
+            position: absolute;
+            left: 0;
+            top: 9px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--purple);
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .route-stops li.start { counter-increment: none; }
+
+        .route-stops li.start::before {
+            content: "●";
+            background: #b0c4de;
+        }
+
+        .route-stops .stop-name { font-weight: 700; }
+        .route-stops .stop-note { color: #5b6478; font-size: 14px; margin-top: 2px; }
+
+        a.route-ya {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .walk-open {
+            margin-top: 10px;
+            border: 0;
+            background: none;
+            padding: 0;
+            color: var(--purple);
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         .soon-title {
             font-size: clamp(34px, 6vw, 56px);
             font-weight: 800;
@@ -3235,41 +3330,26 @@
              ===================================================== -->
         <section class="screen" id="routeSoon">
 
-            <div class="map-placeholder" aria-hidden="true">
-                <svg viewBox="0 0 600 240">
-                    <defs>
-                        <pattern id="mapGrid" width="30" height="30" patternUnits="userSpaceOnUse">
-                            <path d="M30 0 L0 0 0 30" fill="none" stroke="#d6e1ee" stroke-width="1"/>
-                        </pattern>
-                    </defs>
-                    <rect width="600" height="240" fill="#eef3f9"/>
-                    <rect width="600" height="240" fill="url(#mapGrid)"/>
-                    <!-- «улицы» -->
-                    <path d="M0 70 C 150 60, 260 110, 600 90" stroke="#ffffff" stroke-width="14" fill="none"/>
-                    <path d="M0 180 C 200 170, 380 200, 600 160" stroke="#ffffff" stroke-width="10" fill="none"/>
-                    <path d="M210 0 C 230 80, 190 160, 230 240" stroke="#ffffff" stroke-width="12" fill="none"/>
-                    <path d="M440 0 C 420 90, 470 170, 450 240" stroke="#ffffff" stroke-width="9" fill="none"/>
-                    <!-- парк и вода -->
-                    <ellipse cx="520" cy="200" rx="70" ry="34" fill="#dfe9f4"/>
-                    <rect x="300" y="20" width="90" height="46" rx="14" fill="#e6dcfb"/>
-                    <!-- маршрут -->
-                    <path class="map-route" d="M70 185 C 140 120, 190 150, 230 120 C 280 80, 330 150, 380 120 C 430 90, 470 70, 530 60"/>
-                    <circle cx="70" cy="185" r="10" fill="#b0c4de" stroke="#ffffff" stroke-width="4"/>
-                    <circle cx="230" cy="120" r="7" fill="#a77bf3" stroke="#ffffff" stroke-width="3"/>
-                    <circle cx="380" cy="120" r="7" fill="#a77bf3" stroke="#ffffff" stroke-width="3"/>
-                    <path d="M530 62 C 520 48, 506 38, 506 22 A 24 24 0 1 1 554 22 C 554 38, 540 48, 530 62 Z" fill="#6a35d2"/>
-                    <circle cx="530" cy="22" r="9" fill="#ffffff"/>
-                </svg>
+            <button class="back-link" onclick="go('myWalks')">← Ваши маршруты</button>
+
+            <div class="route-map" id="routeMap">
+                <div class="route-map-msg" id="routeMapMsg">Строим маршрут…</div>
             </div>
 
+            <div class="route-stats" id="routeStats"></div>
+
             <h1 class="soon-title">
-                Маршрут почти готов,
-                <span class="accent">скоро добавим карты :)</span>
+                Прогулка
+                <span class="accent">готова :)</span>
             </h1>
-            <p class="subtitle">
-                Мы сохранили параметры прогулки в «Ваши маршруты». Как только подключим карты,
-                здесь появится настоящий путь по городу.
+            <p class="subtitle" id="routeSubtitle">
+                Подобрали места по интересам и сохранили прогулку в «Ваши маршруты».
             </p>
+
+            <div class="profile-card">
+                <div class="profile-title">Куда идём</div>
+                <ol class="route-stops" id="routeStops"></ol>
+            </div>
 
             <div class="profile-card">
                 <div class="profile-title">Параметры прогулки</div>
@@ -3277,7 +3357,7 @@
             </div>
 
             <div class="row" style="margin-top: 22px;">
-                <button class="btn-primary btn-big" onclick="go('myWalks')">Ваши маршруты</button>
+                <a class="btn-primary btn-big route-ya" id="routeYaLink" href="#" target="_blank" rel="noopener">Открыть в Яндекс Картах</a>
                 <button class="btn-secondary btn-big" onclick="go('home')">На главную</button>
             </div>
         </section>
@@ -3368,6 +3448,7 @@ function go(id) {
     if (id === "myWalks") renderWalks();
     if (id === "profile") renderProfilePage();
     if (id === "home") updateWalksCount();
+    if (id === "routeSoon" && currentRouteWalk) showRoute(currentRouteWalk);
 
     // сбрасываем сообщения форм при переходе
     document.querySelectorAll(".form-msg").forEach(m => {
@@ -4113,10 +4194,11 @@ const cloud = {
     async login(identifier, password) {
         let email = identifier.trim();
 
-        // вход по юзернейму: сначала узнаём почту
+        // вход по юзернейму: база отдаёт почту, только если пароль верный
         if (!email.includes("@")) {
-            const { data, error } = await sb.rpc("email_for_username", { p_username: email });
-            if (error || !data) throw new Error("Invalid login credentials");
+            const { data, error } = await sb.rpc("email_for_login", { p_username: email, p_password: password });
+            if (error) throw error;
+            if (!data) throw new Error("Invalid login credentials");
             email = data;
         }
 
@@ -4775,8 +4857,7 @@ async function saveWalk(kind, title, params, btnId, msgId) {
     setLoading(btnId, true, "Сохраняем…");
     try {
         const walk = await auth.addWalk({ kind, title, params });
-        renderTags(document.getElementById("soonTags"), walkTags(walk));
-        go("routeSoon");
+        openRoute(walk);
         updateWalksCount();
     } catch (err) {
         showMsg(msgId, humanError(err));
@@ -4816,6 +4897,294 @@ function renderTags(container, tags) {
         span.textContent = t.text;
         container.appendChild(span);
     });
+}
+
+
+/* =============================================================
+   КАРТЫ: подбор мест + маршрут на Яндекс Картах
+   ============================================================= */
+// Ключ Яндекс Карт (JavaScript API и HTTP Геокодер).
+// Его можно хранить в открытом коде — он защищён ограничением по сайту.
+const YANDEX_KEY = CONFIG.yandexKey || "e5aa80bd-02bd-4067-b037-2e4679359a1e";
+
+// Подборка мест в центре Москвы.
+// tags — за что место подходит, cost — примерная цена входа (0 = бесплатно).
+// Координаты примерные: [широта, долгота].
+const PLACES = [
+    { name: "Парк Горького", at: [55.7298, 37.6011], tags: ["nature", "photo", "active"], cost: 0, note: "Набережная, зелень и много места для прогулки" },
+    { name: "Парк «Музеон»", at: [55.7347, 37.6066], tags: ["nature", "photo", "arthouse", "street-art"], cost: 0, note: "Скульптуры под открытым небом у реки" },
+    { name: "Нескучный сад", at: [55.7187, 37.5918], tags: ["nature", "quiet", "cozy"], cost: 0, note: "Тихие тропинки, мостики и овраги" },
+    { name: "Смотровая на Воробьёвых горах", at: [55.7105, 37.5426], tags: ["photo", "nature", "classic"], cost: 0, note: "Вид на весь город" },
+    { name: "Парк «Зарядье»", at: [55.7515, 37.6287], tags: ["nature", "photo", "architecture", "crowded"], cost: 0, note: "Парящий мост над Москвой-рекой" },
+    { name: "Красная площадь", at: [55.7539, 37.6208], tags: ["architecture", "photo", "classic", "crowded"], cost: 0, note: "Классика, без которой никак" },
+    { name: "Никольская улица", at: [55.7572, 37.6235], tags: ["architecture", "photo", "crowded"], cost: 0, note: "Красивая пешеходная улица с огоньками" },
+    { name: "Варварка и Старый Английский двор", at: [55.7518, 37.6280], tags: ["architecture", "quiet"], cost: 0, note: "Маленькие старинные церкви и палаты" },
+    { name: "Патриаршие пруды", at: [55.7637, 37.5925], tags: ["nature", "books", "pop-culture", "cozy"], cost: 0, note: "Тот самый пруд из «Мастера и Маргариты»" },
+    { name: "Музей «Булгаковский дом»", at: [55.7667, 37.5939], tags: ["books", "pop-culture", "museums", "dark"], cost: 300, note: "Нехорошая квартира и чёрный кот" },
+    { name: "Старый Арбат", at: [55.7494, 37.5918], tags: ["music", "street-art", "pop-culture", "crowded", "classic"], cost: 0, note: "Уличные музыканты и стена Цоя" },
+    { name: "Московский Дом книги", at: [55.7525, 37.5866], tags: ["books"], cost: 0, note: "Огромный книжный на Новом Арбате" },
+    { name: "Гоголевский бульвар", at: [55.7470, 37.6020], tags: ["nature", "quiet", "cozy", "books"], cost: 0, note: "Зелёный бульвар с лавочками" },
+    { name: "Пушкинский музей", at: [55.7474, 37.6052], tags: ["museums", "architecture", "arthouse"], cost: 600, note: "Античные залы и импрессионисты" },
+    { name: "Патриарший мост", at: [55.7425, 37.6075], tags: ["photo", "architecture"], cost: 0, note: "Лучший вид на Кремль с воды" },
+    { name: "ГЭС-2", at: [55.7428, 37.6136], tags: ["museums", "arthouse", "architecture", "food"], cost: 0, note: "Дом культуры: выставки, вход свободный" },
+    { name: "Красный Октябрь", at: [55.7425, 37.6091], tags: ["street-art", "arthouse", "photo", "dark"], cost: 0, note: "Кирпичные корпуса бывшей фабрики" },
+    { name: "Третьяковская галерея", at: [55.7414, 37.6208], tags: ["museums", "classic"], cost: 500, note: "Главные русские картины" },
+    { name: "Чистые пруды", at: [55.7651, 37.6386], tags: ["nature", "cozy"], cost: 0, note: "Бульвар, утки и трамвайчик «Аннушка»" },
+    { name: "Библиотека-читальня им. Тургенева", at: [55.7647, 37.6388], tags: ["books", "quiet", "cozy"], cost: 0, note: "Тихо посидеть с книгой" },
+    { name: "Хохловский переулок", at: [55.7563, 37.6421], tags: ["street-art", "photo", "arthouse", "dark"], cost: 0, note: "Хохловка — стены с граффити" },
+    { name: "Ивановская горка", at: [55.7547, 37.6450], tags: ["architecture", "quiet", "dark", "photo"], cost: 0, note: "Кривые переулочки старой Москвы" },
+    { name: "Покровка и Маросейка", at: [55.7590, 37.6460], tags: ["food", "cozy"], cost: 400, note: "Кофейни и маленькие кафе" },
+    { name: "Винзавод", at: [55.7556, 37.6656], tags: ["street-art", "arthouse", "museums", "photo"], cost: 0, note: "Галереи современного искусства" },
+    { name: "Сад «Эрмитаж»", at: [55.7709, 37.6098], tags: ["nature", "music", "cozy"], cost: 0, note: "Уютный сад с летней сценой" },
+    { name: "Тверской бульвар", at: [55.7600, 37.6000], tags: ["nature", "quiet", "books"], cost: 0, note: "Самый старый бульвар Москвы" },
+    { name: "Консерватория на Большой Никитской", at: [55.7567, 37.6040], tags: ["music", "architecture", "classic"], cost: 0, note: "Памятник Чайковскому и музыка из окон" },
+    { name: "Центральный Детский Магазин", at: [55.7604, 37.6253], tags: ["pop-culture", "photo", "food"], cost: 0, note: "Огромные часы и смотровая на крыше" },
+    { name: "Аптекарский огород", at: [55.7782, 37.6326], tags: ["nature", "quiet", "photo"], cost: 500, note: "Ботанический сад с оранжереями" },
+    { name: "Фудмолл «Депо»", at: [55.7743, 37.5911], tags: ["food", "active", "crowded"], cost: 600, note: "Много еды под одной крышей" },
+    { name: "Даниловский рынок", at: [55.7114, 37.6213], tags: ["food"], cost: 600, note: "Рынок с уличной едой" },
+    { name: "Смотровая Москва-Сити", at: [55.7495, 37.5374], tags: ["photo", "architecture", "active"], cost: 1000, note: "Город с высоты небоскрёба" }
+];
+
+// как ответы опроса превращаются в «теги» мест
+const INTEREST_TAGS = {
+    museums: "museums", food: "food", events: "music",
+    "beautiful-city": "photo", "strange-place": "street-art", inside: "food",
+    quiet: "quiet", "walk-talk": "nature", "active-evening": "active",
+    dark: "dark", cozy: "cozy", active: "active", arthouse: "arthouse"
+};
+
+let currentRouteWalk = null;
+let ymapsPromise = null;
+let routeMap = null;
+let routeToken = 0;
+
+function openRoute(walk) {
+    currentRouteWalk = walk;
+    go("routeSoon");
+}
+
+function loadYmaps() {
+    if (!ymapsPromise) {
+        ymapsPromise = loadScript("https://api-maps.yandex.ru/2.1/?apikey=" + YANDEX_KEY + "&lang=ru_RU")
+            .then(() => new Promise(res => window.ymaps.ready(() => res(window.ymaps))))
+            .catch(err => { ymapsPromise = null; throw err; });
+    }
+    return ymapsPromise;
+}
+
+// расстояние по прямой в км
+function kmBetween(a, b) {
+    const R = 6371, rad = Math.PI / 180;
+    const dLat = (b[0] - a[0]) * rad, dLon = (b[1] - a[1]) * rad;
+    const h = Math.sin(dLat / 2) ** 2 +
+        Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function surveyTags(survey) {
+    const out = [];
+    if (!survey) return out;
+    const keys = ["cityInterests", "vibe", "evening", "spending"];
+    keys.forEach(k => [].concat(survey[k] || []).forEach(v => {
+        out.push(v);
+        if (INTEREST_TAGS[v]) out.push(INTEREST_TAGS[v]);
+    }));
+    return out;
+}
+
+function surveyDislikes(survey) {
+    return survey ? [].concat(survey.dislikes || []) : [];
+}
+
+// маленький «шум», чтобы разные прогулки не были одинаковыми
+function jitter(seed, name) {
+    let h = 0;
+    const str = String(seed) + name;
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+    return (Math.abs(h) % 100) / 300;
+}
+
+// Подбираем остановки: интересные места, которые успеем обойти.
+function pickStops(walk, start) {
+    const p = walk.params || {};
+    const minutes = Number(p.time) || 60;
+    const speed = { calm: 0.065, mixed: 0.075, active: 0.085 }[p.pace] || 0.075; // км в минуту
+    const maxStops = { 30: 2, 60: 3, 120: 4, 180: 5, 240: 6 }[minutes] || 3;
+    const stopMinutes = minutes >= 120 ? 12 : 4;
+
+    const surveys = [currentUser && currentUser.survey, p.friendSurvey];
+    const likes = surveys.flatMap(surveyTags);
+    const dislikes = surveys.flatMap(surveyDislikes);
+    const budget = p.budget === "any" || !p.budget ? Infinity : Number(p.budget);
+    const freeOnly = budget === 0 || likes.includes("free");
+
+    const score = place => {
+        let s = 1 + jitter(walk.id || walk.created_at, place.name);
+        place.tags.forEach(t => { if (likes.includes(t)) s += 1.2; });
+        if (dislikes.includes("crowds") && place.tags.includes("crowded")) s -= 1.5;
+        if (dislikes.includes("boring") && place.tags.includes("classic")) s -= 1.5;
+        if (dislikes.includes("expensive") && place.cost > 500) s -= 1;
+        if (freeOnly && place.cost > 0) s -= 2;
+        return s;
+    };
+
+    const allowed = PLACES.filter(pl => pl.cost <= budget && (!freeOnly || pl.cost === 0 || budget > 0));
+    const stops = [];
+    let here = start;
+    let used = 0;
+
+    while (stops.length < maxStops) {
+        const left = ((minutes - stopMinutes * (stops.length + 1)) * speed) / 1.3 - used; // км по прямой
+        let best = null, bestValue = -Infinity;
+        allowed.forEach(pl => {
+            if (stops.includes(pl)) return;
+            const d = kmBetween(here, pl.at);
+            if (d < 0.15 || d > left) return;
+            const value = score(pl) - d * 1.1;
+            if (value > bestValue) { bestValue = value; best = pl; }
+        });
+        if (!best) break;
+        used += kmBetween(here, best.at);
+        here = best.at;
+        stops.push(best);
+    }
+    return stops;
+}
+
+function setMapMsg(text) {
+    const m = document.getElementById("routeMapMsg");
+    m.textContent = text || "";
+    m.classList.toggle("hidden", !text);
+}
+
+function renderStops(startName, stops) {
+    const ol = document.getElementById("routeStops");
+    ol.innerHTML = "";
+    const add = (name, note, cls) => {
+        const li = document.createElement("li");
+        if (cls) li.className = cls;
+        const n = document.createElement("div");
+        n.className = "stop-name";
+        n.textContent = name;
+        li.appendChild(n);
+        if (note) {
+            const t = document.createElement("div");
+            t.className = "stop-note";
+            t.textContent = note;
+            li.appendChild(t);
+        }
+        ol.appendChild(li);
+    };
+    add(startName, "Точка старта", "start");
+    stops.forEach(s => add(s.name, s.note));
+}
+
+function renderStats(items) {
+    renderTags(document.getElementById("routeStats"), items.map(text => ({ text, blue: true })));
+}
+
+async function showRoute(walk) {
+    const token = ++routeToken;
+    const p = walk.params || {};
+    const startText = p.start || "Москва";
+
+    renderTags(document.getElementById("soonTags"), walkTags(walk));
+    document.getElementById("routeStops").innerHTML = "";
+    renderStats([]);
+    document.getElementById("routeYaLink").style.display = "none";
+    setMapMsg("Строим маршрут…");
+    if (routeMap) { routeMap.destroy(); routeMap = null; }
+
+    let ymaps;
+    try {
+        ymaps = await loadYmaps();
+    } catch (e) {
+        setMapMsg("Не получилось загрузить Яндекс Карты. Проверь интернет и обнови страницу.");
+        return;
+    }
+    if (token !== routeToken) return;
+
+    // ищем точку старта (только в пределах Москвы)
+    let start;
+    try {
+        const res = await ymaps.geocode("Москва, " + startText, {
+            results: 1,
+            boundedBy: [[55.49, 37.29], [55.96, 37.97]],
+            strictBounds: true
+        });
+        const obj = res.geoObjects.get(0);
+        if (obj) start = obj.geometry.getCoordinates();
+    } catch (e) {
+        console.warn("geocode", e);
+    }
+    if (token !== routeToken) return;
+
+    if (!start) {
+        setMapMsg("Не нашли «" + startText + "» на карте Москвы. Попробуй собрать прогулку ещё раз и написать точнее, например «м. Чистые пруды».");
+        renderStops(startText, []);
+        return;
+    }
+
+    const stops = pickStops(walk, start);
+    renderStops(startText, stops);
+
+    const points = [start, ...stops.map(s => s.at)];
+    const ya = document.getElementById("routeYaLink");
+    ya.href = "https://yandex.ru/maps/?rtext=" + points.map(pt => pt[0] + "," + pt[1]).join("~") + "&rtt=pd";
+    ya.style.display = "";
+
+    setMapMsg("");
+    routeMap = new ymaps.Map("routeMap", {
+        center: start,
+        zoom: 14,
+        controls: ["zoomControl", "fullscreenControl"]
+    }, { suppressMapOpenBlock: true });
+
+    const subtitle = document.getElementById("routeSubtitle");
+
+    if (!stops.length) {
+        routeMap.geoObjects.add(new ymaps.Placemark(start, { hintContent: "Старт" }, { preset: "islands#violetDotIcon" }));
+        subtitle.textContent = "Рядом с этой точкой пока нет мест из нашей подборки — мы их скоро добавим. Пока можно просто погулять по району :)";
+        renderStats([TIME_LABELS[p.time] || ""].filter(Boolean));
+        return;
+    }
+    subtitle.textContent = "Подобрали места по интересам и сохранили прогулку в «Ваши маршруты».";
+
+    const route = new ymaps.multiRouter.MultiRoute({
+        referencePoints: points,
+        params: { routingMode: "pedestrian" }
+    }, {
+        boundsAutoApply: true,
+        routeActivePedestrianSegmentStrokeStyle: "solid",
+        routeActivePedestrianSegmentStrokeColor: "#6a35d2",
+        routeActiveStrokeWidth: 5,
+        routeStrokeColor: "#b0c4de",
+        wayPointStartIconFillColor: "#b0c4de",
+        wayPointIconFillColor: "#6a35d2",
+        wayPointFinishIconFillColor: "#6a35d2"
+    });
+
+    route.model.events.add("requestsuccess", () => {
+        const r = route.getActiveRoute();
+        if (!r) return;
+        renderStats([
+            "🚶 " + r.properties.get("distance").text,
+            "⏱ " + r.properties.get("duration").text + " в пути",
+            stops.length + " " + plural(stops.length, "остановка", "остановки", "остановок")
+        ]);
+    });
+    route.model.events.add("requestfail", () => {
+        renderStats([stops.length + " " + plural(stops.length, "остановка", "остановки", "остановок")]);
+    });
+
+    routeMap.geoObjects.add(route);
+}
+
+function plural(n, one, few, many) {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+    return many;
 }
 
 
@@ -4886,7 +5255,7 @@ async function renderWalks() {
         title.textContent = walk.title || "Прогулка";
         const status = document.createElement("span");
         status.className = "status";
-        status.textContent = "карта скоро";
+        status.textContent = "на карте";
         title.appendChild(status);
 
         const meta = document.createElement("div");
@@ -4897,7 +5266,12 @@ async function renderWalks() {
         tags.className = "tags";
         renderTags(tags, walkTags(walk));
 
-        body.append(title, meta, tags);
+        const open = document.createElement("button");
+        open.className = "walk-open";
+        open.textContent = "Показать на карте →";
+        open.addEventListener("click", () => openRoute(walk));
+
+        body.append(title, meta, tags, open);
 
         const del = document.createElement("button");
         del.className = "walk-del";
