@@ -2348,7 +2348,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 9 окт · v19</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 9 окт · v20</span></div>
 </aside>
 
 
@@ -5424,6 +5424,9 @@ const OVERPASS_URLS = [
 
 // как теги OpenStreetMap превращаются в наши теги, цену и подпись
 function osmKind(t) {
+    // реки и каналы — не «посидеть у воды»; из арт-объектов оставляем только скульптуры и муралы
+    if (t.natural === "water" && /^(river|canal|stream|ditch|wastewater|reservoir)$/.test(t.water || "")) return null;
+    if (t.tourism === "artwork" && t.artwork_type && !/^(mural|sculpture|statue)$/.test(t.artwork_type)) return null;
     if (t.natural === "water")
         return { tags: ["nature", "photo", "quiet", "cozy"], cost: 0, note: "Пруд / озеро", kind: "water" };
     if (t.highway === "pedestrian")
@@ -5477,10 +5480,9 @@ async function fetchNearbyPlaces(start, radiusKm) {
     const q = `[out:json][timeout:10][maxsize:33554432];(
         nw["leisure"~"^(park|garden)$"]["name"]${bb};
         nw["tourism"~"^(museum|gallery|viewpoint|attraction)$"]["name"]${bb};
-        nwr["natural"="water"]["name"]["water"!~"^(river|canal|stream|ditch|wastewater|reservoir)$"]${bb};
-        nw["leisure"="garden"]["name"]${bb};
+        nwr["natural"="water"]["name"]${bb};
         w["highway"="pedestrian"]["name"]${bb};
-        nw["tourism"="artwork"]["artwork_type"~"^(mural|sculpture|statue)$"]["name"](newer:"2022-01-01T00:00:00Z")${bb};
+        nw["tourism"="artwork"]["name"](newer:"2022-01-01T00:00:00Z")${bb};
         nw["historic"~"^(monument|memorial|castle|manor|church|monastery)$"]["name"]${bb};
         nw["amenity"~"^(cafe|fast_food|restaurant)$"]["name"](newer:"2022-01-01T00:00:00Z")${bb};
         nw["amenity"~"^(library|theatre|cinema|arts_centre)$"]["name"]${bb};
@@ -6040,6 +6042,7 @@ async function showRoute(walk) {
             ? "Не получилось загрузить места рядом — сервис карт не отвечает. Обнови страницу через минуту. (Для разработчика: " + osmErrors.join("; ") + ")"
             : "Рядом с этой точкой не нашлось подходящих мест на " + (TIME_LABELS[p.time] || "это время") + ". Попробуй прогулку подольше или старт поближе к парку или центру района.";
         renderStats([TIME_LABELS[p.time] || ""].filter(Boolean));
+        if (serverNote) subtitle.textContent += serverNote;
         saveDraftPlain(walk);
         return;
     }
