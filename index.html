@@ -2348,7 +2348,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 9 окт · v18</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 9 окт · v19</span></div>
 </aside>
 
 
@@ -5424,6 +5424,10 @@ const OVERPASS_URLS = [
 
 // как теги OpenStreetMap превращаются в наши теги, цену и подпись
 function osmKind(t) {
+    if (t.natural === "water")
+        return { tags: ["nature", "photo", "quiet", "cozy"], cost: 0, note: "Пруд / озеро", kind: "water" };
+    if (t.highway === "pedestrian")
+        return { tags: ["photo", "cozy", "active"], cost: 0, note: "Пешеходная улица", kind: "walkstreet" };
     if (t.leisure === "park" || t.leisure === "garden")
         return { tags: ["nature", "photo", "cozy"], cost: 0, note: "Парк", kind: "park" };
     if (t.tourism === "museum")
@@ -5473,7 +5477,10 @@ async function fetchNearbyPlaces(start, radiusKm) {
     const q = `[out:json][timeout:10][maxsize:33554432];(
         nw["leisure"~"^(park|garden)$"]["name"]${bb};
         nw["tourism"~"^(museum|gallery|viewpoint|attraction)$"]["name"]${bb};
-        nw["tourism"="artwork"]["name"](newer:"2022-01-01T00:00:00Z")${bb};
+        nwr["natural"="water"]["name"]["water"!~"^(river|canal|stream|ditch|wastewater|reservoir)$"]${bb};
+        nw["leisure"="garden"]["name"]${bb};
+        w["highway"="pedestrian"]["name"]${bb};
+        nw["tourism"="artwork"]["artwork_type"~"^(mural|sculpture|statue)$"]["name"](newer:"2022-01-01T00:00:00Z")${bb};
         nw["historic"~"^(monument|memorial|castle|manor|church|monastery)$"]["name"]${bb};
         nw["amenity"~"^(cafe|fast_food|restaurant)$"]["name"](newer:"2022-01-01T00:00:00Z")${bb};
         nw["amenity"~"^(library|theatre|cinema|arts_centre)$"]["name"]${bb};
@@ -5608,7 +5615,9 @@ function stopInfo(pl, alloc) {
     if (k === "theatre") return { dwell: 10, spend: 0, todo: "Посмотреть афишу" };
     if (k === "gallery") return { dwell: 30, spend: 0, todo: "Заглянуть на выставку" };
     if (k === "library") return { dwell: 20, spend: 0, todo: "Посидеть с книгой" };
-    if (k === "park" || t.includes("nature")) return { dwell: 15, spend: 0, todo: "Пройтись по аллеям" };
+    if (k === "water") return { dwell: 15, spend: 0, todo: "Посидеть у воды на лавочке" };
+    if (k === "walkstreet") return { dwell: 10, spend: 0, todo: "Прогуляться по улице" };
+    if (k === "park" || t.includes("nature")) return { dwell: 20, spend: 0, todo: "Погулять по аллеям, отдохнуть на лавочке" };
     if (k === "artwork" || k === "viewpoint") return { dwell: 5, spend: 0, todo: "Сделать фото" };
     if (pl.cost > 0) return { dwell: 30, spend: pl.cost, todo: "Вход ≈ " + pl.cost + " ₽" };
     return { dwell: 10, spend: 0, todo: "" };
@@ -5635,11 +5644,19 @@ function pickStops(walk, start, pool, relaxed) {
         : target < 700 ? 1
         : ({ 30: 1, 60: 2, 120: 2, 180: 3, 240: 3 }[minutes] || 2) + (target >= 2000 && minutes >= 120 ? 1 : 0);
 
-    const avgDwell = Math.min(20, (minutes * 0.3) / baseStops);
-    const idealLeg = Math.max(0.3, ((minutes - baseStops * avgDwell) * speed / detour) / baseStops);
+    // сколько времени из прогулки идём ногами: спокойная — половина, энергичная — три четверти
+    const walkShare = { calm: 0.5, mixed: 0.6, active: 0.75 }[p.pace] || 0.6;
+    const dwellScale = { calm: 1, mixed: 0.85, active: 0.6 }[p.pace] || 0.85;
+    const idealLeg = Math.max(0.35, (minutes * walkShare * speed / detour) / baseStops);
 
+    const likesArt = likes.includes("street-art") || likes.includes("arthouse");
+    // что людям обычно нравится на прогулке: парки, вода, бульвары, кофейни
+    const KIND_BONUS = { park: 1.4, water: 1.4, walkstreet: 0.9, viewpoint: 0.7, cafe: 0.8,
+        attraction: 0.3, museum: 0.2, gallery: 0, historic: -0.2, library: -0.2,
+        artwork: likesArt ? -0.3 : -2, mall: -0.4, fast_food: -0.3 };
     const score = place => {
         let s = 1 + jitter(walk.id || walk.created_at, place.name);
+        s += KIND_BONUS[place.kind] !== undefined ? KIND_BONUS[place.kind] : ((place.tags || []).includes("nature") ? 1 : 0);
         (place.tags || []).forEach(t => { if (likes.includes(t)) s += 1.2; });
         if (dislikes.includes("crowds") && (place.tags || []).includes("crowded")) s -= 1.5;
         if (dislikes.includes("boring") && (place.tags || []).includes("classic")) s -= 1.5;
@@ -5657,7 +5674,8 @@ function pickStops(walk, start, pool, relaxed) {
     while (stops.length < maxStops) {
         const left = minutes - timeUsed;
         if (left < 12) break;
-        if (stops.length >= baseStops && left < minutes * 0.2) break;
+        const walkedEnough = walkMin >= minutes * walkShare * 0.8;
+        if (stops.length >= baseStops && left < minutes * 0.2 && walkedEnough) break;
 
         const paidCount = stops.filter(st => st.spend > 0).length;
         const slotsLeft = Math.max(0, paidSlots - paidCount);
@@ -5672,8 +5690,10 @@ function pickStops(walk, start, pool, relaxed) {
             if (food && hasFood) return;                                   // одно место с едой
             if (pl.kind === "cinema" && (minutes < 240 || !likes.includes("pop-culture"))) return;   // кино — редко
 
-            const info = stopInfo(pl, alloc);
+            const info0 = stopInfo(pl, alloc);
+            const info = { ...info0, dwell: Math.max(5, Math.round(info0.dwell * (info0.spend > 0 ? Math.max(0.8, dwellScale) : dwellScale))) };
             if (info.spend > budget - spent) return;                        // не по карману
+            if (pl.kind === "artwork" && stops.some(st => st.kind === "artwork")) return;   // максимум один арт-объект
             if (info.spend > 0 && slotsLeft === 0 && info.spend > (budget - spent) * 0.5) return;
 
             const d = kmBetween(here, pl.at);
@@ -5688,7 +5708,7 @@ function pickStops(walk, start, pool, relaxed) {
             if (slotsLeft > 0 && info.spend > 0) {
                 // есть деньги — ведём туда, где их потратить; чем ближе трата к «доле» бюджета, тем лучше
                 value += 0.6 + 2 * Math.min(1, info.spend / Math.max(alloc, 1));
-                if (target >= 1500 && ["restaurant", "mall"].includes(pl.kind)) value += 1.4;   // большой бюджет — есть где развернуться
+                if (target >= 1500 && ["restaurant", "mall"].includes(pl.kind)) value += target >= 2000 ? 2.4 : 1.4;   // большой бюджет — есть где развернуться
                 if (alloc < 600 && pl.kind === "restaurant") value -= 1;
             }
             if (food && stops.length === 0 && baseStops >= 3) value -= 1.8;  // кафе лучше в середине
@@ -5873,7 +5893,8 @@ function stopsFromAI(walk, start, pool, ai) {
             todo: info.todo, why: why || ""
         });
     }
-    if (!stops.length || timeUsed < minutes * 0.5) return null;      // слишком мало — пусть считает формула
+    const walkShare = { calm: 0.5, mixed: 0.6, active: 0.75 }[p.pace] || 0.6;
+    if (!stops.length || timeUsed < minutes * 0.6 || walkMin < minutes * walkShare * 0.55) return null;   // слишком мало ходьбы — пусть считает формула
     stops.trimmed = stops.length < seq.length;
     stops.plan = { minutes: Math.round(timeUsed), walkMin: Math.round(walkMin), dwell: stops.reduce((a, s) => a + s.dwell, 0), spent, budget };
     return stops;
