@@ -2278,7 +2278,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 8 окт · v9</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 8 окт · v10</span></div>
 </aside>
 
 
@@ -5197,6 +5197,7 @@ function jitter(seed, name) {
 
 // Подбираем остановки: интересные места, которые успеем обойти.
 /* ---------- места рядом из OpenStreetMap (бесплатно, без ключа) ---------- */
+const osmErrors = [];   // для диагностики, если места не загрузились
 const OVERPASS_URLS = [
     "https://overpass-api.de/api/interpreter",
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
@@ -5264,11 +5265,31 @@ async function fetchNearbyPlaces(start, radiusKm) {
         }
     };
 
+    // запасной способ без CORS: JSONP через <script>
+    const askJsonp = url => new Promise((resolve, reject) => {
+        const cb = "tvOsm" + Math.random().toString(36).slice(2);
+        const el = document.createElement("script");
+        const done = () => { clearTimeout(timer); delete window[cb]; el.remove(); };
+        const timer = setTimeout(() => { done(); reject(new Error("timeout")); }, 15000);
+        window[cb] = data => { done(); data && Array.isArray(data.elements) ? resolve(data) : reject(new Error("empty")); };
+        el.onerror = () => { done(); reject(new Error("script error")); };
+        el.src = url + "?data=" + encodeURIComponent(q) + "&jsonp=" + cb;
+        document.head.appendChild(el);
+    });
+
+    const tries = [];
+    OVERPASS_URLS.forEach(url => {
+        const host = new URL(url).host;
+        tries.push(ask(url).catch(e => { osmErrors.push(host + ": " + (e.name === "AbortError" ? "timeout" : e.message)); throw e; }));
+        tries.push(askJsonp(url).catch(e => { osmErrors.push(host + " (jsonp): " + e.message); throw e; }));
+    });
+
+    osmErrors.length = 0;
     let json;
     try {
-        json = await Promise.any(OVERPASS_URLS.map(ask));   // кто первый ответит
+        json = await Promise.any(tries);                     // кто первый ответит
     } catch (e) {
-        console.warn("OpenStreetMap не ответил:", e);
+        console.warn("OpenStreetMap не ответил:", osmErrors);
         return null;                                        // null = сервис недоступен
     }
 
@@ -5454,7 +5475,7 @@ async function showRoute(walk) {
     if (!stops.length) {
         routeMap.geoObjects.add(new ymaps.Placemark(start, { hintContent: "Старт" }, { preset: "islands#violetDotIcon" }));
         subtitle.textContent = nearby === null
-            ? "Не получилось загрузить места рядом — сервис карт сейчас занят. Обнови страницу через минуту, и маршрут построится заново."
+            ? "Не получилось загрузить места рядом — сервис карт не отвечает. Обнови страницу через минуту. (Для разработчика: " + osmErrors.join("; ") + ")"
             : "Рядом с этой точкой не нашлось подходящих мест на " + (TIME_LABELS[p.time] || "это время") + ". Попробуй прогулку подольше или старт поближе к парку или центру района.";
         renderStats([TIME_LABELS[p.time] || ""].filter(Boolean));
         return;
