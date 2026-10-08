@@ -2304,7 +2304,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 8 окт · v15</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 8 окт · v16</span></div>
 </aside>
 
 
@@ -5712,6 +5712,7 @@ async function showRoute(walk) {
     if (routeMap) { routeMap.destroy(); routeMap = null; }
     const subtitle = document.getElementById("routeSubtitle");
     subtitle.textContent = "";
+    delete subtitle.dataset.routeNote;
 
     let ymaps;
     try {
@@ -5859,9 +5860,33 @@ async function showRoute(walk) {
             }
         } catch (e) { console.warn("legs", e); }
     });
-    route.model.events.add("requestfail", () => {
+    // Яндекс не смог построить пешеходный путь — рисуем свою линию между точками,
+    // чтобы маршрут всё равно был виден
+    let routeOk = false;
+    const drawFallback = (why) => {
+        if (routeOk || !routeMap) return;
+        routeMap.geoObjects.remove(route);
+        routeMap.geoObjects.add(new ymaps.Polyline(points, {}, {
+            strokeColor: "#6a35d2", strokeWidth: 5, strokeOpacity: 0.85, strokeStyle: "shortdash"
+        }));
+        routeMap.geoObjects.add(new ymaps.Placemark(start, { hintContent: "Старт" }, { preset: "islands#grayCircleDotIcon" }));
+        stops.forEach((st, i) => routeMap.geoObjects.add(new ymaps.Placemark(st.at,
+            { iconContent: String(i + 1), hintContent: st.name, balloonContent: st.name },
+            { preset: "islands#violetIcon" })));
+        routeMap.setBounds(routeMap.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 40 });
         renderStats(routeStats(stops, stops.plan ? stops.plan.walkMin : 0, null));
+        if (!subtitle.dataset.routeNote) {
+            subtitle.dataset.routeNote = "1";
+            subtitle.textContent += " (Пешеходный путь Яндекс не построил — показали линию по прямой. Для разработчика: " + why + ")";
+        }
+    };
+    route.model.events.add("requestsuccess", () => { routeOk = true; });
+    route.model.events.add("requestfail", (e) => {
+        let why = "requestfail";
+        try { const err = e.get("error"); why = (err && (err.message || err.toString())) || why; } catch (x) { /* ок */ }
+        drawFallback(why);
     });
+    setTimeout(() => drawFallback("нет ответа 12 с"), 12000);
     renderStats(routeStats(stops, stops.plan ? stops.plan.walkMin : 0, null));
 
     routeMap.geoObjects.add(route);
