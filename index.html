@@ -1605,6 +1605,50 @@
         .route-stops .stop-leg { color: #8a93a6; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
         .route-stops li.done { opacity: .5; }
         .route-stops li.done::before { content: "✓"; background: #b0c4de; }
+        .steps-summary { cursor: pointer; margin-bottom: 0; }
+        .route-stops .stop-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .route-stops .stop-badges .stop-todo { margin-top: 0; }
+        .route-stops .stop-time {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #eef3f9;
+            color: #4a5a75;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .nav-actions { display: flex; gap: 8px; flex: none; }
+        .nav-bar .btn-secondary { border-radius: 999px; white-space: nowrap; }
+        @media (max-width: 520px) { .nav-actions { flex-direction: column; } }
+        .fb-stars { display: flex; gap: 8px; }
+        .fb-star {
+            width: 52px; height: 52px; padding: 0;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: #d8dde6;
+            font-size: 28px; line-height: 1;
+        }
+        .fb-star:hover { border-color: #bca4e9; }
+        .fb-star.on { color: var(--purple); background: var(--lilac); border-color: var(--purple); }
+        .fb-stop {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 10px 0; border-bottom: 1px solid var(--blue-mid);
+        }
+        .fb-stop:last-child { border-bottom: 0; }
+        .fb-stop-name { font-weight: 700; }
+        .fb-stop .chips { flex: none; gap: 6px; }
+        .fb-stop .chip { padding: 8px 12px; font-size: 13px; }
+        .fb-text {
+            width: 100%; resize: vertical; min-height: 96px;
+            font-family: inherit; font-size: 16px; color: var(--text);
+            background: var(--bg); border: 1px solid var(--border); border-radius: 13px; padding: 14px 16px;
+        }
+        .fb-text:focus { outline: none; border-color: var(--purple); background: var(--white); box-shadow: 0 0 0 4px rgba(106, 53, 210, 0.12); }
+        .walk-rate { margin-left: 12px; }
+        .route-steps { margin: 12px 0 0; padding-left: 20px; color: #3a4152; font-size: 14px; line-height: 1.6; }
+        .route-steps li.passed { opacity: .45; }
+        .route-steps li.step-stop { font-weight: 800; color: var(--purple); list-style: none; margin: 6px 0 6px -20px; }
         .nav-bar {
             display: flex;
             align-items: center;
@@ -2304,7 +2348,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 8 окт · v16</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 9 окт · v18</span></div>
 </aside>
 
 
@@ -3267,7 +3311,7 @@
 
             <div class="question-number">Новая прогулка</div>
             <h1>Построить маршрут</h1>
-            <p class="subtitle">Пять коротких вопросов о сегодняшней прогулке. Твои интересы из профиля мы уже учли.</p>
+            <p class="subtitle">Шесть коротких вопросов о сегодняшней прогулке. Твои интересы из профиля мы уже учли.</p>
 
             <div class="form-msg" id="builderMsg"></div>
 
@@ -3520,7 +3564,10 @@
             <div class="route-stats" id="routeStats"></div>
 
             <div class="nav-bar" id="navBar" style="display:none">
-                <button type="button" class="btn-primary" id="navBtn" onclick="toggleNav()">Начать прогулку</button>
+                <div class="nav-actions">
+                    <button type="button" class="btn-primary" id="navBtn" onclick="toggleNav()">Начать прогулку</button>
+                    <button type="button" class="btn-secondary" id="finishBtn" onclick="finishWalk()">Завершить прогулку</button>
+                </div>
                 <div class="nav-info" id="navInfo"></div>
             </div>
 
@@ -3537,6 +3584,13 @@
                 <ol class="route-stops" id="routeStops"></ol>
             </div>
 
+            <div class="profile-card" id="routeSteps" style="display:none">
+                <details>
+                    <summary class="profile-title steps-summary">Как идти — пошагово</summary>
+                    <ol class="route-steps" id="routeStepsList"></ol>
+                </details>
+            </div>
+
             <div class="profile-card">
                 <div class="profile-title">Параметры прогулки</div>
                 <div class="tags" id="soonTags"></div>
@@ -3545,6 +3599,106 @@
             <div class="row" style="margin-top: 22px;">
                 <a class="btn-primary btn-big route-ya" id="routeYaLink" href="#" target="_blank" rel="noopener">Открыть в Яндекс Картах</a>
                 <button class="btn-secondary btn-big" onclick="go('home')">На главную</button>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             ОТЗЫВ О ПРОГУЛКЕ
+             ===================================================== -->
+        <section class="screen" id="feedback">
+
+            <button class="back-link" onclick="go('routeSoon')">← К маршруту</button>
+
+            <div class="question-number">Прогулка завершена</div>
+            <h1>Как прошло?</h1>
+            <p class="subtitle" id="fbWalkTitle">Расскажи пару слов — так следующие прогулки будут точнее.</p>
+
+            <div class="form-msg" id="fbMsg"></div>
+
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">01</span>
+                    <div>
+                        <div class="q-title">Оцени прогулку</div>
+                        <div class="q-sub" id="fbStarsLabel">Нажми на звёздочку</div>
+                    </div>
+                </div>
+                <div class="fb-stars" id="fbStars">
+                    <button type="button" class="fb-star" data-value="1" aria-label="1">★</button>
+                    <button type="button" class="fb-star" data-value="2" aria-label="2">★</button>
+                    <button type="button" class="fb-star" data-value="3" aria-label="3">★</button>
+                    <button type="button" class="fb-star" data-value="4" aria-label="4">★</button>
+                    <button type="button" class="fb-star" data-value="5" aria-label="5">★</button>
+                </div>
+            </div>
+
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">02</span>
+                    <div>
+                        <div class="q-title">Что понравилось?</div>
+                        <div class="q-sub">Можно выбрать несколько.</div>
+                    </div>
+                </div>
+                <div class="chips fb-chips" data-fb="liked">
+                    <button type="button" class="chip" data-value="places">Места</button>
+                    <button type="button" class="chip" data-value="route">Маршрут</button>
+                    <button type="button" class="chip" data-value="food">Кафе и еда</button>
+                    <button type="button" class="chip" data-value="vibe">Атмосфера</button>
+                    <button type="button" class="chip" data-value="views">Красивые виды</button>
+                    <button type="button" class="chip" data-value="event">Мероприятие</button>
+                    <button type="button" class="chip" data-value="time">Уложились во время</button>
+                    <button type="button" class="chip" data-value="budget">Уложились в бюджет</button>
+                </div>
+            </div>
+
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">03</span>
+                    <div>
+                        <div class="q-title">Что не понравилось?</div>
+                        <div class="q-sub">Учтём в следующий раз.</div>
+                    </div>
+                </div>
+                <div class="chips fb-chips" data-fb="disliked">
+                    <button type="button" class="chip" data-value="too_long">Слишком долго</button>
+                    <button type="button" class="chip" data-value="too_short">Слишком коротко</button>
+                    <button type="button" class="chip" data-value="walking">Много ходьбы</button>
+                    <button type="button" class="chip" data-value="expensive">Дорого</button>
+                    <button type="button" class="chip" data-value="closed">Место закрыто</button>
+                    <button type="button" class="chip" data-value="boring">Скучные места</button>
+                    <button type="button" class="chip" data-value="crowds">Много людей</button>
+                    <button type="button" class="chip" data-value="noise">Шумно</button>
+                    <button type="button" class="chip" data-value="route_bad">Неудобный маршрут</button>
+                </div>
+            </div>
+
+            <div class="q-card" id="fbStopsCard">
+                <div class="q-head">
+                    <span class="q-num">04</span>
+                    <div>
+                        <div class="q-title">Остановки</div>
+                        <div class="q-sub">Отметь места, которые особенно зашли — или нет.</div>
+                    </div>
+                </div>
+                <div id="fbStops"></div>
+            </div>
+
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">05</span>
+                    <div>
+                        <div class="q-title">Пара слов</div>
+                        <div class="q-sub">По желанию.</div>
+                    </div>
+                </div>
+                <textarea id="fbComment" class="fb-text" maxlength="600" rows="4" placeholder="Например: кофейня супер, а парк оказался закрыт"></textarea>
+            </div>
+
+            <div class="builder-bar">
+                <div class="bar-summary" id="fbSummary">Поставь оценку</div>
+                <button class="btn-primary btn-big" id="fbBtn" onclick="submitFeedback()">Сохранить отзыв</button>
             </div>
         </section>
 
@@ -3615,7 +3769,7 @@ const SUPABASE_KEY = (CONFIG.key || "").trim();
 const screens = [...document.querySelectorAll(".screen")];
 let currentScreen = "welcome";
 
-const PRIVATE_SCREENS = ["home", "walkBuilder", "quickWalk", "routeSoon", "myWalks", "profile"];
+const PRIVATE_SCREENS = ["home", "walkBuilder", "quickWalk", "routeSoon", "myWalks", "profile", "feedback"];
 
 function go(id) {
     // экраны после входа не открываются без аккаунта
@@ -4351,6 +4505,19 @@ const demo = {
     async deleteWalk(id) {
         const list = await this.listWalks();
         store.set(this.walksKey(), list.filter(w => w.id !== id));
+    },
+
+    async addFeedback(walkId, fb) {
+        const list = await this.listWalks();
+        const w = list.find(x => x.id === walkId);
+        if (w) w.feedback = { ...fb, created_at: new Date().toISOString() };
+        store.set(this.walksKey(), list);
+    },
+
+    async feedbackMap() {
+        const map = {};
+        (await this.listWalks()).forEach(w => { if (w.feedback) map[w.id] = w.feedback; });
+        return map;
     }
 };
 
@@ -4488,6 +4655,25 @@ const cloud = {
     async deleteWalk(id) {
         const { error } = await sb.from("walks").delete().eq("id", id);
         if (error) throw error;
+    },
+
+    async addFeedback(walkId, fb) {
+        const { error } = await sb.from("walk_feedback").insert({
+            walk_id: walkId, rating: fb.rating, liked: fb.liked, disliked: fb.disliked,
+            stops: fb.stops, comment: fb.comment || null
+        });
+        if (error) throw error;
+    },
+
+    async feedbackMap() {
+        const { data, error } = await sb
+            .from("walk_feedback")
+            .select("walk_id, rating, created_at")
+            .order("created_at", { ascending: false });
+        if (error) return {};        // таблицы ещё нет — просто без оценок
+        const map = {};
+        (data || []).forEach(r => { if (!map[r.walk_id]) map[r.walk_id] = r; });
+        return map;
     }
 };
 
@@ -5581,7 +5767,7 @@ function setMapMsg(text) {
 function renderStops(startName, stops) {
     const ol = document.getElementById("routeStops");
     ol.innerHTML = "";
-    const add = (name, note, cls, todo, withLeg) => {
+    const add = (name, note, cls, todo, withLeg, dwell) => {
         const li = document.createElement("li");
         if (cls) li.className = cls;
         if (withLeg) {
@@ -5600,16 +5786,30 @@ function renderStops(startName, stops) {
             t.textContent = note;
             li.appendChild(t);
         }
-        if (todo) {
-            const d = document.createElement("div");
-            d.className = "stop-todo";
-            d.textContent = todo;
-            li.appendChild(d);
+        if (todo || dwell) {
+            const badges = document.createElement("div");
+            badges.className = "stop-badges";
+            if (dwell) {
+                const t = document.createElement("span");
+                t.className = "stop-time";
+                t.textContent = "≈ " + dwell + " мин здесь";
+                badges.appendChild(t);
+            }
+            if (todo) {
+                const d = document.createElement("span");
+                d.className = "stop-todo";
+                d.textContent = todo;
+                badges.appendChild(d);
+            }
+            li.appendChild(badges);
         }
         ol.appendChild(li);
     };
     add(startName, "Точка старта", "start");
-    stops.forEach(s => add(s.name, s.why ? s.note + " · " + s.why : s.note, null, stopInfo(s).todo, true));
+    stops.forEach(s => {
+        const info = stopInfo(s);
+        add(s.name, s.why ? s.note + " · " + s.why : s.note, null, info.todo, true, info.dwell);
+    });
 }
 
 function renderStats(items) {
@@ -5703,6 +5903,8 @@ async function showRoute(walk) {
     const savedRoute = p.route && Array.isArray(p.route.stops) ? p.route : null;
 
     stopNav();
+    navSteps = [];
+    renderSteps([]);
     renderTags(document.getElementById("soonTags"), walkTags(walk));
     document.getElementById("routeStops").innerHTML = "";
     document.getElementById("navBar").style.display = "none";
@@ -5863,21 +6065,41 @@ async function showRoute(walk) {
     // Яндекс не смог построить пешеходный путь — рисуем свою линию между точками,
     // чтобы маршрут всё равно был виден
     let routeOk = false;
-    const drawFallback = (why) => {
-        if (routeOk || !routeMap) return;
+    let fallbackStarted = false;
+    const drawFallback = async (why) => {
+        if (routeOk || fallbackStarted || !routeMap) return;
+        fallbackStarted = true;
         routeMap.geoObjects.remove(route);
-        routeMap.geoObjects.add(new ymaps.Polyline(points, {}, {
-            strokeColor: "#6a35d2", strokeWidth: 5, strokeOpacity: 0.85, strokeStyle: "shortdash"
+        const myToken = routeToken;
+        let foot = null;
+        try { foot = await fetchFootRoute(points, stops.map(s => s.name)); } catch (e) { why += "; запасной маршрут: " + e.message; }
+        if (myToken !== routeToken || !routeMap) return;
+
+        routeMap.geoObjects.add(new ymaps.Polyline(foot ? foot.line : points, {}, {
+            strokeColor: "#6a35d2", strokeWidth: 5, strokeOpacity: 0.85, strokeStyle: foot ? "solid" : "shortdash"
         }));
         routeMap.geoObjects.add(new ymaps.Placemark(start, { hintContent: "Старт" }, { preset: "islands#grayCircleDotIcon" }));
         stops.forEach((st, i) => routeMap.geoObjects.add(new ymaps.Placemark(st.at,
             { iconContent: String(i + 1), hintContent: st.name, balloonContent: st.name },
             { preset: "islands#violetIcon" })));
         routeMap.setBounds(routeMap.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 40 });
-        renderStats(routeStats(stops, stops.plan ? stops.plan.walkMin : 0, null));
-        if (!subtitle.dataset.routeNote) {
-            subtitle.dataset.routeNote = "1";
-            subtitle.textContent += " (Пешеходный путь Яндекс не построил — показали линию по прямой. Для разработчика: " + why + ")";
+
+        if (foot) {
+            renderStats(routeStats(stops, foot.walkMin, fmtDist(foot.distance)));
+            const legs = document.querySelectorAll("#routeStops .stop-leg");
+            foot.legs.forEach((l, i) => {
+                if (!legs[i]) return;
+                legs[i].textContent = "↓ " + fmtDist(l.distance) + " · " + l.minutes + " мин пешком";
+                legs[i].style.display = "";
+            });
+            navSteps = foot.steps;
+            renderSteps(foot.steps);
+        } else {
+            renderStats(routeStats(stops, stops.plan ? stops.plan.walkMin : 0, null));
+            if (!subtitle.dataset.routeNote) {
+                subtitle.dataset.routeNote = "1";
+                subtitle.textContent += " (Пешеходный путь не построился — показали линию по прямой. Для разработчика: " + why + ")";
+            }
         }
     };
     route.model.events.add("requestsuccess", () => { routeOk = true; });
@@ -5895,12 +6117,87 @@ async function showRoute(walk) {
     document.getElementById("navInfo").textContent = "Включи, когда выйдешь на прогулку: покажем, где ты и куда идти дальше.";
 }
 
+/* ---------- запасной пешеходный маршрутизатор (OpenStreetMap, бесплатно) ---------- */
+const TURN_RU = {
+    "left": "налево", "right": "направо", "slight left": "левее", "slight right": "правее",
+    "sharp left": "резко налево", "sharp right": "резко направо", "straight": "прямо", "uturn": "назад"
+};
+function stepText(st) {
+    const m = st.maneuver || {};
+    const name = st.name ? " — " + st.name : "";
+    const onto = name;
+    const dir = TURN_RU[m.modifier] || "";
+    switch (m.type) {
+        case "depart": return "Начни идти" + name;
+        case "arrive": return "Ты на месте";
+        case "turn": case "end of road": case "fork":
+            return dir === "прямо" ? "Иди прямо" + name : "Поверни " + (dir || "") + onto;
+        case "roundabout": case "rotary": return "Обойди площадь" + onto;
+        default: return dir && dir !== "прямо" ? "Держись " + dir + name : "Иди прямо" + name;
+    }
+}
+function fmtDist(m) {
+    m = Math.round(m);
+    return m >= 1000 ? (m / 1000).toFixed(1).replace(".", ",") + " км" : Math.max(10, Math.round(m / 10) * 10) + " м";
+}
+async function fetchFootRoute(points, names) {
+    const coords = points.map(pt => pt[1].toFixed(6) + "," + pt[0].toFixed(6)).join(";");
+    const url = "https://routing.openstreetmap.de/routed-foot/route/v1/foot/" + coords +
+        "?overview=full&geometries=geojson&steps=true";
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (!res.ok) throw new Error("osrm " + res.status);
+        const j = await res.json();
+        const r = j.routes && j.routes[0];
+        if (!r) throw new Error("osrm: нет маршрута");
+        const steps = [];
+        r.legs.forEach((leg, li) => leg.steps.forEach(st => {
+            const at = [st.maneuver.location[1], st.maneuver.location[0]];
+            let text = stepText(st);
+            if (st.maneuver.type === "depart" && li > 0) text = text.replace("Начни идти", "Дальше иди");
+            if (st.maneuver.type === "arrive") {
+                const nm = names && names[li] ? names[li] : "остановка " + (li + 1);
+                text = (li < r.legs.length - 1 ? "Остановка " + (li + 1) + ": " : "Финиш: ") + nm;
+            }
+            steps.push({ text, dist: st.distance, at, leg: li, stop: st.maneuver.type === "arrive" });
+        }));
+        return {
+            line: r.geometry.coordinates.map(c => [c[1], c[0]]),
+            distance: r.distance,
+            // скорость пешехода у этого сервиса бывает странной — считаем сами, 4,5 км/ч
+            walkMin: Math.round(r.distance / 75),
+            legs: r.legs.map(l => ({ distance: l.distance, minutes: Math.max(1, Math.round(l.distance / 75)) })),
+            steps
+        };
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+function renderSteps(steps) {
+    const box = document.getElementById("routeSteps");
+    const list = document.getElementById("routeStepsList");
+    list.innerHTML = "";
+    if (!steps || !steps.length) { box.style.display = "none"; return; }
+    steps.forEach(st => {
+        const li = document.createElement("li");
+        li.textContent = st.text + (!st.stop && st.dist > 15 ? " · " + fmtDist(st.dist) : "");
+        if (st.stop) li.className = "step-stop";
+        list.appendChild(li);
+    });
+    box.style.display = "";
+}
+
 /* ---------- прогулка в реальном времени: где я и куда дальше ---------- */
 let navWatch = null;
 let navMark = null;
 let navStops = [];
 let navNext = 0;
 let navFirstFix = true;
+let navSteps = [];
+let navStepIdx = 0;
 
 function toggleNav() {
     if (navWatch !== null) { stopNav(); return; }
@@ -5910,6 +6207,7 @@ function toggleNav() {
         return;
     }
     navNext = 0;
+    navStepIdx = 0;
     navFirstFix = true;
     document.querySelectorAll("#routeStops li.done").forEach(li => li.classList.remove("done"));
     info.textContent = "Определяем, где ты…";
@@ -5957,7 +6255,18 @@ function onNavPosition(pos) {
     const next = navStops[navNext];
     const m = Math.round(kmBetween(at, next.at) * 1000);
     const dist = m >= 1000 ? (m / 1000).toFixed(1).replace(".", ",") + " км" : m + " м";
-    info.textContent = "Дальше: " + next.name + " — " + dist + " по прямой. Иди по фиолетовой линии.";
+    let turn = "";
+    if (navSteps.length) {
+        // пропускаем повороты, мимо которых уже прошли (ближе 25 м)
+        const stepsLis = document.querySelectorAll("#routeStepsList li");
+        while (navStepIdx < navSteps.length - 1 && kmBetween(at, navSteps[navStepIdx].at) < 0.025) {
+            if (stepsLis[navStepIdx]) stepsLis[navStepIdx].classList.add("passed");
+            navStepIdx++;
+        }
+        const st = navSteps[navStepIdx];
+        turn = " Сейчас: " + st.text + " (через " + fmtDist(kmBetween(at, st.at) * 1000) + ").";
+    }
+    info.textContent = "Дальше: " + next.name + " — " + dist + "." + (turn || " Иди по фиолетовой линии.");
 }
 
 /* ---------- выбор точки старта на карте ---------- */
@@ -6106,6 +6415,134 @@ function plural(n, one, few, many) {
 
 
 /* =============================================================
+   ЗАВЕРШИТЬ ПРОГУЛКУ И ОЦЕНИТЬ
+   ============================================================= */
+const STAR_LABELS = ["", "Совсем не то", "Так себе", "Нормально", "Хорошо", "Очень круто!"];
+let fbWalk = null;
+let fbDraft = null;
+
+function finishWalk() {
+    stopNav();
+    if (!currentRouteWalk) return;
+    if (currentRouteWalk.draft) {
+        alertSoft("Прогулка ещё сохраняется — подожди пару секунд и нажми снова.");
+        return;
+    }
+    openFeedback(currentRouteWalk);
+}
+
+function alertSoft(text) {
+    const sub = document.getElementById("routeSubtitle");
+    if (sub) sub.textContent = text;
+}
+
+function openFeedback(walk) {
+    fbWalk = walk;
+    fbDraft = { rating: 0, liked: [], disliked: [], stops: {} };
+    document.getElementById("fbWalkTitle").textContent =
+        (walk.title || "Прогулка") + " — расскажи, как прошло. Так следующие прогулки будут точнее.";
+    document.getElementById("fbComment").value = "";
+
+    // остановки сохранённого маршрута
+    const box = document.getElementById("fbStops");
+    box.innerHTML = "";
+    const stops = (walk.params && walk.params.route && walk.params.route.stops) || [];
+    document.getElementById("fbStopsCard").style.display = stops.length ? "" : "none";
+    stops.forEach((st, i) => {
+        const row = document.createElement("div");
+        row.className = "fb-stop";
+        const name = document.createElement("div");
+        name.className = "fb-stop-name";
+        name.textContent = (i + 1) + ". " + st.name;
+        const chips = document.createElement("div");
+        chips.className = "chips";
+        [["up", "Понравилось"], ["down", "Не очень"]].forEach(([v, t]) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "chip";
+            b.textContent = t;
+            b.addEventListener("click", () => {
+                fbDraft.stops[st.name] = fbDraft.stops[st.name] === v ? undefined : v;
+                chips.querySelectorAll(".chip").forEach(c => c.classList.remove("selected"));
+                if (fbDraft.stops[st.name]) b.classList.add("selected");
+            });
+            chips.appendChild(b);
+        });
+        row.append(name, chips);
+        box.appendChild(row);
+    });
+    syncFeedback();
+    go("feedback");
+}
+
+function syncFeedback() {
+    document.querySelectorAll("#fbStars .fb-star").forEach(b =>
+        b.classList.toggle("on", Number(b.dataset.value) <= fbDraft.rating));
+    document.getElementById("fbStarsLabel").textContent =
+        fbDraft.rating ? STAR_LABELS[fbDraft.rating] : "Нажми на звёздочку";
+    document.querySelectorAll(".fb-chips").forEach(group => {
+        const list = fbDraft[group.dataset.fb];
+        group.querySelectorAll(".chip").forEach(c => c.classList.toggle("selected", list.includes(c.dataset.value)));
+    });
+    const sum = document.getElementById("fbSummary");
+    sum.innerHTML = "";
+    if (fbDraft.rating) {
+        const b = document.createElement("b");
+        b.textContent = "★".repeat(fbDraft.rating) + "☆".repeat(5 - fbDraft.rating);
+        sum.append("Оценка: ", b);
+    } else {
+        sum.textContent = "Поставь оценку";
+    }
+}
+
+document.querySelectorAll("#fbStars .fb-star").forEach(b => b.addEventListener("click", () => {
+    if (!fbDraft) return;
+    fbDraft.rating = Number(b.dataset.value);
+    hideMsg("fbMsg");
+    syncFeedback();
+}));
+
+document.querySelectorAll(".fb-chips").forEach(group => {
+    group.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+        if (!fbDraft) return;
+        const key = group.dataset.fb, v = c.dataset.value;
+        fbDraft[key] = fbDraft[key].includes(v) ? fbDraft[key].filter(x => x !== v) : [...fbDraft[key], v];
+        syncFeedback();
+    }));
+});
+
+async function submitFeedback() {
+    if (!fbWalk || !fbDraft) return;
+    if (!fbDraft.rating) {
+        showMsg("fbMsg", "Поставь оценку от 1 до 5 звёзд.");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+    }
+    const stops = Object.entries(fbDraft.stops)
+        .filter(([, v]) => v)
+        .map(([name, v]) => ({ name, like: v === "up" }));
+    setLoading("fbBtn", true, "Сохраняем…");
+    try {
+        await auth.addFeedback(fbWalk.id, {
+            rating: fbDraft.rating,
+            liked: fbDraft.liked,
+            disliked: fbDraft.disliked,
+            stops,
+            comment: document.getElementById("fbComment").value.trim()
+        });
+        fbWalk = null;
+        fbDraft = null;
+        go("myWalks");
+        showMsg("walksMsg", "Спасибо за отзыв! Учтём его в следующих прогулках 💜", "ok");
+    } catch (err) {
+        showMsg("fbMsg", humanError(err));
+    } finally {
+        setLoading("fbBtn", false);
+    }
+}
+
+
+/* =============================================================
    ВАШИ МАРШРУТЫ
    ============================================================= */
 async function updateWalksCount() {
@@ -6156,6 +6593,9 @@ async function renderWalks() {
         return;
     }
 
+    let feedback = {};
+    try { feedback = await auth.feedbackMap(); } catch (e) { /* без оценок */ }
+
     list.forEach(walk => {
         const card = document.createElement("div");
         card.className = "walk-card";
@@ -6174,6 +6614,13 @@ async function renderWalks() {
         status.className = "status";
         status.textContent = "на карте";
         title.appendChild(status);
+        const fbr = feedback[walk.id];
+        if (fbr) {
+            const r = document.createElement("span");
+            r.className = "status walk-rate";
+            r.textContent = "★".repeat(fbr.rating) + "☆".repeat(5 - fbr.rating);
+            title.appendChild(r);
+        }
 
         const meta = document.createElement("div");
         meta.className = "walk-meta";
@@ -6187,8 +6634,17 @@ async function renderWalks() {
         open.className = "walk-open";
         open.textContent = "Показать на карте →";
         open.addEventListener("click", () => openRoute(walk));
+        let rate = null;
+        if (!fbr) {
+            rate = document.createElement("button");
+            rate.className = "walk-open";
+            rate.style.marginLeft = "16px";
+            rate.textContent = "Оценить прогулку";
+            rate.addEventListener("click", () => openFeedback(walk));
+        }
 
         body.append(title, meta, tags, open);
+        if (rate) body.append(rate);
 
         const del = document.createElement("button");
         del.className = "walk-del";
