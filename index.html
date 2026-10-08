@@ -1551,6 +1551,8 @@
 
         .route-map-msg.hidden { display: none; }
 
+        #routeSoon .row .btn-big { border-radius: 999px; }
+
         .route-stats {
             display: flex;
             flex-wrap: wrap;
@@ -1602,6 +1604,7 @@
         .route-stops .stop-note { color: #5b6478; font-size: 14px; margin-top: 2px; }
 
         a.route-ya {
+            border-radius: 999px;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -1617,6 +1620,105 @@
             font: inherit;
             font-weight: 700;
             cursor: pointer;
+        }
+
+        .pick-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--blue-mid);
+            background: #fff;
+            color: var(--purple);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .15s, border-color .15s;
+        }
+
+        .pick-btn:hover { background: #f4f0fd; border-color: #cdbcf3; }
+
+        .picker {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(30, 24, 48, .45);
+        }
+
+        .picker.open { display: flex; }
+
+        .picker-card {
+            width: min(720px, 100%);
+            max-height: calc(100vh - 32px);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 18px;
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 30px 80px rgba(40, 20, 90, .25);
+        }
+
+        .picker-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .picker-title { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+        .picker-sub { color: #5b6478; font-size: 14px; margin-top: 2px; }
+
+        .picker-x {
+            width: 36px;
+            height: 36px;
+            flex: none;
+            border-radius: 50%;
+            border: 1px solid var(--blue-mid);
+            background: #fff;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .picker-map {
+            position: relative;
+            height: min(60vh, 460px);
+            min-height: 260px;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid var(--blue-mid);
+            background: #eef3f9;
+        }
+
+        .picker-addr {
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: #f4f7fb;
+            font-weight: 600;
+            min-height: 46px;
+        }
+
+        .picker-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .picker-actions button { white-space: nowrap; }
+        .picker-actions .btn-primary[disabled] { opacity: .45; cursor: default; }
+
+        @media (max-width: 520px) {
+            .picker { padding: 0; align-items: stretch; }
+            .picker-card { border-radius: 0; max-height: none; height: 100%; }
+            .picker-map { flex: 1; height: auto; }
+            .picker-actions button { flex: 1; }
         }
 
         .soon-title {
@@ -2136,6 +2238,26 @@
 </div>
 
 <!-- меню справа (видно только после входа) -->
+<div class="picker" id="picker" aria-hidden="true">
+    <div class="picker-card" role="dialog" aria-label="Точка старта на карте">
+        <div class="picker-head">
+            <div>
+                <div class="picker-title">Откуда начинаем?</div>
+                <div class="picker-sub">Нажми на карту или перетащи метку</div>
+            </div>
+            <button type="button" class="picker-x" onclick="closePicker()" aria-label="Закрыть">✕</button>
+        </div>
+        <div class="picker-map" id="pickerMap">
+            <div class="route-map-msg" id="pickerMsg">Загружаем карту…</div>
+        </div>
+        <div class="picker-addr" id="pickerAddr">Точка не выбрана</div>
+        <div class="picker-actions">
+            <button type="button" class="btn-secondary" id="pickerGeo" onclick="pickerLocate()">Я здесь</button>
+            <button type="button" class="btn-primary" id="pickerOk" onclick="confirmPicker()" disabled>Готово</button>
+        </div>
+    </div>
+</div>
+
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeMenu()"></div>
 <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Меню">
     <div class="drawer-head">
@@ -2188,7 +2310,7 @@
                     <path pathLength="1" d="M30 60 C 120 0, 260 60, 230 150 C 205 225, 110 230, 105 170 C 100 115, 180 110, 190 160 C 198 200, 150 230, 80 280"/>
                 </svg>
 
-                <div class="eyebrow rise d1">прогулки по Москве <span>· под твой вайб</span></div>
+                <div class="eyebrow rise d1">прогулки по Москве и области <span>· под твой вайб</span></div>
 
                 <h1 class="hero-title rise d2">
                     <span class="line">Точка</span>
@@ -3256,14 +3378,43 @@
                 <div class="q-head">
                     <span class="q-num">05</span>
                     <div>
+                        <div class="q-title">Заглянем на мероприятие?</div>
+                        <div class="q-sub">Концерт, выставка, фестиваль — подберём по афише на сегодня.</div>
+                    </div>
+                </div>
+                <div class="chips opt-grid" data-draft="walk" data-field="events" data-single>
+                    <button type="button" class="chip opt" data-value="yes">
+                        <span class="opt-title">Да, хочу</span>
+                        <span class="opt-desc">Встроим событие в маршрут</span>
+                    </button>
+                    <button type="button" class="chip opt" data-value="maybe">
+                        <span class="opt-title">Если по пути</span>
+                        <span class="opt-desc">Только если что-то интересное рядом</span>
+                    </button>
+                    <button type="button" class="chip opt" data-value="no">
+                        <span class="opt-title">Просто гуляем</span>
+                        <span class="opt-desc">Парки, улицы, кофейни</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 06 -->
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">06</span>
+                    <div>
                         <div class="q-title">Откуда начинаем?</div>
-                        <div class="q-sub">Станция метро, адрес или известное место.</div>
+                        <div class="q-sub">Станция метро, адрес, известное место — или отметь точку на карте.</div>
                     </div>
                 </div>
                 <div class="input-icon">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
                     <input id="builderStart" type="text" maxlength="120" placeholder="Например: м. Китай-город">
                 </div>
+                <button type="button" class="pick-btn" onclick="openPicker('builderStart')">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
+                    Выбрать на карте
+                </button>
             </div>
 
             <!-- нижняя панель с итогом -->
@@ -3309,13 +3460,17 @@
                     <span class="q-num">02</span>
                     <div>
                         <div class="q-title">Откуда начинаем?</div>
-                        <div class="q-sub">Станция метро, адрес или известное место.</div>
+                        <div class="q-sub">Станция метро, адрес, известное место — или отметь точку на карте.</div>
                     </div>
                 </div>
                 <div class="input-icon">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
                     <input id="quickStart" type="text" maxlength="120" placeholder="Например: м. Китай-город">
                 </div>
+                <button type="button" class="pick-btn" onclick="openPicker('quickStart')">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
+                    Выбрать на карте
+                </button>
             </div>
 
             <div class="builder-bar">
@@ -4573,6 +4728,7 @@ const GOAL_LABELS = {
     walk: "походить", sit: "посидеть", eat: "поесть",
     shop: "что-нибудь купить", see: "интересные места", fun: "развлечься"
 };
+const EVENTS_LABELS = { yes: "с мероприятием", maybe: "событие — если по пути", no: "без мероприятий" };
 const PACE_LABELS = { calm: "спокойная", active: "энергичная", mixed: "смешанная" };
 const COMPANY_LABELS = { solo: "один / одна", friends: "с друзьями", person: "с конкретным человеком" };
 
@@ -4593,7 +4749,8 @@ function newWalkDraft() {
         nickSurvey: null,
         time: null,
         budget: null,
-        pace: null
+        pace: null,
+        events: null
     };
 }
 
@@ -4736,6 +4893,7 @@ document.getElementById("friendNick").addEventListener("keydown", e => {
 function startBuilder() {
     walkDraft = newWalkDraft();
     document.getElementById("builderStart").value = "";
+    delete pickedStart.builderStart;
     document.getElementById("friendNick").value = "";
     syncChips("walk");
     updateCompanyBlocks();
@@ -4746,6 +4904,7 @@ function startBuilder() {
 function startQuick() {
     quickDraft = { time: null };
     document.getElementById("quickStart").value = "";
+    delete pickedStart.quickStart;
     syncChips("quick");
     updateSummaries();
     go("quickWalk");
@@ -4761,6 +4920,7 @@ function updateSummaries() {
         if (d.time) parts.push(TIME_LABELS[d.time]);
         if (d.budget) parts.push(BUDGET_LABELS[d.budget]);
         if (d.pace) parts.push(PACE_LABELS[d.pace]);
+        if (d.events) parts.push(EVENTS_LABELS[d.events]);
         const el = document.getElementById("builderSummary");
         el.innerHTML = "";
         if (parts.length) {
@@ -4810,6 +4970,7 @@ async function submitBuilder() {
     if (!d.time) return builderError("Выбери, сколько времени на прогулку.");
     if (!d.budget) return builderError("Выбери бюджет.");
     if (!d.pace) return builderError("Выбери, какой будет прогулка.");
+    if (!d.events) return builderError("Скажи, хочешь ли заглянуть на мероприятие.");
     if (!start) {
         document.getElementById("builderStart").focus();
         return builderError("Напиши, откуда начинаем.");
@@ -4827,7 +4988,9 @@ async function submitBuilder() {
         time: Number(d.time),
         budget: d.budget,
         pace: d.pace,
-        start
+        events: d.events,
+        start,
+        startAt: pickedAt("builderStart", start)
     };
 
     const companyShort = { solo: "соло", friends: "с друзьями", person: "вдвоём" }[d.company];
@@ -4847,7 +5010,7 @@ async function submitQuick() {
         return showMsg("quickMsg", "Напиши, откуда начинаем.");
     }
 
-    const params = { time: Number(quickDraft.time), start };
+    const params = { time: Number(quickDraft.time), start, startAt: pickedAt("quickStart", start) };
     const title = `Быстрая прогулка · ${TIME_LABELS[params.time]}`;
 
     await saveWalk("quick", title, params, "quickBtn", "quickMsg");
@@ -4884,6 +5047,7 @@ function walkTags(walk) {
     if (p.personMode === "mine") tags.push({ text: "по моим интересам" });
     if (p.budget) tags.push({ text: BUDGET_LABELS[p.budget] });
     if (p.pace) tags.push({ text: PACE_LABELS[p.pace] + " прогулка" });
+    if (p.events) tags.push({ text: EVENTS_LABELS[p.events] });
     if (walk.kind === "quick") tags.push({ text: "по твоему профилю" });
 
     return tags;
@@ -4907,7 +5071,7 @@ function renderTags(container, tags) {
 // Его можно хранить в открытом коде — он защищён ограничением по сайту.
 const YANDEX_KEY = CONFIG.yandexKey || "e5aa80bd-02bd-4067-b037-2e4679359a1e";
 
-// Подборка мест в центре Москвы.
+// Подборка мест в Москве и Подмосковье.
 // tags — за что место подходит, cost — примерная цена входа (0 = бесплатно).
 // Координаты примерные: [широта, долгота].
 const PLACES = [
@@ -4942,7 +5106,34 @@ const PLACES = [
     { name: "Аптекарский огород", at: [55.7782, 37.6326], tags: ["nature", "quiet", "photo"], cost: 500, note: "Ботанический сад с оранжереями" },
     { name: "Фудмолл «Депо»", at: [55.7743, 37.5911], tags: ["food", "active", "crowded"], cost: 600, note: "Много еды под одной крышей" },
     { name: "Даниловский рынок", at: [55.7114, 37.6213], tags: ["food"], cost: 600, note: "Рынок с уличной едой" },
-    { name: "Смотровая Москва-Сити", at: [55.7495, 37.5374], tags: ["photo", "architecture", "active"], cost: 1000, note: "Город с высоты небоскрёба" }
+    { name: "Смотровая Москва-Сити", at: [55.7495, 37.5374], tags: ["photo", "architecture", "active"], cost: 1000, note: "Город с высоты небоскрёба" },
+
+    // Москва за пределами центра
+    { name: "ВДНХ", at: [55.8263, 37.6377], tags: ["architecture", "photo", "nature", "active", "crowded"], cost: 0, note: "Фонтаны, павильоны и огромный парк" },
+    { name: "Главный ботанический сад", at: [55.8410, 37.5960], tags: ["nature", "quiet", "photo"], cost: 0, note: "Японский сад и тихие аллеи" },
+    { name: "Останкинский пруд и телебашня", at: [55.8228, 37.6113], tags: ["photo", "nature", "pop-culture"], cost: 0, note: "Вид на телебашню у воды" },
+    { name: "Парк «Сокольники»", at: [55.7925, 37.6770], tags: ["nature", "active", "cozy"], cost: 0, note: "Розарий, лес и велодорожки" },
+    { name: "Измайловский кремль", at: [55.7944, 37.7499], tags: ["architecture", "photo", "pop-culture"], cost: 0, note: "Сказочный деревянный кремль" },
+    { name: "Усадьба Кусково", at: [55.7356, 37.8090], tags: ["architecture", "nature", "museums", "quiet"], cost: 400, note: "Дворец, пруд и регулярный парк" },
+    { name: "Коломенское", at: [55.6677, 37.6708], tags: ["nature", "architecture", "photo", "classic"], cost: 0, note: "Холмы над рекой и церковь Вознесения" },
+    { name: "Царицыно", at: [55.6157, 37.6863], tags: ["architecture", "nature", "photo", "dark"], cost: 0, note: "Готический дворец и поющий фонтан" },
+    { name: "Парк Победы на Поклонной горе", at: [55.7317, 37.5070], tags: ["nature", "classic", "active"], cost: 0, note: "Широкие аллеи и фонтаны" },
+    { name: "Андреевская набережная", at: [55.7135, 37.5800], tags: ["nature", "quiet"], cost: 0, note: "Тихая набережная у самой воды" },
+
+    // Подмосковье
+    { name: "Музей-усадьба «Архангельское»", at: [55.7853, 37.2854], tags: ["architecture", "nature", "museums", "photo"], cost: 500, note: "Дворец и парк с видом на реку" },
+    { name: "Парк Толстого, Химки", at: [55.8892, 37.4440], tags: ["nature", "cozy", "active"], cost: 0, note: "Набережная канала и аллеи" },
+    { name: "Новоиерусалимский монастырь, Истра", at: [55.9255, 36.8436], tags: ["architecture", "photo", "classic"], cost: 0, note: "Огромный собор посреди полей" },
+    { name: "Звенигород, Саввино-Сторожевский монастырь", at: [55.7290, 36.8221], tags: ["architecture", "quiet", "nature"], cost: 0, note: "Стены на холме и вид на леса" },
+    { name: "Троице-Сергиева лавра, Сергиев Посад", at: [56.3105, 38.1302], tags: ["architecture", "classic", "photo", "crowded"], cost: 0, note: "Голубые купола со звёздами" },
+    { name: "Музей-заповедник «Абрамцево»", at: [56.2347, 37.9675], tags: ["museums", "arthouse", "nature", "quiet"], cost: 400, note: "Усадьба, где бывали Серов и Васнецов" },
+    { name: "Дмитровский кремль", at: [56.3442, 37.5207], tags: ["architecture", "nature", "quiet"], cost: 0, note: "Земляные валы и собор" },
+    { name: "Дом-музей Чайковского, Клин", at: [56.3352, 36.7189], tags: ["music", "museums", "quiet"], cost: 300, note: "Дом, где написан «Щелкунчик»" },
+    { name: "Коломенский кремль", at: [55.1030, 38.7522], tags: ["architecture", "photo", "food", "cozy"], cost: 0, note: "Старые улочки и пастила" },
+    { name: "Музей пастилы, Коломна", at: [55.1043, 38.7565], tags: ["food", "museums", "cozy"], cost: 600, note: "Пастила и чай по старинным рецептам" },
+    { name: "Усадьба Мелихово, Чехов", at: [55.1137, 37.6481], tags: ["books", "museums", "nature", "quiet"], cost: 300, note: "Усадьба Антона Чехова" },
+    { name: "Набережная Москвы-реки, Красногорск", at: [55.8205, 37.3720], tags: ["nature", "active", "photo"], cost: 0, note: "Длинная набережная с видом на Строгино" },
+    { name: "Парк культуры и отдыха, Мытищи", at: [55.9164, 37.7520], tags: ["nature", "cozy"], cost: 0, note: "Парк с прудом в центре Мытищ" }
 ];
 
 // как ответы опроса превращаются в «теги» мест
@@ -5005,7 +5196,100 @@ function jitter(seed, name) {
 }
 
 // Подбираем остановки: интересные места, которые успеем обойти.
-function pickStops(walk, start) {
+/* ---------- места рядом из OpenStreetMap (бесплатно, без ключа) ---------- */
+const OVERPASS_URLS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter"
+];
+
+// как теги OpenStreetMap превращаются в наши теги, цену и подпись
+function osmKind(t) {
+    if (t.leisure === "park" || t.leisure === "garden")
+        return { tags: ["nature", "photo", "cozy"], cost: 0, note: "Парк" };
+    if (t.tourism === "museum")
+        return { tags: ["museums", "arthouse"], cost: 300, note: "Музей" };
+    if (t.tourism === "gallery" || t.amenity === "arts_centre")
+        return { tags: ["museums", "arthouse", "street-art"], cost: 0, note: "Галерея" };
+    if (t.tourism === "artwork")
+        return { tags: ["street-art", "arthouse", "photo"], cost: 0, note: "Арт-объект" };
+    if (t.tourism === "viewpoint")
+        return { tags: ["photo", "nature"], cost: 0, note: "Смотровая площадка" };
+    if (t.tourism === "attraction")
+        return { tags: ["photo", "architecture"], cost: 0, note: "Достопримечательность" };
+    if (t.historic)
+        return { tags: ["architecture", "classic", "dark"], cost: 0, note: "Историческое место" };
+    if (t.amenity === "library")
+        return { tags: ["books", "quiet"], cost: 0, note: "Библиотека" };
+    if (t.amenity === "theatre" || t.amenity === "cinema")
+        return { tags: ["music", "pop-culture"], cost: 500, note: t.amenity === "theatre" ? "Театр" : "Кино" };
+    if (t.amenity === "cafe")
+        return { tags: ["food", "cozy"], cost: 300, note: "Кофейня", food: true };
+    if (t.amenity === "fast_food")
+        return { tags: ["food", "active"], cost: 400, note: "Фастфуд", food: true };
+    if (t.amenity === "restaurant")
+        return { tags: ["food"], cost: 1000, note: "Ресторан", food: true };
+    if (t.shop === "mall")
+        return { tags: ["food", "crowded", "noisy"], cost: 0, note: "Торговый центр" };
+    return null;
+}
+
+async function fetchNearbyPlaces(start, radiusKm) {
+    const r = Math.round(Math.min(Math.max(radiusKm, 0.8), 3.5) * 1000);
+    const a = `(around:${r},${start[0]},${start[1]})`;
+    const q = `[out:json][timeout:12];(
+        nwr${a}["leisure"~"^(park|garden)$"]["name"];
+        nwr${a}["tourism"~"^(museum|gallery|artwork|viewpoint|attraction)$"]["name"];
+        nwr${a}["historic"~"^(monument|memorial|castle|manor|building|church|monastery)$"]["name"];
+        nwr${a}["amenity"~"^(cafe|fast_food|restaurant|library|theatre|cinema|arts_centre)$"]["name"];
+        nwr${a}["shop"="mall"]["name"];
+    );out center 250;`;
+
+    for (const url of OVERPASS_URLS) {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 12000);
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                body: "data=" + encodeURIComponent(q),
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                signal: ctrl.signal
+            });
+            if (!res.ok) throw new Error("overpass " + res.status);
+            const json = await res.json();
+            const seen = new Set();
+            const out = [];
+            (json.elements || []).forEach(el => {
+                const t = el.tags || {};
+                const lat = el.lat ?? (el.center && el.center.lat);
+                const lon = el.lon ?? (el.center && el.center.lon);
+                const kind = osmKind(t);
+                if (!kind || lat == null || !t.name) return;
+                const key = t.name.toLowerCase();
+                if (seen.has(key)) return;
+                seen.add(key);
+                out.push({ name: t.name, at: [lat, lon], ...kind });
+            });
+            return out;
+        } catch (e) {
+            console.warn("Overpass не ответил:", url, e);
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+    return [];
+}
+
+
+// сколько км (по прямой) можно пройти за прогулку
+function walkRadiusKm(walk) {
+    const p = walk.params || {};
+    const minutes = Number(p.time) || 60;
+    const speed = { calm: 0.065, mixed: 0.075, active: 0.085 }[p.pace] || 0.075;
+    return (minutes * speed) / 1.3 / 2;
+}
+
+function pickStops(walk, start, pool) {
     const p = walk.params || {};
     const minutes = Number(p.time) || 60;
     const speed = { calm: 0.065, mixed: 0.075, active: 0.085 }[p.pace] || 0.075; // км в минуту
@@ -5025,10 +5309,12 @@ function pickStops(walk, start) {
         if (dislikes.includes("boring") && place.tags.includes("classic")) s -= 1.5;
         if (dislikes.includes("expensive") && place.cost > 500) s -= 1;
         if (freeOnly && place.cost > 0) s -= 2;
+        if (dislikes.includes("noise") && place.tags.includes("noisy")) s -= 1.5;
+        if (place.food && !likes.includes("food")) s -= 0.6;   // кафе — только если по пути
         return s;
     };
 
-    const allowed = PLACES.filter(pl => pl.cost <= budget && (!freeOnly || pl.cost === 0 || budget > 0));
+    const allowed = (pool || PLACES).filter(pl => pl.cost <= budget && (!freeOnly || pl.cost === 0 || budget > 0));
     const stops = [];
     let here = start;
     let used = 0;
@@ -5038,6 +5324,8 @@ function pickStops(walk, start) {
         let best = null, bestValue = -Infinity;
         allowed.forEach(pl => {
             if (stops.includes(pl)) return;
+            if (pl.food && stops.some(st => st.food)) return;          // не больше одного кафе
+            if (pl.food && minutes <= 30) return;
             const d = kmBetween(here, pl.at);
             if (d < 0.15 || d > left) return;
             const value = score(pl) - d * 1.1;
@@ -5104,15 +5392,16 @@ async function showRoute(walk) {
     }
     if (token !== routeToken) return;
 
-    // ищем точку старта (только в пределах Москвы)
-    let start;
-    try {
-        const res = await ymaps.geocode("Москва, " + startText, {
-            results: 1,
-            boundedBy: [[55.49, 37.29], [55.96, 37.97]],
-            strictBounds: true
-        });
-        const obj = res.geoObjects.get(0);
+    // точка старта: выбрана на карте — или ищем по тексту (Москва и область)
+    let start = Array.isArray(p.startAt) ? p.startAt : null;
+    if (!start) try {
+        const opts = { results: 1, boundedBy: REGION_BOUNDS, strictBounds: true };
+        let res = await ymaps.geocode(startText, opts);
+        let obj = res.geoObjects.get(0);
+        if (!obj) {
+            res = await ymaps.geocode("Москва, " + startText, opts);
+            obj = res.geoObjects.get(0);
+        }
         if (obj) start = obj.geometry.getCoordinates();
     } catch (e) {
         console.warn("geocode", e);
@@ -5120,12 +5409,19 @@ async function showRoute(walk) {
     if (token !== routeToken) return;
 
     if (!start) {
-        setMapMsg("Не нашли «" + startText + "» на карте Москвы. Попробуй собрать прогулку ещё раз и написать точнее, например «м. Чистые пруды».");
+        setMapMsg("Не нашли «" + startText + "» в Москве и области. Попробуй написать точнее, например «м. Чистые пруды» или «Коломна, кремль», — или выбери точку на карте.");
         renderStops(startText, []);
         return;
     }
 
-    const stops = pickStops(walk, start);
+    // свои места + то, что нашли рядом в OpenStreetMap
+    setMapMsg("Ищем интересные места рядом…");
+    const nearby = await fetchNearbyPlaces(start, walkRadiusKm(walk) * 2);
+    if (token !== routeToken) return;
+    const pool = PLACES.concat(nearby.filter(n =>
+        !PLACES.some(pl => kmBetween(pl.at, n.at) < 0.2)));
+
+    const stops = pickStops(walk, start, pool);
     renderStops(startText, stops);
 
     const points = [start, ...stops.map(s => s.at)];
@@ -5179,6 +5475,143 @@ async function showRoute(walk) {
 
     routeMap.geoObjects.add(route);
 }
+
+/* ---------- выбор точки старта на карте ---------- */
+const pickedStart = {};          // { builderStart: { text, at: [lat, lon] } }
+const MOSCOW_CENTER = [55.7558, 37.6176];
+let pickerField = null;
+let pickerMap = null;
+let pickerMark = null;
+let pickerChoice = null;         // { text, at }
+
+// координаты сохраняем, только если текст в поле не меняли после выбора
+function pickedAt(fieldId, text) {
+    const pick = pickedStart[fieldId];
+    return pick && pick.text === text ? pick.at : null;
+}
+
+// примерные границы Москвы + Московской области (вместе с Новой Москвой)
+const REGION_BOUNDS = [[54.25, 35.14], [56.96, 40.21]];
+
+function inMoscow(at) {
+    const [[s, w], [n, e]] = REGION_BOUNDS;
+    return at[0] > s && at[0] < n && at[1] > w && at[1] < e;
+}
+
+async function openPicker(fieldId) {
+    pickerField = fieldId;
+    pickerChoice = pickedStart[fieldId] || null;
+    const box = document.getElementById("picker");
+    box.classList.add("open");
+    box.setAttribute("aria-hidden", "false");
+    document.getElementById("pickerAddr").textContent = pickerChoice ? pickerChoice.text : "Точка не выбрана";
+    document.getElementById("pickerOk").disabled = !pickerChoice;
+
+    let ymaps;
+    try {
+        ymaps = await loadYmaps();
+    } catch (e) {
+        document.getElementById("pickerMsg").textContent = "Не получилось загрузить Яндекс Карты. Проверь интернет.";
+        return;
+    }
+    document.getElementById("pickerMsg").classList.add("hidden");
+
+    const center = pickerChoice ? pickerChoice.at : MOSCOW_CENTER;
+    if (!pickerMap) {
+        pickerMap = new ymaps.Map("pickerMap", {
+            center,
+            zoom: pickerChoice ? 15 : 10,
+            controls: ["zoomControl", "searchControl"]
+        }, {
+            suppressMapOpenBlock: true,
+            restrictMapArea: [[54.0, 34.8], [57.2, 40.6]]
+        });
+        pickerMap.events.add("click", e => setPickerPoint(e.get("coords")));
+    } else {
+        pickerMap.container.fitToViewport();
+        pickerMap.setCenter(center, pickerChoice ? 15 : 10);
+    }
+    if (pickerMark) { pickerMap.geoObjects.remove(pickerMark); pickerMark = null; }
+    if (pickerChoice) placePickerMark(pickerChoice.at);
+}
+
+function placePickerMark(at) {
+    const ymaps = window.ymaps;
+    if (!pickerMark) {
+        pickerMark = new ymaps.Placemark(at, {}, { preset: "islands#violetDotIcon", draggable: true });
+        pickerMark.events.add("dragend", () => setPickerPoint(pickerMark.geometry.getCoordinates()));
+        pickerMap.geoObjects.add(pickerMark);
+    } else {
+        pickerMark.geometry.setCoordinates(at);
+    }
+}
+
+async function setPickerPoint(at) {
+    const addr = document.getElementById("pickerAddr");
+    const ok = document.getElementById("pickerOk");
+    at = [Number(at[0].toFixed(6)), Number(at[1].toFixed(6))];
+    placePickerMark(at);
+
+    if (!inMoscow(at)) {
+        pickerChoice = null;
+        ok.disabled = true;
+        addr.textContent = "Пока строим прогулки только по Москве и Московской области — выбери точку в регионе.";
+        return;
+    }
+
+    addr.textContent = "Ищем адрес…";
+    let text = "Точка на карте";
+    try {
+        const res = await window.ymaps.geocode(at, { results: 1 });
+        const obj = res.geoObjects.get(0);
+        if (obj) text = obj.properties.get("name") || text;
+    } catch (e) {
+        console.warn("reverse geocode", e);
+    }
+    pickerChoice = { text, at };
+    addr.textContent = text;
+    ok.disabled = false;
+}
+
+function pickerLocate() {
+    const btn = document.getElementById("pickerGeo");
+    const addr = document.getElementById("pickerAddr");
+    if (!navigator.geolocation) {
+        addr.textContent = "Браузер не умеет определять местоположение.";
+        return;
+    }
+    btn.disabled = true;
+    addr.textContent = "Определяем, где ты…";
+    navigator.geolocation.getCurrentPosition(pos => {
+        btn.disabled = false;
+        const at = [pos.coords.latitude, pos.coords.longitude];
+        if (pickerMap) pickerMap.setCenter(at, 15);
+        setPickerPoint(at);
+    }, () => {
+        btn.disabled = false;
+        addr.textContent = "Не получилось узнать местоположение — разреши доступ к геопозиции или выбери точку вручную.";
+    }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+function confirmPicker() {
+    if (!pickerChoice || !pickerField) return;
+    pickedStart[pickerField] = pickerChoice;
+    const input = document.getElementById(pickerField);
+    input.value = pickerChoice.text;
+    input.dispatchEvent(new Event("input"));
+    closePicker();
+}
+
+function closePicker() {
+    const box = document.getElementById("picker");
+    box.classList.remove("open");
+    box.setAttribute("aria-hidden", "true");
+}
+
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && document.getElementById("picker").classList.contains("open")) closePicker();
+});
+
 
 function plural(n, one, few, many) {
     const m10 = n % 10, m100 = n % 100;
