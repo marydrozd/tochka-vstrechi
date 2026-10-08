@@ -1602,6 +1602,22 @@
 
         .route-stops .stop-name { font-weight: 700; }
         .route-stops .stop-note { color: #5b6478; font-size: 14px; margin-top: 2px; }
+        .route-stops .stop-leg { color: #8a93a6; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+        .route-stops li.done { opacity: .5; }
+        .route-stops li.done::before { content: "✓"; background: #b0c4de; }
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: -12px 0 26px;
+            padding: 12px 14px;
+            border-radius: 18px;
+            border: 1px solid var(--blue-mid);
+            background: #fff;
+        }
+        .nav-bar .btn-primary { border-radius: 999px; white-space: nowrap; flex: none; }
+        .nav-info { color: #5b6478; font-size: 14px; font-weight: 600; }
+        @media (max-width: 520px) { .nav-bar { flex-direction: column; align-items: stretch; } }
         .route-stops .stop-todo {
             display: inline-block;
             margin-top: 6px;
@@ -2288,7 +2304,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 8 окт · v13</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 8 окт · v15</span></div>
 </aside>
 
 
@@ -3503,6 +3519,11 @@
 
             <div class="route-stats" id="routeStats"></div>
 
+            <div class="nav-bar" id="navBar" style="display:none">
+                <button type="button" class="btn-primary" id="navBtn" onclick="toggleNav()">Начать прогулку</button>
+                <div class="nav-info" id="navInfo"></div>
+            </div>
+
             <h1 class="soon-title">
                 Прогулка
                 <span class="accent">готова :)</span>
@@ -3614,6 +3635,7 @@ function go(id) {
     if (id === "profile") renderProfilePage();
     if (id === "home") updateWalksCount();
     if (id === "routeSoon" && currentRouteWalk) showRoute(currentRouteWalk);
+    else if (typeof stopNav === "function") stopNav();
 
     // сбрасываем сообщения форм при переходе
     document.querySelectorAll(".form-msg").forEach(m => {
@@ -5029,9 +5051,8 @@ async function submitQuick() {
 async function saveWalk(kind, title, params, btnId, msgId) {
     setLoading(btnId, true, "Сохраняем…");
     try {
-        const walk = await auth.addWalk({ kind, title, params });
-        openRoute(walk);
-        updateWalksCount();
+        // сохраняем после того, как маршрут построится (вместе с ним)
+        openRoute({ draft: true, kind, title, params, created_at: new Date().toISOString() });
     } catch (err) {
         showMsg(msgId, humanError(err));
     } finally {
@@ -5233,8 +5254,10 @@ function osmKind(t) {
         return { tags: ["architecture", "classic", "dark"], cost: 0, note: "Историческое место", kind: "historic" };
     if (t.amenity === "library")
         return { tags: ["books", "quiet"], cost: 0, note: "Библиотека", kind: "library" };
-    if (t.amenity === "theatre" || t.amenity === "cinema")
-        return { tags: ["music", "pop-culture"], cost: 500, note: t.amenity === "theatre" ? "Театр" : "Кино", kind: "theatre" };
+    if (t.amenity === "cinema")
+        return { tags: ["pop-culture"], cost: 500, note: "Кинотеатр", kind: "cinema" };
+    if (t.amenity === "theatre")
+        return { tags: ["music", "pop-culture"], cost: 0, note: "Театр", kind: "theatre" };
     if (t.amenity === "cafe")
         return { tags: ["food", "cozy"], cost: 300, note: "Кофейня", food: true, kind: "cafe" };
     if (t.amenity === "fast_food")
@@ -5357,28 +5380,56 @@ function walkRadiusKm(walk) {
     return (minutes * speed) / 1.3 / 2;
 }
 
-// Что делать на остановке: сколько там пробыть и сколько потратить
-function stopInfo(pl) {
+const FOOD_KINDS = ["cafe", "fast_food", "restaurant"];
+const roundRub = x => Math.round(x / 50) * 50;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+function isFoodPlace(pl) {
+    return FOOD_KINDS.includes(pl.kind) || (!pl.kind && (pl.tags || []).includes("food") && pl.cost > 0);
+}
+
+// Что делать на остановке: сколько там пробыть и сколько потратить.
+// alloc — сколько денег мы бы хотели потратить именно здесь.
+function stopInfo(pl, alloc) {
+    if (pl.todo !== undefined && pl.dwell !== undefined) return pl;    // уже посчитано (сохранённый маршрут)
     const k = pl.kind;
     const t = pl.tags || [];
-    if (k === "cafe") return { dwell: 25, spend: 350, todo: "Кофе и десерт ≈ 350 ₽" };
-    if (k === "fast_food") return { dwell: 20, spend: 400, todo: "Перекус ≈ 400 ₽" };
-    if (k === "restaurant") return { dwell: 50, spend: 1000, todo: "Поесть ≈ 1000 ₽" };
+    const a = alloc || 0;
+
+    if (k === "cafe" || (!k && isFoodPlace(pl) && !t.includes("museums"))) {
+        const spend = roundRub(clamp(a || 350, 300, 900));
+        const what = spend <= 400 ? "Кофе и десерт" : spend <= 650 ? "Кофе, десерт и сэндвич" : "Обед в кафе";
+        return { dwell: spend > 650 ? 40 : 25, spend, todo: what + " ≈ " + spend + " ₽" };
+    }
+    if (k === "fast_food") {
+        const spend = roundRub(clamp(a || 400, 300, 700));
+        return { dwell: 20, spend, todo: (spend <= 450 ? "Перекус" : "Сытный обед") + " ≈ " + spend + " ₽" };
+    }
+    if (k === "restaurant") {
+        const spend = roundRub(clamp(a || 1200, 900, 3000));
+        return { dwell: 50, spend, todo: "Поесть в ресторане ≈ " + spend + " ₽" };
+    }
+    if (k === "mall") {
+        const spend = a >= 300 ? roundRub(clamp(a, 300, 3000)) : 0;
+        return { dwell: 30, spend, todo: spend ? "Шопинг и сувениры ≈ " + spend + " ₽" : "Погреться и заглянуть в магазины" };
+    }
+    if (k === "cinema") return { dwell: 120, spend: 500, todo: "Билет в кино ≈ 500 ₽" };
+    if (k === "event") return pl.cost > 0
+        ? { dwell: 60, spend: pl.cost, todo: "Билет ≈ " + pl.cost + " ₽" }
+        : { dwell: 60, spend: 0, todo: "Вход свободный" };
     if (k === "museum" || (t.includes("museums") && pl.cost > 0))
-        return { dwell: 45, spend: pl.cost || 300, todo: "Билет ≈ " + (pl.cost || 300) + " ₽" };
-    if (k === "theatre") return { dwell: 15, spend: 0, todo: "Посмотреть афишу" };
+        return { dwell: 45, spend: pl.cost || 400, todo: "Билет ≈ " + (pl.cost || 400) + " ₽" };
+    if (k === "theatre") return { dwell: 10, spend: 0, todo: "Посмотреть афишу" };
     if (k === "gallery") return { dwell: 30, spend: 0, todo: "Заглянуть на выставку" };
-    if (k === "mall") return { dwell: 25, spend: 0, todo: "Погреться и заглянуть в магазины" };
     if (k === "library") return { dwell: 20, spend: 0, todo: "Посидеть с книгой" };
     if (k === "park" || t.includes("nature")) return { dwell: 15, spend: 0, todo: "Пройтись по аллеям" };
     if (k === "artwork" || k === "viewpoint") return { dwell: 5, spend: 0, todo: "Сделать фото" };
-    if (t.includes("food") && pl.cost > 0) return { dwell: 25, spend: pl.cost, todo: "Перекусить ≈ " + pl.cost + " ₽" };
     if (pl.cost > 0) return { dwell: 30, spend: pl.cost, todo: "Вход ≈ " + pl.cost + " ₽" };
     return { dwell: 10, spend: 0, todo: "" };
 }
 
-// Подбираем остановки так, чтобы прогулка заняла столько времени, сколько выбрали,
-// и (если есть бюджет) было куда его потратить.
+// Подбираем остановки так, чтобы прогулка заняла выбранное время,
+// а бюджет был потрачен с умом (примерно 70–90%).
 function pickStops(walk, start, pool, relaxed) {
     const p = walk.params || {};
     const minutes = Number(p.time) || 60;
@@ -5390,46 +5441,54 @@ function pickStops(walk, start, pool, relaxed) {
     const surveys = [currentUser && currentUser.survey, p.friendSurvey];
     const likes = surveys.flatMap(surveyTags);
     const dislikes = surveys.flatMap(surveyDislikes);
-    const budget = p.budget === "any" ? Infinity : (p.budget ? Number(p.budget) : (p.time ? 500 : 0));
-    const wantSpend = budget > 0 && minutes >= 60 && !likes.includes("free");
 
-    // какой длины должен быть один переход (по прямой), чтобы заполнить время
-    const avgDwell = Math.min(15, (minutes * 0.25) / baseStops);
+    // бюджет: "0", "500", "1500", "3000", "any"; у быстрой прогулки его нет — берём 500
+    const budget = p.budget === "any" ? Infinity : (p.budget !== undefined && p.budget !== null ? Number(p.budget) : 500);
+    const target = budget === Infinity ? 2000 : Math.round(budget * 0.85);    // сколько хотим потратить
+    const paidSlots = target <= 0 ? 0
+        : target < 700 ? 1
+        : ({ 30: 1, 60: 2, 120: 2, 180: 3, 240: 3 }[minutes] || 2) + (target >= 2000 && minutes >= 120 ? 1 : 0);
+
+    const avgDwell = Math.min(20, (minutes * 0.3) / baseStops);
     const idealLeg = Math.max(0.3, ((minutes - baseStops * avgDwell) * speed / detour) / baseStops);
 
     const score = place => {
         let s = 1 + jitter(walk.id || walk.created_at, place.name);
         (place.tags || []).forEach(t => { if (likes.includes(t)) s += 1.2; });
-        if (dislikes.includes("crowds") && place.tags.includes("crowded")) s -= 1.5;
-        if (dislikes.includes("boring") && place.tags.includes("classic")) s -= 1.5;
-        if (dislikes.includes("noise") && place.tags.includes("noisy")) s -= 1.5;
-        if (dislikes.includes("expensive") && stopInfo(place).spend > 500) s -= 1;
+        if (dislikes.includes("crowds") && (place.tags || []).includes("crowded")) s -= 1.5;
+        if (dislikes.includes("boring") && (place.tags || []).includes("classic")) s -= 1.5;
+        if (dislikes.includes("noise") && (place.tags || []).includes("noisy")) s -= 1.5;
         return s;
     };
+    const kindOf = x => x.kind || (x.tags || [])[0];
 
     const stops = [];
+    const used = new Set();
     let here = start;
-    let timeUsed = 0;
-    let spent = 0;
-    let walkMin = 0;
+    let timeUsed = 0, spent = 0, walkMin = 0;
     const maxStops = baseStops + 2;
 
     while (stops.length < maxStops) {
         const left = minutes - timeUsed;
         if (left < 12) break;
-        // норму остановок набрали и времени осталось немного — хватит
         if (stops.length >= baseStops && left < minutes * 0.2) break;
 
-        const paidSoFar = stops.some(st => stopInfo(st).spend > 0);
-        let best = null, bestValue = -Infinity, bestLeg = 0;
+        const paidCount = stops.filter(st => st.spend > 0).length;
+        const slotsLeft = Math.max(0, paidSlots - paidCount);
+        const alloc = slotsLeft ? Math.max(0, (Math.min(target, budget) - spent) / slotsLeft) : 0;
+        const hasFood = stops.some(isFoodPlace);
+
+        let best = null, bestValue = -Infinity, bestLeg = 0, bestInfo = null;
 
         pool.forEach(pl => {
-            if (stops.includes(pl)) return;
-            const info = stopInfo(pl);
-            const isFood = pl.food || pl.kind === "cafe" || pl.kind === "fast_food" || pl.kind === "restaurant";
-            if (isFood && stops.some(st => st.food || ["cafe", "fast_food", "restaurant"].includes(st.kind))) return;
-            if (isFood && minutes <= 30 && !relaxed) return;
-            if (info.spend > budget - spent) return;            // не по карману
+            if (used.has(pl.name)) return;
+            const food = isFoodPlace(pl);
+            if (food && hasFood) return;                                   // одно место с едой
+            if (pl.kind === "cinema" && (minutes < 240 || !likes.includes("pop-culture"))) return;   // кино — редко
+
+            const info = stopInfo(pl, alloc);
+            if (info.spend > budget - spent) return;                        // не по карману
+            if (info.spend > 0 && slotsLeft === 0 && info.spend > (budget - spent) * 0.5) return;
 
             const d = kmBetween(here, pl.at);
             if (d < (relaxed ? 0.05 : 0.15)) return;
@@ -5437,30 +5496,54 @@ function pickStops(walk, start, pool, relaxed) {
             if (legMin + info.dwell > left + (relaxed ? 15 : 5)) return;   // не успеваем
 
             let value = score(pl);
-            value -= 1.4 * Math.abs(d - idealLeg) / idealLeg;
-            const kindOf = x => x.kind || (x.tags || [])[0];
+            value -= 1.4 * Math.abs(d - idealLeg) / idealLeg;              // переходы примерно одинаковые
             value -= 1.2 * stops.filter(st => kindOf(st) === kindOf(pl)).length;   // разнообразие
-            if (stops.length && kindOf(stops[stops.length - 1]) === kindOf(pl)) value -= 1;  // не два одинаковых подряд   // переходы примерно одинаковой длины
-            if (wantSpend && !paidSoFar && info.spend > 0) value += 1.6;   // есть бюджет — предложим, где потратить
-            if (wantSpend && budget >= 1500 && minutes >= 120 && info.spend > 0) value += 0.4;
-            if (isFood && !likes.includes("food") && !wantSpend) value -= 0.6;
-            if (isFood && stops.length === 0 && baseStops >= 3) value -= 1.8;   // кафе лучше в середине прогулки
-            if (value > bestValue) { bestValue = value; best = pl; bestLeg = legMin; }
+            if (stops.length && kindOf(stops[stops.length - 1]) === kindOf(pl)) value -= 1;
+            if (slotsLeft > 0 && info.spend > 0) {
+                // есть деньги — ведём туда, где их потратить; чем ближе трата к «доле» бюджета, тем лучше
+                value += 0.6 + 2 * Math.min(1, info.spend / Math.max(alloc, 1));
+                if (target >= 1500 && ["restaurant", "mall"].includes(pl.kind)) value += 1.4;   // большой бюджет — есть где развернуться
+                if (alloc < 600 && pl.kind === "restaurant") value -= 1;
+            }
+            if (food && stops.length === 0 && baseStops >= 3) value -= 1.8;  // кафе лучше в середине
+            if (food && dislikes.includes("expensive") && info.spend > 500) value -= 1;
+
+            if (value > bestValue) { bestValue = value; best = pl; bestLeg = legMin; bestInfo = info; }
         });
 
         if (!best) break;
-        const info = stopInfo(best);
-        timeUsed += bestLeg + info.dwell;
+        used.add(best.name);
+        timeUsed += bestLeg + bestInfo.dwell;
         walkMin += bestLeg;
-        spent += info.spend;
+        spent += bestInfo.spend;
         here = best.at;
-        stops.push(best);
+        stops.push({
+            name: best.name, at: best.at, note: best.note, kind: best.kind || null,
+            tags: best.tags || [], cost: best.cost || 0, food: isFoodPlace(best),
+            dwell: bestInfo.dwell, spend: bestInfo.spend, todo: bestInfo.todo
+        });
     }
+
+    // остались деньги — «дотягиваем» траты в кафе/ТЦ/ресторане до бюджета
+    let leftover = Math.min(target, budget) - spent;
+    const flexOrder = ["restaurant", "cafe", "fast_food", null, "mall"];
+    flexOrder.forEach(kind => {
+        stops.forEach(st => {
+            if (leftover < 100 || st.kind !== kind || (kind === null && !st.food)) return;
+            const info = stopInfo({ ...st, todo: undefined, dwell: undefined }, st.spend + leftover);
+            const delta = info.spend - st.spend;
+            if (delta <= 0 || delta > budget - spent) return;
+            timeUsed += info.dwell - st.dwell;
+            Object.assign(st, { spend: info.spend, todo: info.todo, dwell: info.dwell });
+            spent += delta;
+            leftover -= delta;
+        });
+    });
 
     stops.plan = {
         minutes: Math.round(timeUsed),
         walkMin: Math.round(walkMin),
-        dwell: stops.reduce((a, st) => a + stopInfo(st).dwell, 0),
+        dwell: stops.reduce((a, st) => a + st.dwell, 0),
         spent,
         budget
     };
@@ -5481,7 +5564,7 @@ function routeStats(stops, walkMin, distanceText) {
     if (distanceText) out.push("пешком " + distanceText);
     out.push(stops.length + " " + plural(stops.length, "остановка", "остановки", "остановок"));
     if (plan.spent > 0) {
-        out.push("≈ " + plan.spent + " ₽" + (isFinite(plan.budget) ? " из " + plan.budget + " ₽" : ""));
+        out.push("≈ " + plan.spent + " ₽" + (typeof plan.budget === "number" && isFinite(plan.budget) ? " из " + plan.budget + " ₽" : ""));
     } else if (plan.budget === 0) {
         out.push("бесплатно");
     }
@@ -5498,9 +5581,15 @@ function setMapMsg(text) {
 function renderStops(startName, stops) {
     const ol = document.getElementById("routeStops");
     ol.innerHTML = "";
-    const add = (name, note, cls, todo) => {
+    const add = (name, note, cls, todo, withLeg) => {
         const li = document.createElement("li");
         if (cls) li.className = cls;
+        if (withLeg) {
+            const leg = document.createElement("div");
+            leg.className = "stop-leg";
+            leg.style.display = "none";
+            li.appendChild(leg);
+        }
         const n = document.createElement("div");
         n.className = "stop-name";
         n.textContent = name;
@@ -5520,65 +5609,193 @@ function renderStops(startName, stops) {
         ol.appendChild(li);
     };
     add(startName, "Точка старта", "start");
-    stops.forEach(s => add(s.name, s.note, null, stopInfo(s).todo));
+    stops.forEach(s => add(s.name, s.why ? s.note + " · " + s.why : s.note, null, stopInfo(s).todo, true));
 }
 
 function renderStats(items) {
     renderTags(document.getElementById("routeStats"), items.map(text => ({ text, blue: true })));
 }
 
+// Серверная функция: свежие места (data.mos.ru, KudaGo, OSM) + выбор GigaChat
+async function askServer(walk, start) {
+    if (!sb || !sb.functions) return null;
+    const p = walk.params || {};
+    const call = sb.functions.invoke("plan-walk", {
+        body: {
+            start,
+            params: p,
+            survey: currentUser && currentUser.survey,
+            friendSurvey: p.friendSurvey || null,
+            radiusKm: walkRadiusKm(walk) * 3
+        }
+    });
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 60000));
+    try {
+        const { data, error } = await Promise.race([call, timeout]);
+        if (error) throw error;
+        if (data && data.errors && data.errors.length) console.warn("plan-walk:", data.errors);
+        return data;
+    } catch (e) {
+        console.warn("Серверная функция не ответила:", e);
+        return null;
+    }
+}
+
+// Маршрут в порядке, который выбрала нейросеть; время и деньги считаем сами
+function stopsFromAI(walk, start, pool, ai) {
+    const p = walk.params || {};
+    const minutes = Number(p.time) || 60;
+    const speed = ({ calm: 4, mixed: 4.5, active: 5 }[p.pace] || 4.5) / 60;
+    const budget = p.budget === "any" ? Infinity : (p.budget !== undefined && p.budget !== null ? Number(p.budget) : 500);
+    const target = budget === Infinity ? 2000 : Math.round(budget * 0.85);
+
+    const byId = new Map(pool.filter(x => x.id).map(x => [x.id, x]));
+    const seq = (ai.stops || []).map(s => ({ pl: byId.get(s.id), why: s.why })).filter(x => x.pl);
+    if (!seq.length) return null;
+
+    const paidPlanned = seq.filter(x => stopInfo(x.pl, 500).spend > 0).length || 1;
+    const stops = [];
+    let here = start, timeUsed = 0, walkMin = 0, spent = 0, paidDone = 0;
+    for (const { pl, why } of seq) {
+        const alloc = Math.max(0, (Math.min(target, budget) - spent) / Math.max(1, paidPlanned - paidDone));
+        const info = stopInfo(pl, alloc);
+        if (info.spend > budget - spent) continue;
+        const legMin = (kmBetween(here, pl.at) * 1.3) / speed;
+        if (timeUsed + legMin + info.dwell > minutes + 20) break;     // не влезает по времени
+        timeUsed += legMin + info.dwell;
+        walkMin += legMin;
+        spent += info.spend;
+        if (info.spend > 0) paidDone++;
+        here = pl.at;
+        stops.push({
+            name: pl.name, at: pl.at, note: pl.note, kind: pl.kind || null, tags: pl.tags || [],
+            cost: pl.cost || 0, food: isFoodPlace(pl), dwell: info.dwell, spend: info.spend,
+            todo: info.todo, why: why || ""
+        });
+    }
+    if (!stops.length || timeUsed < minutes * 0.5) return null;      // слишком мало — пусть считает формула
+    stops.trimmed = stops.length < seq.length;
+    stops.plan = { minutes: Math.round(timeUsed), walkMin: Math.round(walkMin), dwell: stops.reduce((a, s) => a + s.dwell, 0), spent, budget };
+    return stops;
+}
+
+// Сохраняем новую прогулку вместе с готовым маршрутом (один раз).
+async function persistWalk(walk, route) {
+    if (!walk.draft) return walk;
+    const params = route ? { ...walk.params, route } : walk.params;
+    const saved = await auth.addWalk({ kind: walk.kind, title: walk.title, params });
+    updateWalksCount();
+    return saved;
+}
+
+// маршрут не построился — прогулку всё равно сохраняем (без маршрута)
+function saveDraftPlain(walk) {
+    if (!walk || !walk.draft) return;
+    persistWalk(walk, null)
+        .then(saved => { if (currentRouteWalk === walk) currentRouteWalk = saved; })
+        .catch(err => console.warn("не сохранили прогулку", err));
+}
+
 async function showRoute(walk) {
     const token = ++routeToken;
     const p = walk.params || {};
     const startText = p.start || "Москва";
+    const savedRoute = p.route && Array.isArray(p.route.stops) ? p.route : null;
 
+    stopNav();
     renderTags(document.getElementById("soonTags"), walkTags(walk));
     document.getElementById("routeStops").innerHTML = "";
+    document.getElementById("navBar").style.display = "none";
     renderStats([]);
     document.getElementById("routeYaLink").style.display = "none";
-    setMapMsg("Строим маршрут…");
+    setMapMsg(savedRoute ? "Загружаем маршрут…" : "Строим маршрут…");
     if (routeMap) { routeMap.destroy(); routeMap = null; }
+    const subtitle = document.getElementById("routeSubtitle");
+    subtitle.textContent = "";
 
     let ymaps;
     try {
         ymaps = await loadYmaps();
     } catch (e) {
         setMapMsg("Не получилось загрузить Яндекс Карты. Проверь интернет и обнови страницу.");
+        saveDraftPlain(walk);
         return;
     }
     if (token !== routeToken) return;
 
-    // точка старта: выбрана на карте — или ищем по тексту (Москва и область)
-    let start = Array.isArray(p.startAt) ? p.startAt : null;
-    if (!start) try {
-        const opts = { results: 1, boundedBy: REGION_BOUNDS, strictBounds: true };
-        let res = await ymaps.geocode(startText, opts);
-        let obj = res.geoObjects.get(0);
-        if (!obj) {
-            res = await ymaps.geocode("Москва, " + startText, opts);
-            obj = res.geoObjects.get(0);
+    let start, stops, nearby;
+    let aiInfo = savedRoute ? (savedRoute.ai || null) : null;
+    let serverNote = "";
+
+    if (savedRoute) {
+        // сохранённая прогулка — показываем ровно тот же маршрут
+        start = savedRoute.start;
+        stops = savedRoute.stops;
+        stops.plan = savedRoute.plan || null;
+    } else {
+        // точка старта: выбрана на карте — или ищем по тексту (Москва и область)
+        start = Array.isArray(p.startAt) ? p.startAt : null;
+        if (!start) try {
+            const opts = { results: 1, boundedBy: REGION_BOUNDS, strictBounds: true };
+            let res = await ymaps.geocode(startText, opts);
+            let obj = res.geoObjects.get(0);
+            if (!obj) {
+                res = await ymaps.geocode("Москва, " + startText, opts);
+                obj = res.geoObjects.get(0);
+            }
+            if (obj) start = obj.geometry.getCoordinates();
+        } catch (e) {
+            console.warn("geocode", e);
         }
-        if (obj) start = obj.geometry.getCoordinates();
-    } catch (e) {
-        console.warn("geocode", e);
+        if (token !== routeToken) return;
+
+        if (!start) {
+            setMapMsg("Не нашли «" + startText + "» в Москве и области. Попробуй написать точнее, например «м. Чистые пруды» или «Коломна, кремль», — или выбери точку на карте.");
+            renderStops(startText, []);
+            saveDraftPlain(walk);
+            return;
+        }
+
+        // 1) сервер: свежие места + GigaChat; 2) если не вышло — OpenStreetMap из браузера
+        setMapMsg("Ищем интересные места рядом… это может занять до 30 секунд");
+        const server = await askServer(walk, start);
+        if (token !== routeToken) return;
+        if (server && server.places && server.places.length) {
+            nearby = server.places;
+        } else {
+            nearby = await fetchNearbyPlaces(start, walkRadiusKm(walk) * 3);
+            if (token !== routeToken) return;
+        }
+        const pool = PLACES.concat((nearby || []).filter(n =>
+            !PLACES.some(pl => kmBetween(pl.at, n.at) < 0.2)));
+
+        stops = null;
+        if (server && server.ai && server.ai.stops && server.ai.stops.length) {
+            stops = stopsFromAI(walk, start, pool, server.ai);
+            if (stops) aiInfo = { title: server.ai.title || "", comment: stops.trimmed ? "" : (server.ai.comment || "") };
+        }
+        if (!stops) stops = pickStops(walk, start, pool);
+        if (!stops.length) stops = pickStops(walk, start, pool, true);   // ничего? пробуем чуть дальше
+        // пока проверяем сервер — показываем, что пошло не так (потом можно убрать)
+        if (server && server.errors && server.errors.length) {
+            serverNote = " (Для разработчика: " + server.errors.join("; ") + ")";
+        } else if (sb && !server) {
+            serverNote = " (Для разработчика: функция plan-walk не ответила)";
+        }
+
+        // новая прогулка → сохраняем вместе с маршрутом
+        if (walk.draft && stops.length) {
+            try {
+                const saved = await persistWalk(walk, { v: 1, start, stops: stops.slice(), plan: stops.plan, ai: aiInfo });
+                if (currentRouteWalk === walk) currentRouteWalk = saved;
+                walk = saved;
+            } catch (err) {
+                subtitle.textContent = "Маршрут построен, но не сохранился: " + humanError(err);
+            }
+            if (token !== routeToken) return;
+        }
     }
-    if (token !== routeToken) return;
 
-    if (!start) {
-        setMapMsg("Не нашли «" + startText + "» в Москве и области. Попробуй написать точнее, например «м. Чистые пруды» или «Коломна, кремль», — или выбери точку на карте.");
-        renderStops(startText, []);
-        return;
-    }
-
-    // свои места + то, что нашли рядом в OpenStreetMap
-    setMapMsg("Ищем интересные места рядом… это может занять до 30 секунд");
-    const nearby = await fetchNearbyPlaces(start, walkRadiusKm(walk) * 3);
-    if (token !== routeToken) return;
-    const pool = PLACES.concat((nearby || []).filter(n =>
-        !PLACES.some(pl => kmBetween(pl.at, n.at) < 0.2)));
-
-    let stops = pickStops(walk, start, pool);
-    if (!stops.length) stops = pickStops(walk, start, pool, true);   // ничего? пробуем чуть дальше
     renderStops(startText, stops);
 
     const points = [start, ...stops.map(s => s.at)];
@@ -5593,17 +5810,24 @@ async function showRoute(walk) {
         controls: ["zoomControl", "fullscreenControl"]
     }, { suppressMapOpenBlock: true });
 
-    const subtitle = document.getElementById("routeSubtitle");
-
     if (!stops.length) {
         routeMap.geoObjects.add(new ymaps.Placemark(start, { hintContent: "Старт" }, { preset: "islands#violetDotIcon" }));
         subtitle.textContent = nearby === null
             ? "Не получилось загрузить места рядом — сервис карт не отвечает. Обнови страницу через минуту. (Для разработчика: " + osmErrors.join("; ") + ")"
             : "Рядом с этой точкой не нашлось подходящих мест на " + (TIME_LABELS[p.time] || "это время") + ". Попробуй прогулку подольше или старт поближе к парку или центру района.";
         renderStats([TIME_LABELS[p.time] || ""].filter(Boolean));
+        saveDraftPlain(walk);
         return;
     }
-    subtitle.textContent = "Подобрали места по интересам и сохранили прогулку в «Ваши маршруты».";
+    if (serverNote) setTimeout(() => { subtitle.textContent += serverNote; }, 0);
+    if (!subtitle.textContent && aiInfo && aiInfo.comment) {
+        subtitle.textContent = aiInfo.comment;
+    }
+    if (!subtitle.textContent) {
+        subtitle.textContent = savedRoute
+            ? "Это сохранённый маршрут. Хочешь другой — собери новую прогулку на главной."
+            : "Подобрали места по интересам и сохранили прогулку в «Ваши маршруты».";
+    }
 
     const route = new ymaps.multiRouter.MultiRoute({
         referencePoints: points,
@@ -5624,6 +5848,16 @@ async function showRoute(walk) {
         if (!r) return;
         const walkMin = Math.round((r.properties.get("duration").value || 0) / 60);
         renderStats(routeStats(stops, walkMin, r.properties.get("distance").text));
+        // сколько идти до каждой остановки
+        try {
+            const paths = r.getPaths();
+            const legs = document.querySelectorAll("#routeStops .stop-leg");
+            for (let i = 0; i < paths.getLength() && i < legs.length; i++) {
+                const pp = paths.get(i).properties;
+                legs[i].textContent = "↓ " + pp.get("distance").text + " · " + pp.get("duration").text + " пешком";
+                legs[i].style.display = "";
+            }
+        } catch (e) { console.warn("legs", e); }
     });
     route.model.events.add("requestfail", () => {
         renderStats(routeStats(stops, stops.plan ? stops.plan.walkMin : 0, null));
@@ -5631,6 +5865,74 @@ async function showRoute(walk) {
     renderStats(routeStats(stops, stops.plan ? stops.plan.walkMin : 0, null));
 
     routeMap.geoObjects.add(route);
+    navStops = stops;
+    document.getElementById("navBar").style.display = "";
+    document.getElementById("navInfo").textContent = "Включи, когда выйдешь на прогулку: покажем, где ты и куда идти дальше.";
+}
+
+/* ---------- прогулка в реальном времени: где я и куда дальше ---------- */
+let navWatch = null;
+let navMark = null;
+let navStops = [];
+let navNext = 0;
+let navFirstFix = true;
+
+function toggleNav() {
+    if (navWatch !== null) { stopNav(); return; }
+    const info = document.getElementById("navInfo");
+    if (!navigator.geolocation) {
+        info.textContent = "Браузер не умеет определять местоположение.";
+        return;
+    }
+    navNext = 0;
+    navFirstFix = true;
+    document.querySelectorAll("#routeStops li.done").forEach(li => li.classList.remove("done"));
+    info.textContent = "Определяем, где ты…";
+    document.getElementById("navBtn").textContent = "Закончить";
+    navWatch = navigator.geolocation.watchPosition(onNavPosition, () => {
+        info.textContent = "Не получилось узнать местоположение — разреши доступ к геопозиции в браузере.";
+        stopNav(true);
+    }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+}
+
+function stopNav(keepText) {
+    if (navWatch !== null) navigator.geolocation.clearWatch(navWatch);
+    navWatch = null;
+    if (navMark && routeMap) routeMap.geoObjects.remove(navMark);
+    navMark = null;
+    const btn = document.getElementById("navBtn");
+    if (btn) btn.textContent = "Начать прогулку";
+    const info = document.getElementById("navInfo");
+    if (info && !keepText && navStops.length) info.textContent = "Включи, когда выйдешь на прогулку: покажем, где ты и куда идти дальше.";
+}
+
+function onNavPosition(pos) {
+    if (!routeMap || !window.ymaps) return;
+    const at = [pos.coords.latitude, pos.coords.longitude];
+    if (!navMark) {
+        navMark = new ymaps.Placemark(at, { hintContent: "Ты здесь" }, { preset: "islands#blueCircleDotIcon" });
+        routeMap.geoObjects.add(navMark);
+    } else {
+        navMark.geometry.setCoordinates(at);
+    }
+    if (navFirstFix) { routeMap.setCenter(at, 16); navFirstFix = false; }
+
+    // дошли до остановки (ближе 60 м) — отмечаем и ведём к следующей
+    const items = document.querySelectorAll("#routeStops li:not(.start)");
+    while (navNext < navStops.length && kmBetween(at, navStops[navNext].at) < 0.06) {
+        if (items[navNext]) items[navNext].classList.add("done");
+        navNext++;
+    }
+
+    const info = document.getElementById("navInfo");
+    if (navNext >= navStops.length) {
+        info.textContent = "Маршрут пройден — классная прогулка!";
+        return;
+    }
+    const next = navStops[navNext];
+    const m = Math.round(kmBetween(at, next.at) * 1000);
+    const dist = m >= 1000 ? (m / 1000).toFixed(1).replace(".", ",") + " км" : m + " м";
+    info.textContent = "Дальше: " + next.name + " — " + dist + " по прямой. Иди по фиолетовой линии.";
 }
 
 /* ---------- выбор точки старта на карте ---------- */
