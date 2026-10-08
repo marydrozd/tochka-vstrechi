@@ -2348,7 +2348,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 9 окт · v21</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 9 окт · v22</span></div>
 </aside>
 
 
@@ -5839,7 +5839,7 @@ function renderStats(items) {
 }
 
 // Серверная функция: свежие места (data.mos.ru, KudaGo, OSM) + выбор GigaChat
-async function askServer(walk, start) {
+async function askServer(walk, start, osmPlaces) {
     if (!sb || !sb.functions) return null;
     const p = walk.params || {};
     const call = sb.functions.invoke("plan-walk", {
@@ -5848,7 +5848,12 @@ async function askServer(walk, start) {
             params: p,
             survey: currentUser && currentUser.survey,
             friendSurvey: p.friendSurvey || null,
-            radiusKm: walkRadiusKm(walk) * 3
+            radiusKm: walkRadiusKm(walk) * 3,
+            // места из OpenStreetMap, которые браузер уже нашёл (у них нет id — дадим)
+            extra: (osmPlaces || []).slice(0, 250).map((x, i) => ({
+                id: "b" + i, name: x.name, at: x.at, kind: x.kind, note: x.note,
+                tags: x.tags, cost: x.cost, food: !!x.food, source: "osm"
+            }))
         }
     });
     const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 60000));
@@ -5984,13 +5989,16 @@ async function showRoute(walk) {
 
         // 1) сервер: свежие места + GigaChat; 2) если не вышло — OpenStreetMap из браузера
         setMapMsg("Ищем интересные места рядом… это может занять до 30 секунд");
-        const server = await askServer(walk, start);
+        // OpenStreetMap (парки, вода, бульвары) из браузера — это работает надёжнее, чем с сервера;
+        // найденное отдаём серверу, чтобы GigaChat выбирал из всего сразу
+        const osmPlaces = await fetchNearbyPlaces(start, walkRadiusKm(walk) * 3);
+        if (token !== routeToken) return;
+        const server = await askServer(walk, start, osmPlaces);
         if (token !== routeToken) return;
         if (server && server.places && server.places.length) {
             nearby = server.places;
         } else {
-            nearby = await fetchNearbyPlaces(start, walkRadiusKm(walk) * 3);
-            if (token !== routeToken) return;
+            nearby = osmPlaces;
         }
         const pool = PLACES.concat((nearby || []).filter(n =>
             !PLACES.some(pl => kmBetween(pl.at, n.at) < 0.2)));
@@ -6003,8 +6011,11 @@ async function showRoute(walk) {
         if (!stops) stops = pickStops(walk, start, pool);
         if (!stops.length) stops = pickStops(walk, start, pool, true);   // ничего? пробуем чуть дальше
         // пока проверяем сервер — показываем, что пошло не так (потом можно убрать)
-        if (server && server.errors && server.errors.length) {
-            serverNote = " (Для разработчика: " + server.errors.join("; ") + ")";
+        const important = server && server.errors
+            ? server.errors.filter(e => !/^osm/.test(e) || !(osmPlaces && osmPlaces.length))
+            : [];
+        if (important.length) {
+            serverNote = " (Для разработчика: " + important.join("; ") + ")";
         } else if (sb && !server) {
             serverNote = " (Для разработчика: функция plan-walk не ответила)";
         }
