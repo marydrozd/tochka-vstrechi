@@ -2278,7 +2278,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 8 окт · v10</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 8 окт · v11</span></div>
 </aside>
 
 
@@ -5236,19 +5236,31 @@ function osmKind(t) {
 }
 
 async function fetchNearbyPlaces(start, radiusKm) {
-    const r = Math.round(Math.min(Math.max(radiusKm, 0.8), 3.5) * 1000);
-    const a = `(around:${r},${start[0]},${start[1]})`;
-    const q = `[out:json][timeout:12];(
-        nwr${a}["leisure"~"^(park|garden)$"]["name"];
-        nwr${a}["tourism"~"^(museum|gallery|artwork|viewpoint|attraction)$"]["name"];
-        nwr${a}["historic"~"^(monument|memorial|castle|manor|building|church|monastery)$"]["name"];
-        nwr${a}["amenity"~"^(cafe|fast_food|restaurant|library|theatre|cinema|arts_centre)$"]["name"];
-        nwr${a}["shop"="mall"]["name"];
-    );out center 250;`;
+    // прямоугольник вокруг старта — так сервер ищет в разы быстрее, чем по кругу
+    const km = Math.min(Math.max(radiusKm, 0.8), 2.5);
+    const dLat = km / 111;
+    const dLon = km / (111 * Math.cos(start[0] * Math.PI / 180));
+    const f = (x) => x.toFixed(5);
+    const bb = `(${f(start[0] - dLat)},${f(start[1] - dLon)},${f(start[0] + dLat)},${f(start[1] + dLon)})`;
+
+    // готовый ответ для этой точки уже есть? (храним сутки)
+    const cacheKey = "tv_osm_" + bb;
+    try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+        if (cached && Date.now() - cached.t < 864e5) return cached.places;
+    } catch (e) { /* без кэша */ }
+
+    const q = `[out:json][timeout:25];(
+        nw["leisure"~"^(park|garden)$"]["name"]${bb};
+        nw["tourism"~"^(museum|gallery|artwork|viewpoint|attraction)$"]["name"]${bb};
+        nw["historic"~"^(monument|memorial|castle|manor|church|monastery)$"]["name"]${bb};
+        nw["amenity"~"^(cafe|fast_food|restaurant|library|theatre|cinema|arts_centre)$"]["name"]${bb};
+        nw["shop"="mall"]["name"]${bb};
+    );out center qt 300;`;
 
     const ask = async url => {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 15000);
+        const timer = setTimeout(() => ctrl.abort(), 30000);
         try {
             const res = await fetch(url, {
                 method: "POST",
@@ -5270,7 +5282,7 @@ async function fetchNearbyPlaces(start, radiusKm) {
         const cb = "tvOsm" + Math.random().toString(36).slice(2);
         const el = document.createElement("script");
         const done = () => { clearTimeout(timer); delete window[cb]; el.remove(); };
-        const timer = setTimeout(() => { done(); reject(new Error("timeout")); }, 15000);
+        const timer = setTimeout(() => { done(); reject(new Error("timeout")); }, 30000);
         window[cb] = data => { done(); data && Array.isArray(data.elements) ? resolve(data) : reject(new Error("empty")); };
         el.onerror = () => { done(); reject(new Error("script error")); };
         el.src = url + "?data=" + encodeURIComponent(q) + "&jsonp=" + cb;
@@ -5307,6 +5319,7 @@ async function fetchNearbyPlaces(start, radiusKm) {
         out.push({ name: t.name, at: [lat, lon], ...kind });
     });
     console.info("OpenStreetMap: нашли мест рядом —", out.length);
+    try { localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), places: out })); } catch (e) { /* ок */ }
     return out;
 }
 
@@ -5448,7 +5461,7 @@ async function showRoute(walk) {
     }
 
     // свои места + то, что нашли рядом в OpenStreetMap
-    setMapMsg("Ищем интересные места рядом…");
+    setMapMsg("Ищем интересные места рядом… это может занять до 30 секунд");
     const nearby = await fetchNearbyPlaces(start, walkRadiusKm(walk) * 3);
     if (token !== routeToken) return;
     const pool = PLACES.concat((nearby || []).filter(n =>
