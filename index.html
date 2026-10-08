@@ -2348,7 +2348,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 9 окт · v20</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 9 окт · v21</span></div>
 </aside>
 
 
@@ -5481,7 +5481,7 @@ async function fetchNearbyPlaces(start, radiusKm) {
         nw["leisure"~"^(park|garden)$"]["name"]${bb};
         nw["tourism"~"^(museum|gallery|viewpoint|attraction)$"]["name"]${bb};
         nwr["natural"="water"]["name"]${bb};
-        w["highway"="pedestrian"]["name"]${bb};
+        way["highway"="pedestrian"]["name"]${bb};
         nw["tourism"="artwork"]["name"](newer:"2022-01-01T00:00:00Z")${bb};
         nw["historic"~"^(monument|memorial|castle|manor|church|monastery)$"]["name"]${bb};
         nw["amenity"~"^(cafe|fast_food|restaurant)$"]["name"](newer:"2022-01-01T00:00:00Z")${bb};
