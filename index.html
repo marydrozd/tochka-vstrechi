@@ -2177,6 +2177,58 @@
             color: var(--error);
         }
 
+        /* выбор из друзей */
+        .friend-pick {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .friend-pick .hint {
+            width: 100%;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .friend-chip {
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--purple-dark);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .friend-chip:hover,
+        .friend-chip.selected {
+            border-color: var(--purple);
+            background: var(--lilac);
+        }
+
+        .friend-add-link {
+            margin-left: 6px;
+            padding: 0;
+            background: none;
+            color: var(--purple);
+            font: inherit;
+            font-weight: 700;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .friends-add {
+            margin: 4px 0 14px;
+        }
+
+        .friend-ic {
+            color: var(--purple-dark);
+            font-weight: 800;
+        }
+
         .sub-row {
             display: flex;
             align-items: center;
@@ -2345,6 +2397,28 @@
                 transition-duration: 0.01ms !important;
             }
         }
+        /* ---- О проекте: маркетинговая версия ---- */
+        .about-hero-cta { margin: -24px 0 56px; }
+        .about-text p.about-hook {
+            font-size: clamp(20px, 2.6vw, 24px);
+            font-weight: 700;
+            line-height: 1.35;
+            letter-spacing: -0.01em;
+            margin-bottom: 22px;
+        }
+        .about-final-sub {
+            color: var(--muted);
+            font-size: 18px;
+            margin: -12px 0 26px;
+        }
+        @media (max-width: 800px) {
+            .about-hero-cta { margin: -10px 0 40px; }
+            .about-hero-cta .btn-primary { width: 100%; }
+            .about-grid .glow-card { display: none; }
+            .steps { gap: 10px; }
+            .step-card { padding: 16px 18px; }
+            .step-card .num { margin-bottom: 6px; }
+        }
     </style>
 </head>
 
@@ -2396,6 +2470,7 @@
 
     <button class="drawer-item" data-go="home"><span class="ic">🧭</span>Главная</button>
     <button class="drawer-item" data-go="profile"><span class="ic">👤</span>Профиль</button>
+    <button class="drawer-item" data-go="friends"><span class="ic">👥</span>Друзья</button>
     <button class="drawer-item" data-go="myWalks"><span class="ic blue">🗺</span>Ваши маршруты<span class="count-badge" id="walksCount" hidden>0</span></button>
     <button class="drawer-item" data-go="about"><span class="ic blue">✦</span>О проекте</button>
     <button class="drawer-item" onclick="openLegal('privacy')"><span class="ic blue">§</span>Персональные данные</button>
@@ -2444,7 +2519,7 @@
                 </h1>
 
                 <p class="hero-sub rise d3">
-                    Прогулка, которую не пришлось придумывать.
+                    Прогулка, которую не пришлось придумывать
                 </p>
 
                 <!-- два пути сходятся в одной точке -->
@@ -2495,6 +2570,7 @@
                     <li>параметры прогулок: время, бюджет, компания, точка старта (адрес или координаты);</li>
                     <li>местоположение во время прогулки — только если я сам(а) нажму «Я здесь» или «Начать прогулку»;</li>
                     <li>отзывы и оценки прогулок;</li>
+                    <li>список друзей — юзернеймы, которые я сам(а) добавил(а);</li>
                     <li>технические данные: дата регистрации, IP-адрес и сведения о браузере в журналах сервера.</li>
                 </ul>
 
@@ -2592,7 +2668,7 @@
         </section>
 
         <!-- =====================================================
-             2. О ПРОЕКТЕ
+             2. О ПРОЕКТЕ (маркетинговая версия)
              ===================================================== -->
         <section class="screen wide" id="about">
 
@@ -2601,31 +2677,40 @@
             <div class="eyebrow">Главная <span>— о проекте</span></div>
 
             <h1 class="about-title">
-                Не знаешь, куда пойти?
-                <span class="accent">Давай придумаем вместе.</span>
+                Прогулка, которую
+                <span class="accent">не пришлось придумывать</span>
             </h1>
 
             <p class="about-lead">
-                ТочкаВстречи подбирает прогулки по городу под твои интересы,
-                настроение и компанию — чтобы не тратить час на планирование.
+                Ответь на пару вопросов — и получи готовый маршрут по Москве и Подмосковью:
+                места под твой вкус, время на каждой остановке и бюджет, в который
+                ты точно уложишься.
             </p>
 
-            <div class="pill">Наша идея</div>
+            <div class="row about-hero-cta">
+                <button class="btn-primary btn-big" onclick="tryNow()">Собрать прогулку →</button>
+            </div>
+
+            <div class="pill">Знакомо?</div>
 
             <div class="about-grid">
                 <div class="about-text">
+                    <p class="about-hook">
+                        Свободный вечер, а идей ноль. Пять вкладок с картами и афишами —
+                        и ни одного плана. А если идёшь с другом, ему хочется в кофейню,
+                        а тебе в парк.
+                    </p>
                     <p>
-                        В ТочкеВстречи ты рассказываешь немного о себе — что любишь,
-                        какой атмосфере отдаёшь предпочтение и что точно не твоё.
+                        ТочкаВстречи решает это за пару минут. Расскажи, что любишь
+                        и что точно не твоё, — и получи маршрут именно под тебя,
+                        а не очередной «топ-10 мест». Идёшь вдвоём? Введи ник друга,
+                        и прогулка подстроится под вас обоих.
                     </p>
                     <p class="muted">
-                        А дальше мы подбираем идеи для прогулок, мест и маршрутов
-                        под твой сегодняшний вайб: с кем ты идёшь, сколько есть времени,
-                        какой бюджет и хочется ли спокойно или энергично.
-                    </p>
-                    <p class="muted">
-                        После прогулки можно отметить, что понравилось, — и следующие
-                        маршруты станут ещё точнее.
+                        У каждой остановки сразу видно, сколько там побыть и сколько
+                        потратить, а карта с подсказками ведёт до самого конца.
+                        После уроков, на свидание, чтобы перезагрузиться или показать
+                        город гостям — повод найдётся всегда.
                     </p>
                 </div>
 
@@ -2640,24 +2725,25 @@
                 <div class="step-card">
                     <div class="num">01</div>
                     <h3>Расскажи о себе</h3>
-                    <p>Короткий опрос: вайб, эстетика, интересы и то, что может испортить прогулку.</p>
+                    <p>Один короткий опрос — и мы знаем твой вкус.</p>
                 </div>
                 <div class="step-card">
                     <div class="num">02</div>
-                    <h3>Настрой прогулку</h3>
-                    <p>С кем идёшь, сколько времени, бюджет и какой будет прогулка — спокойной или энергичной.</p>
+                    <h3>Выбери, как гуляем</h3>
+                    <p>С кем, сколько времени, какой бюджет и темп.</p>
                 </div>
                 <div class="step-card">
                     <div class="num">03</div>
-                    <h3>Получи маршрут</h3>
-                    <p>Готовый путь по городу на карте — останется только выйти из дома.</p>
+                    <h3>Выходи из дома</h3>
+                    <p>Маршрут уже на карте. Остальное мы берём на себя.</p>
                 </div>
             </div>
 
             <div class="about-final">
-                <h2>Каждый маршрут — <span class="accent">своя точка встречи.</span></h2>
+                <h2>Каждый маршрут — <span class="accent">своя точка встречи</span></h2>
+                <p class="about-final-sub">Твоя следующая прогулка уже ждёт. Осталось только выйти из дома.</p>
                 <div class="row center">
-                    <button class="btn-primary btn-big" onclick="tryNow()">Попробовать →</button>
+                    <button class="btn-primary btn-big" onclick="tryNow()">Собрать прогулку →</button>
                     <button class="btn-secondary btn-big" onclick="goHome()">На главную</button>
                 </div>
             </div>
@@ -3539,8 +3625,8 @@
                     <div class="block-hint">Чьи интересы учитывать?</div>
                     <div class="chips opt-grid" data-draft="walk" data-field="personMode" data-single>
                         <button type="button" class="chip opt" data-value="nick">
-                            <span class="opt-title">Ввести его юзернейм</span>
-                            <span class="opt-desc">Если у него есть аккаунт</span>
+                            <span class="opt-title">Выбрать из друзей</span>
+                            <span class="opt-desc">Или ввести его юзернейм</span>
                         </button>
                         <button type="button" class="chip opt" data-value="survey">
                             <span class="opt-title">Пройти опрос за него</span>
@@ -3553,6 +3639,7 @@
                     </div>
 
                     <div class="nick-block" id="nickBlock" hidden>
+                        <div class="friend-pick" id="friendPick"></div>
                         <div class="nick-row">
                             <div class="nick-input">
                                 <span class="at">@</span>
@@ -3904,6 +3991,30 @@
 
 
         <!-- =====================================================
+             11б. ДРУЗЬЯ
+             ===================================================== -->
+        <section class="screen" id="friends">
+
+            <button class="back-link" onclick="go('home')">← На главную</button>
+
+            <div class="question-number">Меню</div>
+            <h1>Друзья</h1>
+            <p class="subtitle">Добавь друзей по юзернейму — и выбирай их одним нажатием, когда собираешь прогулку вдвоём.</p>
+
+            <div class="nick-row friends-add">
+                <div class="nick-input">
+                    <span class="at">@</span>
+                    <input id="addFriendNick" type="text" maxlength="20" autocomplete="off" placeholder="юзернейм друга">
+                </div>
+                <button type="button" class="btn-primary" id="addFriendBtn" onclick="addFriend()">Добавить</button>
+            </div>
+
+            <div class="form-msg" id="friendsMsg"></div>
+            <div id="friendsList"></div>
+        </section>
+
+
+        <!-- =====================================================
              12. ПРОФИЛЬ
              ===================================================== -->
         <section class="screen" id="profile">
@@ -3953,7 +4064,7 @@ const SUPABASE_KEY = (CONFIG.key || "").trim();
 const screens = [...document.querySelectorAll(".screen")];
 let currentScreen = "welcome";
 
-const PRIVATE_SCREENS = ["home", "walkBuilder", "quickWalk", "routeSoon", "myWalks", "profile", "feedback"];
+const PRIVATE_SCREENS = ["home", "walkBuilder", "quickWalk", "routeSoon", "myWalks", "friends", "profile", "feedback"];
 
 function go(id) {
     // экраны после входа не открываются без аккаунта
@@ -3970,6 +4081,7 @@ function go(id) {
 
     if (window.glyphWake) window.glyphWake();
     if (id === "myWalks") renderWalks();
+    if (id === "friends") renderFriends();
     if (id === "profile") renderProfilePage();
     if (id === "home") updateWalksCount();
     if (id === "routeSoon" && currentRouteWalk) showRoute(currentRouteWalk);
@@ -4546,7 +4658,7 @@ function humanError(err) {
         return "Supabase не смог отправить письмо. Выключи «Confirm email» в Authentication → Sign In / Providers (или подключи свою почту SMTP).";
     if (m.includes("rate limit") || m.includes("too many")) return "Слишком много попыток. Подожди немного и попробуй снова.";
     if (m.includes("could not find the function") || m.includes("schema cache") || m.includes("does not exist"))
-        return "База не настроена: в Supabase → SQL Editor запусти недостающий SQL-файл (supabase-friends.sql или supabase-walks.sql).";
+        return "База не настроена: в Supabase → SQL Editor запусти недостающий SQL-файл (supabase-friends.sql, supabase-friends-list.sql или supabase-walks.sql).";
     if (m.includes("permission denied") || m.includes("row-level security"))
         return "Нет доступа к таблице. Запусти ещё раз supabase-walks.sql в Supabase → SQL Editor.";
     if (m.includes("database error saving new user"))
@@ -4685,6 +4797,32 @@ const demo = {
     async findFriend(username) {
         const user = this.users().find(u => u.username.toLowerCase() === username.toLowerCase());
         return user ? { username: user.username, survey: user.survey } : null;
+    },
+
+    friendsKey() {
+        return "tv_friends_" + store.get("tv_session");
+    },
+
+    async listFriends() {
+        const users = this.users();
+        return (store.get(this.friendsKey()) || [])
+            .map(n => users.find(u => u.username.toLowerCase() === n.toLowerCase()))
+            .filter(Boolean)
+            .map(u => ({ username: u.username, hasSurvey: !!u.survey }));
+    },
+
+    async addFriend(username) {
+        const user = this.users().find(u => u.username.toLowerCase() === username.toLowerCase());
+        if (!user) return null;
+        const list = store.get(this.friendsKey()) || [];
+        if (!list.some(n => n.toLowerCase() === user.username.toLowerCase())) list.unshift(user.username);
+        store.set(this.friendsKey(), list);
+        return user.username;
+    },
+
+    async removeFriend(username) {
+        const list = store.get(this.friendsKey()) || [];
+        store.set(this.friendsKey(), list.filter(n => n.toLowerCase() !== username.toLowerCase()));
     },
 
     async deleteWalk(id) {
@@ -4835,6 +4973,23 @@ const cloud = {
         if (error) throw error;
         const row = Array.isArray(data) ? data[0] : data;
         return row ? { username: row.username, survey: row.survey } : null;
+    },
+
+    async listFriends() {
+        const { data, error } = await sb.rpc("my_friends");
+        if (error) throw error;
+        return (data || []).map(r => ({ username: r.username, hasSurvey: r.has_survey }));
+    },
+
+    async addFriend(username) {
+        const { data, error } = await sb.rpc("add_friend", { p_username: username });
+        if (error) throw error;
+        return data || null;
+    },
+
+    async removeFriend(username) {
+        const { error } = await sb.rpc("remove_friend", { p_username: username });
+        if (error) throw error;
     },
 
     async deleteWalk(id) {
@@ -5095,6 +5250,7 @@ function tryNow() {
 }
 
 function fillUserInfo() {
+    friendsCache = null;
     if (!currentUser) return;
     const name = currentUser.username || "user";
     const letter = name.charAt(0) || "?";
@@ -5227,6 +5383,7 @@ document.querySelectorAll(".chips[data-field]").forEach(group => {
             updateSummaries();
             if (field === "personMode") {
                 updateFriendStatus();
+                if (value === "nick") renderFriendPick();
                 if (value === "survey") openSurvey("friend", walkDraft.friendSurvey);
             }
         });
@@ -5300,6 +5457,7 @@ async function findFriend() {
             walkDraft.friendUsername = friend.username;
             walkDraft.nickSurvey = friend.survey;
             updateFriendStatus();
+            offerAddFriend(friend.username);
         }
     } catch (err) {
         el.classList.add("bad");
@@ -5307,6 +5465,7 @@ async function findFriend() {
     } finally {
         setLoading("findBtn", false);
         updateSummaries();
+        markPickedFriend();
     }
 }
 
@@ -5321,6 +5480,209 @@ document.getElementById("friendNick").addEventListener("keydown", e => {
         findFriend();
     }
 });
+
+/* ---------- друзья ---------- */
+let friendsCache = null;     // список друзей, чтобы не грузить его на каждый клик
+
+async function loadFriends(force) {
+    if (!friendsCache || force) friendsCache = await auth.listFriends();
+    return friendsCache;
+}
+
+function isFriend(username) {
+    return (friendsCache || []).some(f => f.username.toLowerCase() === String(username).toLowerCase());
+}
+
+// конструктор: кнопки с друзьями над полем для ника
+async function renderFriendPick() {
+    const box = document.getElementById("friendPick");
+    box.innerHTML = "";
+    let list = [];
+    try { list = await loadFriends(); } catch (e) { console.warn("Друзья не загрузились:", e); }
+
+    const hint = document.createElement("div");
+    hint.className = "hint";
+    hint.textContent = list.length
+        ? "Выбери из друзей или введи юзернейм ниже:"
+        : "Друзей пока нет — добавь их в меню «Друзья», чтобы выбирать одним нажатием. Или введи юзернейм:";
+    box.appendChild(hint);
+
+    list.forEach(f => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "friend-chip";
+        b.dataset.username = f.username;
+        b.textContent = "@" + f.username;
+        b.addEventListener("click", () => {
+            document.getElementById("friendNick").value = f.username;
+            findFriend();
+        });
+        box.appendChild(b);
+    });
+    markPickedFriend();
+}
+
+function markPickedFriend() {
+    const picked = (walkDraft && walkDraft.friendUsername || "").toLowerCase();
+    document.querySelectorAll("#friendPick .friend-chip").forEach(b => {
+        b.classList.toggle("selected", !!picked && b.dataset.username.toLowerCase() === picked);
+    });
+}
+
+// нашли человека по нику, а в друзьях его нет — предлагаем добавить
+function offerAddFriend(username) {
+    if (!friendsCache || isFriend(username)) return;
+    const el = document.getElementById("friendStatus");
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "friend-add-link";
+    b.textContent = "Добавить в друзья";
+    b.addEventListener("click", async () => {
+        try {
+            await auth.addFriend(username);
+            await loadFriends(true);
+            b.replaceWith(document.createTextNode(" Добавили в друзья ✓"));
+            renderFriendPick();
+        } catch (err) {
+            b.replaceWith(document.createTextNode(" " + humanError(err)));
+        }
+    });
+    el.append(" ", b);
+}
+
+// экран «Друзья»
+async function renderFriends() {
+    const box = document.getElementById("friendsList");
+    box.innerHTML = '<p class="subtitle">Загружаем…</p>';
+
+    let list;
+    try {
+        list = await loadFriends(true);
+    } catch (err) {
+        box.innerHTML = "";
+        showMsg("friendsMsg", humanError(err));
+        return;
+    }
+
+    box.innerHTML = "";
+    if (!list.length) {
+        const empty = document.createElement("div");
+        empty.className = "profile-card";
+        empty.innerHTML =
+            '<div class="profile-title">Пока никого нет</div>' +
+            '<p class="subtitle" style="margin-bottom:0">Спроси у друга его юзернейм на сайте и добавь его выше.</p>';
+        box.appendChild(empty);
+        return;
+    }
+
+    list.forEach(f => {
+        const card = document.createElement("div");
+        card.className = "walk-card";
+
+        const ic = document.createElement("div");
+        ic.className = "walk-ic friend-ic";
+        ic.textContent = f.username.charAt(0).toUpperCase();
+
+        const body = document.createElement("div");
+        body.className = "walk-body";
+
+        const title = document.createElement("div");
+        title.className = "walk-title";
+        title.textContent = "@" + f.username;
+
+        const meta = document.createElement("div");
+        meta.className = "walk-meta";
+        meta.textContent = f.hasSurvey
+            ? "Опрос пройден — учтём его интересы"
+            : "Ещё не прошёл(ла) опрос — подберём по твоим интересам";
+
+        const walkBtn = document.createElement("button");
+        walkBtn.className = "walk-open";
+        walkBtn.textContent = "Гулять вместе →";
+        walkBtn.addEventListener("click", () => walkWithFriend(f.username));
+
+        body.append(title, meta, walkBtn);
+
+        const del = document.createElement("button");
+        del.className = "walk-del";
+        del.textContent = "Убрать";
+        del.addEventListener("click", async () => {
+            if (!del.classList.contains("confirm")) {
+                del.classList.add("confirm");
+                del.textContent = "Точно убрать?";
+                setTimeout(() => {
+                    del.classList.remove("confirm");
+                    del.textContent = "Убрать";
+                }, 3000);
+                return;
+            }
+            try {
+                await auth.removeFriend(f.username);
+                renderFriends();
+            } catch (err) {
+                showMsg("friendsMsg", humanError(err));
+            }
+        });
+
+        card.append(ic, body, del);
+        box.appendChild(card);
+    });
+}
+
+async function addFriend() {
+    const input = document.getElementById("addFriendNick");
+    const nick = input.value.trim().replace(/^@/, "");
+    hideMsg("friendsMsg");
+
+    if (!USER_RE.test(nick)) {
+        showMsg("friendsMsg", "Юзернейм: 3–20 символов, латиница, цифры, точка и _.");
+        input.focus();
+        return;
+    }
+    if (currentUser && nick.toLowerCase() === (currentUser.username || "").toLowerCase()) {
+        showMsg("friendsMsg", "Это твой юзернейм 🙂");
+        return;
+    }
+
+    setLoading("addFriendBtn", true, "Ищем…");
+    try {
+        const name = await auth.addFriend(nick);
+        if (!name) {
+            showMsg("friendsMsg", `Пользователя @${nick} не нашли. Проверь юзернейм.`);
+        } else {
+            input.value = "";
+            showMsg("friendsMsg", `@${name} теперь в друзьях ✓`, "ok");
+            renderFriends();
+        }
+    } catch (err) {
+        showMsg("friendsMsg", humanError(err));
+    } finally {
+        setLoading("addFriendBtn", false);
+    }
+}
+
+document.getElementById("addFriendNick").addEventListener("input", e => {
+    if (e.target.value.startsWith("@")) e.target.value = e.target.value.replace(/^@+/, "");
+});
+
+document.getElementById("addFriendNick").addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        addFriend();
+    }
+});
+
+// «Гулять вместе»: открываем конструктор, где друг уже выбран
+function walkWithFriend(username) {
+    startBuilder();
+    walkDraft.company = "person";
+    walkDraft.personMode = "nick";
+    syncChips("walk");
+    updateCompanyBlocks();
+    document.getElementById("friendNick").value = username;
+    renderFriendPick();
+    findFriend();
+}
 
 function startBuilder() {
     walkDraft = newWalkDraft();
