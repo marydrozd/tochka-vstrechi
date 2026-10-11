@@ -2595,7 +2595,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v28.1</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v28.3</span></div>
 </aside>
 
 
@@ -6719,7 +6719,10 @@ async function fillTripHow(ymaps, trip) {
     if (!box || !trip || !trip.from) return;
     const steps = [];
     try {
-        const route = await ymaps.route([trip.from, trip.at], { routingMode: "masstransit", multiRoute: true });
+        const route = await Promise.race([
+            ymaps.route([trip.from, trip.at], { routingMode: "masstransit", multiRoute: true }),
+            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 15000))
+        ]);
         const active = route.getActiveRoute ? route.getActiveRoute() : null;
         if (!active) throw new Error("нет маршрута");
         active.getPaths().each(path => path.getSegments().each(seg => {
@@ -6755,6 +6758,17 @@ async function fillTripHow(ymaps, trip) {
     } catch (e) {
         console.warn("дорога до метро", e);
     }
+    // Яндекс не построил — хотя бы находим ближайшее метро по OpenStreetMap
+    if (!steps.length) {
+        const st = await nearestMetro(trip.from);
+        if (st) {
+            const walkMin = Math.max(1, Math.round(st.km * 1.3 / 4.5 * 60));
+            steps.push("Пешком до м. " + st.name + " · ≈ " + walkMin + " мин");
+            if (st.name.toLowerCase() !== String(trip.station).toLowerCase()) {
+                steps.push("Едь до «" + trip.station + "» · ≈ " + trip.minutes + " мин. Ветку и сторону покажут Яндекс Карты по ссылке ниже");
+            }
+        }
+    }
     box.innerHTML = "";
     (steps.length ? steps : ["Не получилось построить дорогу здесь — открой её в Яндекс Картах по ссылке ниже, там видно линию и направление."])
         .forEach((t, i) => {
@@ -6762,6 +6776,42 @@ async function fillTripHow(ymaps, trip) {
             row.textContent = (steps.length ? (i + 1) + ". " : "") + t;
             box.appendChild(row);
         });
+}
+
+// ближайшая станция метро к точке (OpenStreetMap); null — не нашли
+async function nearestMetro(from) {
+    const q = "[out:json][timeout:20];(node(around:3000," + from[0] + "," + from[1] + ")[station=subway][name];" +
+        "node(around:3000," + from[0] + "," + from[1] + ")[railway=station][subway=yes][name];);out;";
+    const askOne = async url => {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 20000);
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                body: "data=" + encodeURIComponent(q),
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                signal: ctrl.signal
+            });
+            if (!res.ok) throw new Error("overpass " + res.status);
+            const json = await res.json();
+            if (!json || !Array.isArray(json.elements) || !json.elements.length) throw new Error("пусто");
+            return json.elements;
+        } finally {
+            clearTimeout(timer);
+        }
+    };
+    try {
+        const els = await Promise.any(OVERPASS_URLS.map(askOne));
+        let best = null;
+        els.forEach(el => {
+            const km = kmBetween(from, [el.lat, el.lon]);
+            if (!best || km < best.km) best = { name: el.tags.name.replace(/^метро\s+/i, ""), km };
+        });
+        return best;
+    } catch (e) {
+        console.warn("ближайшее метро", e);
+        return null;
+    }
 }
 
 // цены проезда (октябрь 2026): метро и МЦК по «Тройке», МЦД с выездом в Подмосковье
@@ -7143,7 +7193,10 @@ async function showRoute(walk) {
 
     const points = [start, ...stops.map(s => s.at)];
     const ya = document.getElementById("routeYaLink");
-    ya.href = "https://yandex.ru/maps/?rtext=" + points.map(pt => pt[0] + "," + pt[1]).join("~") + "&rtt=pd";
+    // с метро: весь путь от твоей точки старта, режим «общественный транспорт»
+    // (Яндекс сам предложит пешком, где близко); без метро — пешком
+    const yaPoints = trip && trip.from ? [trip.from, ...points] : points;
+    ya.href = "https://yandex.ru/maps/?rtext=" + yaPoints.map(pt => pt[0] + "," + pt[1]).join("~") + "&rtt=" + (trip && trip.from ? "mt" : "pd");
     ya.style.display = "";
 
     setMapMsg("");
