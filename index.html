@@ -2573,7 +2573,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v26</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v27</span></div>
 </aside>
 
 
@@ -3787,6 +3787,31 @@
                 <div class="q-head">
                     <span class="q-num">04</span>
                     <div>
+                        <div class="q-title">Какая будет прогулка?</div>
+                        <div class="q-sub">Темп и настроение.</div>
+                    </div>
+                </div>
+                <div class="chips opt-grid" data-draft="walk" data-field="pace" data-single>
+                    <button type="button" class="chip opt" data-value="calm">
+                        <span class="opt-title">Спокойная</span>
+                        <span class="opt-desc">Без спешки, больше остановок</span>
+                    </button>
+                    <button type="button" class="chip opt" data-value="active">
+                        <span class="opt-title">Энергичная</span>
+                        <span class="opt-desc">Много ходьбы и новых мест</span>
+                    </button>
+                    <button type="button" class="chip opt" data-value="mixed">
+                        <span class="opt-title">Смешанная</span>
+                        <span class="opt-desc">Понемногу всего</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 05 -->
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">05</span>
+                    <div>
                         <div class="q-title">Откуда начинаем?</div>
                         <div class="q-sub">Станция метро, адрес, известное место — или отметь точку на карте.</div>
                     </div>
@@ -3801,35 +3826,12 @@
                 </button>
             </div>
 
-            <!-- необязательные настройки: по умолчанию «смешанная», «если по пути», «гуляем рядом» -->
+            <!-- необязательные настройки: по умолчанию «если по пути», «гуляем рядом» -->
             <details class="more-settings" id="moreSettings">
                 <summary>
                     <span class="more-title">Ещё настройки <span class="more-opt">по желанию</span></span>
                     <span class="more-sub" id="moreSummary"></span>
                 </summary>
-
-                <div class="q-card">
-                    <div class="q-head">
-                        <div>
-                            <div class="q-title">Какая будет прогулка?</div>
-                            <div class="q-sub">Темп и настроение.</div>
-                        </div>
-                    </div>
-                    <div class="chips opt-grid" data-draft="walk" data-field="pace" data-single>
-                        <button type="button" class="chip opt" data-value="calm">
-                            <span class="opt-title">Спокойная</span>
-                            <span class="opt-desc">Без спешки, больше остановок</span>
-                        </button>
-                        <button type="button" class="chip opt" data-value="active">
-                            <span class="opt-title">Энергичная</span>
-                            <span class="opt-desc">Много ходьбы и новых мест</span>
-                        </button>
-                        <button type="button" class="chip opt" data-value="mixed">
-                            <span class="opt-title">Смешанная</span>
-                            <span class="opt-desc">Понемногу всего</span>
-                        </button>
-                    </div>
-                </div>
 
                 <div class="q-card">
                     <div class="q-head">
@@ -5472,7 +5474,7 @@ function newWalkDraft() {
         nickSurvey: null,
         time: null,
         budget: null,
-        pace: "mixed",
+        pace: null,
         events: "maybe",
         travel: "no"
     };
@@ -5852,11 +5854,11 @@ function updateSummaries() {
         else if (d.company) parts.push(COMPANY_LABELS[d.company]);
         if (d.time) parts.push(TIME_LABELS[d.time]);
         if (d.budget) parts.push(BUDGET_LABELS[d.budget]);
-        if (d.pace && d.pace !== "mixed") parts.push(PACE_LABELS[d.pace]);
+        if (d.pace) parts.push(PACE_LABELS[d.pace]);
         if (d.events && d.events !== "maybe") parts.push(EVENTS_LABELS[d.events]);
         if (d.travel && d.travel !== "no") parts.push(TRAVEL_LABELS[d.travel]);
         const more = document.getElementById("moreSummary");
-        if (more) more.textContent = [PACE_LABELS[d.pace] + " прогулка", EVENTS_LABELS[d.events], TRAVEL_LABELS[d.travel || "no"]]
+        if (more) more.textContent = [EVENTS_LABELS[d.events], TRAVEL_LABELS[d.travel || "no"]]
             .filter(Boolean).join(" · ");
         const el = document.getElementById("builderSummary");
         el.innerHTML = "";
