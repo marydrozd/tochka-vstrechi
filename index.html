@@ -877,6 +877,27 @@
             font-size: 14px; line-height: 1.45; color: var(--muted); cursor: pointer;
         }
         .consent-row input { width: 20px; height: 20px; flex: none; margin-top: 1px; padding: 0; accent-color: var(--purple); }
+        /* v25: согласие — один переключатель вместо галочек */
+        .consent-box {
+            margin: 6px 0 18px; padding: 16px; border-radius: 18px;
+            background: rgba(106, 53, 210, 0.05); border: 1px solid rgba(106, 53, 210, 0.14);
+        }
+        .consent-lead { margin: 0 0 12px; font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.4; }
+        .consent-box .consent-row { margin: 0; gap: 12px; align-items: center; }
+        .consent-row input.dot {
+            -webkit-appearance: none; appearance: none; position: relative;
+            width: 24px; height: 24px; flex: none; margin: 0; padding: 0;
+            border-radius: 50%; border: 2px solid #b8a6e6; background: #fff; cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .consent-row input.dot::after {
+            content: ""; position: absolute; inset: 0; margin: auto;
+            width: 10px; height: 10px; border-radius: 50%; background: #fff;
+            transform: scale(0); transition: transform 0.2s ease;
+        }
+        .consent-row input.dot:checked { border-color: var(--purple); background: var(--purple); }
+        .consent-row input.dot:checked::after { transform: scale(1); }
+        .consent-row input.dot:focus-visible { outline: 3px solid rgba(106, 53, 210, 0.35); outline-offset: 2px; }
         .consent-note { font-size: 13px; color: var(--muted); margin: 0 0 18px 30px; line-height: 1.45; }
         .link-inline {
             background: none; border: 0; padding: 0; font: inherit; font-weight: 700;
@@ -1382,6 +1403,29 @@
 
         @keyframes art-march {
             to { stroke-dashoffset: -26; }
+        }
+
+        /* часы на «Быстром маршруте» идут при наведении */
+        .action-card .clock-min {
+            transform-box: fill-box;
+            transform-origin: 50% 100%;
+        }
+
+        .action-card .clock-hour {
+            transform-box: fill-box;
+            transform-origin: 0 0;
+        }
+
+        @keyframes clock-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .action-card:hover .clock-min {
+            animation: clock-spin 2s linear infinite;
+        }
+
+        .action-card:hover .clock-hour {
+            animation: clock-spin 24s linear infinite;
         }
 
         .action-card:hover .art-line {
@@ -2441,7 +2485,7 @@
     <div class="picker-card" role="dialog" aria-label="Точка старта на карте">
         <div class="picker-head">
             <div>
-                <div class="picker-title">Откуда начинаем?</div>
+                <div class="picker-title" id="pickerTitle">Откуда начинаем?</div>
                 <div class="picker-sub">Нажми на карту или перетащи метку</div>
             </div>
             <button type="button" class="picker-x" onclick="closePicker()" aria-label="Закрыть">✕</button>
@@ -3412,15 +3456,13 @@
                     </div>
                 </div>
 
-                <label class="consent-row">
-                    <input type="checkbox" id="regConsent">
-                    <span>Даю <a href="#" class="link-inline" onclick="openLegal('consent'); return false;">согласие на обработку персональных данных</a></span>
-                </label>
-                <label class="consent-row">
-                    <input type="checkbox" id="regAge">
-                    <span>Мне исполнилось 14 лет. Если меньше — регистрируюсь с разрешения родителей.</span>
-                </label>
-                <p class="consent-note">Как мы храним и защищаем данные — в <a href="#" class="link-inline" onclick="openLegal('privacy'); return false;">Политике обработки персональных данных</a>.</p>
+                <div class="consent-box">
+                    <p class="consent-lead">Без этих документов никак, поставь галочку</p>
+                    <label class="consent-row">
+                        <input type="checkbox" id="regConsent" class="dot">
+                        <span>Даю <a href="#" class="link-inline" onclick="openLegal('consent'); return false;">согласие на обработку персональных данных</a> и принимаю <a href="#" class="link-inline" onclick="openLegal('privacy'); return false;">Политику</a>. Мне есть 14 лет или родители разрешили регистрацию</span>
+                    </label>
+                </div>
 
                 <button type="submit" class="btn-primary btn-full btn-big" id="registerBtn">Создать аккаунт</button>
 
@@ -3543,7 +3585,8 @@
                     <button class="action-card quick" onclick="startQuick()">
                         <svg class="card-art" viewBox="0 0 200 160" aria-hidden="true">
                             <circle cx="140" cy="90" r="58" fill="none" stroke="rgba(106,53,210,.12)" stroke-width="10"/>
-                            <path d="M140 90 L140 55 M140 90 L165 105" stroke="rgba(106,53,210,.18)" stroke-width="8" stroke-linecap="round"/>
+                            <path class="clock-min" d="M140 90 L140 45" stroke="rgba(106,53,210,.18)" stroke-width="7" stroke-linecap="round"/>
+                            <path class="clock-hour" d="M140 90 L165 105" stroke="rgba(106,53,210,.22)" stroke-width="8" stroke-linecap="round"/>
                         </svg>
                         <span class="ic">
                             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
@@ -3753,6 +3796,25 @@
                     <input id="builderStart" type="text" maxlength="120" placeholder="Например: м. Китай-город">
                 </div>
                 <button type="button" class="pick-btn" onclick="openPicker('builderStart')">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
+                    Выбрать на карте
+                </button>
+            </div>
+
+            <!-- 07 -->
+            <div class="q-card">
+                <div class="q-head">
+                    <span class="q-num">07</span>
+                    <div>
+                        <div class="q-title">Куда обязательно зайти?</div>
+                        <div class="q-sub">Необязательно. Любимая кофейня, парк, магазин — маршрут пройдёт через это место.</div>
+                    </div>
+                </div>
+                <div class="input-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg>
+                    <input id="builderMust" type="text" maxlength="120" placeholder="Например: Парк Горького">
+                </div>
+                <button type="button" class="pick-btn" onclick="openPicker('builderMust')">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
                     Выбрать на карте
                 </button>
@@ -5082,10 +5144,7 @@ document.getElementById("registerForm").addEventListener("submit", async e => {
     }
 
     if (!document.getElementById("regConsent").checked) {
-        return showMsg("registerMsg", "Чтобы создать аккаунт, отметь согласие на обработку персональных данных.");
-    }
-    if (!document.getElementById("regAge").checked) {
-        return showMsg("registerMsg", "Подтверди, что тебе есть 14 лет или что родители разрешили регистрацию.");
+        return showMsg("registerMsg", "Чтобы создать аккаунт, поставь галочку согласия внизу.");
     }
 
     const survey = store.get("tochkaVstrechiProfile") || answers;
@@ -5688,6 +5747,8 @@ function startBuilder() {
     walkDraft = newWalkDraft();
     document.getElementById("builderStart").value = "";
     delete pickedStart.builderStart;
+    document.getElementById("builderMust").value = "";
+    delete pickedStart.builderMust;
     document.getElementById("friendNick").value = "";
     syncChips("walk");
     updateCompanyBlocks();
@@ -5752,6 +5813,7 @@ function builderError(text) {
 async function submitBuilder() {
     const d = walkDraft;
     const start = document.getElementById("builderStart").value.trim();
+    const must = document.getElementById("builderMust").value.trim();
 
     if (!d.company) return builderError("Выбери, с кем сегодня гуляешь.");
     if (d.company === "person" && !d.personMode) return builderError("Выбери, чьи интересы учитывать.");
@@ -5784,7 +5846,9 @@ async function submitBuilder() {
         pace: d.pace,
         events: d.events,
         start,
-        startAt: pickedAt("builderStart", start)
+        startAt: pickedAt("builderStart", start),
+        must: must || null,
+        mustAt: must ? pickedAt("builderMust", must) : null
     };
 
     const companyShort = { solo: "соло", friends: "с друзьями", person: "вдвоём" }[d.company];
@@ -5829,6 +5893,7 @@ function walkTags(walk) {
     if (walk.kind === "quick") tags.push({ text: "быстрый маршрут", blue: true });
     if (p.time) tags.push({ text: TIME_LABELS[p.time], blue: true });
     if (p.start) tags.push({ text: "старт: " + p.start, blue: true });
+    if (p.must) tags.push({ text: "через: " + p.must, blue: true });
 
     if (p.company) {
         let text = COMPANY_LABELS[p.company];
@@ -6489,6 +6554,156 @@ function stopsFromAI(walk, start, pool, ai) {
     return stops;
 }
 
+/* ---------- обязательное место и бюджет ---------- */
+function walkSpeed(p) {
+    return ({ calm: 4, mixed: 4.5, active: 5 }[p.pace] || 4.5) / 60;    // км в минуту
+}
+
+function walkBudget(p) {
+    return p.budget === "any" ? Infinity : (p.budget !== undefined && p.budget !== null ? Number(p.budget) : 500);
+}
+
+// сколько лишних км добавит место, если вставить его между a и b (b может не быть — тогда в конец)
+function extraKm(a, b, at) {
+    return b ? kmBetween(a, at) + kmBetween(at, b) - kmBetween(a, b) : kmBetween(a, at);
+}
+
+// лучшая позиция для вставки: где крюк меньше всего
+function bestInsert(start, stops, at, notFirst) {
+    let best = { i: stops.length, extra: Infinity };
+    for (let i = notFirst && stops.length >= 2 ? 1 : 0; i <= stops.length; i++) {
+        const a = i === 0 ? start : stops[i - 1].at;
+        const extra = extraKm(a, stops[i] ? stops[i].at : null, at);
+        if (extra < best.extra) best = { i, extra };
+    }
+    return best;
+}
+
+// пересчитываем время и деньги после вставок
+function recalcPlan(walk, start, stops) {
+    const p = walk.params || {};
+    const speed = walkSpeed(p);
+    let here = start, walkMin = 0;
+    stops.forEach(st => { walkMin += (kmBetween(here, st.at) * 1.3) / speed; here = st.at; });
+    const dwell = stops.reduce((a, st) => a + st.dwell, 0);
+    const spent = stops.reduce((a, st) => a + (st.spend || 0), 0);
+    stops.plan = { minutes: Math.round(walkMin + dwell), walkMin: Math.round(walkMin), dwell, spent, budget: walkBudget(p) };
+    return stops.plan;
+}
+
+function stopFromPlace(pl, alloc, why) {
+    const info = stopInfo({ ...pl, todo: undefined, dwell: undefined }, alloc);
+    return {
+        name: pl.name, at: pl.at, note: pl.note || "", kind: pl.kind || null, tags: pl.tags || [],
+        cost: pl.cost || 0, food: isFoodPlace(pl), dwell: info.dwell, spend: info.spend,
+        todo: info.todo, why: why || ""
+    };
+}
+
+// ищем место, через которое человек хочет пройти: сначала среди найденных мест, потом в Яндекс Картах
+async function findMustPlace(ymaps, p, start, pool) {
+    const text = (p.must || "").trim();
+    if (!text) return null;
+    const norm = x => String(x).toLowerCase().replace(/ё/g, "е").replace(/[«»"'.,()-]/g, " ").replace(/\s+/g, " ").trim();
+    const q = norm(text).replace(/^(кофейня|кафе|парк|сквер|ресторан|музей|тц|торговый центр)\s+/, "");
+    const reach = Math.max(2.5, (Number(p.time) || 60) / 60 * 4.5 * 0.7);   // дальше этого за прогулку не дойти
+
+    let at = Array.isArray(p.mustAt) ? p.mustAt : null;
+    if (!at && q.length >= 3) {
+        const hits = pool
+            .filter(pl => pl.name && (norm(pl.name).includes(q) || (norm(pl.name).length >= 4 && q.includes(norm(pl.name)))))
+            .sort((a, b) => kmBetween(start, a.at) - kmBetween(start, b.at));
+        if (hits.length && kmBetween(start, hits[0].at) <= reach) return { place: hits[0] };
+    }
+    if (!at) try {
+        const d = 0.08;
+        const opts = { results: 1, boundedBy: [[start[0] - d, start[1] - d * 1.8], [start[0] + d, start[1] + d * 1.8]], strictBounds: false };
+        const res = await ymaps.geocode(text, opts);
+        const obj = res.geoObjects.get(0);
+        if (obj) at = obj.geometry.getCoordinates();
+    } catch (e) {
+        console.warn("geocode must", e);
+    }
+    if (!at) return { error: "Не нашли «" + text + "» на карте — попробуй написать точнее или выбрать точку на карте." };
+    if (kmBetween(start, at) > reach) return { error: "«" + text + "» слишком далеко от старта для этой прогулки, поэтому не включили его." };
+
+    // если рядом с точкой есть место из списка — берём его (там есть тип, цена и т.д.)
+    const near = pool.filter(pl => kmBetween(pl.at, at) < 0.08).sort((a, b) => kmBetween(a.at, at) - kmBetween(b.at, at))[0];
+    if (near) return { place: near };
+    const t = norm(text);
+    const guess = /коф|кафе|cafe|coffee/.test(t) ? { kind: "cafe", note: "Кофейня", tags: ["food", "cozy"], cost: 350, food: true }
+        : /парк|сквер|сад|бульвар/.test(t) ? { kind: "park", note: "Парк", tags: ["nature"], cost: 0 }
+        : { kind: null, note: "Твоё место", tags: [], cost: 0 };
+    return { place: { name: text, at, ...guess } };
+}
+
+// вставляем обязательное место в маршрут
+function addMustStop(walk, start, stops, place) {
+    const p = walk.params || {};
+    const budget = walkBudget(p);
+    const already = stops.find(st => kmBetween(st.at, place.at) < 0.15);
+    if (already) {
+        already.must = true;
+        already.why = "Ты хотел(а) сюда зайти";
+        return;
+    }
+    const spentOther = stops.reduce((a, st) => a + (st.spend || 0), 0);
+    const room = budget === Infinity ? 2000 : Math.max(0, Math.round(budget * 0.85) - spentOther);
+    const st = stopFromPlace(place, room, "Ты хотел(а) сюда зайти");
+    st.must = true;
+    // своё место с едой важнее — второе место с едой убираем
+    if (st.food) {
+        for (let i = stops.length - 1; i >= 0; i--) if (stops[i].food) stops.splice(i, 1);
+    }
+    stops.splice(bestInsert(start, stops, st.at).i, 0, st);
+}
+
+// бюджет есть, а потратить его негде — добавляем кафе (или другое платное место) по пути
+function addPaidStop(walk, start, stops, pool) {
+    const p = walk.params || {};
+    const budget = walkBudget(p);
+    if (!(budget > 0) || stops.some(st => st.spend > 0)) return true;
+    const target = budget === Infinity ? 2000 : Math.round(budget * 0.85);
+    const used = new Set(stops.map(st => st.name));
+    const hasFood = stops.some(st => st.food);
+    const KIND_COST = { cafe: 0, fast_food: 0.4, museum: 0.5, gallery: 0.6, restaurant: 0.6, mall: 0.9 };
+
+    let best = null;
+    pool.forEach(pl => {
+        if (!pl.at || used.has(pl.name)) return;
+        const st = stopFromPlace(pl, target);
+        if (!(st.spend > 0) || st.spend > budget) return;
+        if (st.food && hasFood) return;
+        const pos = bestInsert(start, stops, pl.at, true);
+        if (pos.extra > 1.5) return;                                   // слишком большой крюк
+        const kindCost = KIND_COST[pl.kind] !== undefined ? KIND_COST[pl.kind] : 0.7;
+        const value = pos.extra + kindCost;
+        if (!best || value < best.value) best = { value, st, i: pos.i };
+    });
+    if (!best) return false;
+    stops.splice(best.i, 0, best.st);
+    return true;
+}
+
+// после вставок прогулка не должна стать сильно длиннее: убираем бесплатные места, которые дают самый большой крюк
+function fitTime(walk, start, stops) {
+    const minutes = Number((walk.params || {}).time) || 60;
+    const speed = walkSpeed(walk.params || {});
+    while (stops.length > 2 && recalcPlan(walk, start, stops).minutes > minutes + 20) {
+        let drop = -1, saved = 0;
+        stops.forEach((st, i) => {
+            if (st.must || st.spend > 0) return;
+            const a = i === 0 ? start : stops[i - 1].at;
+            const b = stops[i + 1] ? stops[i + 1].at : null;
+            const win = (extraKm(a, b, st.at) * 1.3) / speed + st.dwell;
+            if (win > saved) { saved = win; drop = i; }
+        });
+        if (drop < 0) break;
+        stops.splice(drop, 1);
+    }
+    recalcPlan(walk, start, stops);
+}
+
 // Сохраняем новую прогулку вместе с готовым маршрутом (один раз).
 async function persistWalk(walk, route) {
     if (!walk.draft) return walk;
@@ -6539,6 +6754,7 @@ async function showRoute(walk) {
     let start, stops, nearby;
     let aiInfo = savedRoute ? (savedRoute.ai || null) : null;
     let serverNote = "";
+    let routeNote = "";
 
     if (savedRoute) {
         // сохранённая прогулка — показываем ровно тот же маршрут
@@ -6592,6 +6808,18 @@ async function showRoute(walk) {
         }
         if (!stops) stops = pickStops(walk, start, pool);
         if (!stops.length) stops = pickStops(walk, start, pool, true);   // ничего? пробуем чуть дальше
+
+        // обязательное место и место, где потратить бюджет
+        const trimmed = stops.trimmed;
+        const must = await findMustPlace(ymaps, p, start, pool);
+        if (token !== routeToken) return;
+        if (must && must.place) addMustStop(walk, start, stops, must.place);
+        if (must && must.error) routeNote += " " + must.error;
+        if (!addPaidStop(walk, start, stops, pool)) {
+            routeNote += " Рядом по пути не нашлось кафе или другого места в пределах бюджета — эта прогулка получилась бесплатной.";
+        }
+        fitTime(walk, start, stops);
+        stops.trimmed = trimmed;
         // пока проверяем сервер — показываем, что пошло не так (потом можно убрать)
         // мелкие сбои источников не показываем — только если не ответила нейросеть или мест нет совсем
         const important = server && server.errors
@@ -6649,6 +6877,7 @@ async function showRoute(walk) {
             ? "Это сохранённый маршрут. Хочешь другой — собери новую прогулку на главной."
             : "Подобрали места по интересам и сохранили прогулку в «Ваши маршруты».";
     }
+    if (routeNote) subtitle.textContent += routeNote;
 
     const route = new ymaps.multiRouter.MultiRoute({
         referencePoints: points,
@@ -6912,6 +7141,7 @@ function inMoscow(at) {
 async function openPicker(fieldId) {
     pickerField = fieldId;
     pickerChoice = pickedStart[fieldId] || null;
+    document.getElementById("pickerTitle").textContent = fieldId === "builderMust" ? "Куда обязательно зайти?" : "Откуда начинаем?";
     const box = document.getElementById("picker");
     box.classList.add("open");
     box.setAttribute("aria-hidden", "false");
