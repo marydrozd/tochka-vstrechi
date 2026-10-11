@@ -2573,7 +2573,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v27</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v28</span></div>
 </aside>
 
 
@@ -6520,7 +6520,7 @@ function setMapMsg(text) {
     m.classList.toggle("hidden", !text);
 }
 
-function renderStops(startName, stops) {
+function renderStops(startName, stops, trip) {
     const ol = document.getElementById("routeStops");
     ol.innerHTML = "";
     const add = (name, note, cls, todo, withLeg, dwell) => {
@@ -6562,6 +6562,8 @@ function renderStops(startName, stops) {
         ol.appendChild(li);
     };
     add(startName, "Точка старта", "start");
+    // едем на метро: старт остаётся твоим, а гулять начинаем от станции
+    if (trip) add("м. " + trip.station, "Едем на метро ≈ " + trip.minutes + " мин · " + FARE.metro + " ₽, отсюда начинаем гулять", "start");
     stops.forEach(s => {
         const info = stopInfo(s);
         add(s.name, s.why ? s.note + " · " + s.why : s.note, null, info.todo, true, info.dwell);
@@ -7014,10 +7016,9 @@ async function showRoute(walk) {
     }
 
     if (trip) {
-        startLabel = "м. " + trip.station;
         routeNote = " Едем на метро до «" + trip.station + "» (≈ " + trip.minutes + " мин, " + FARE.metro + " ₽ в одну сторону) — там " + trip.about + "." + routeNote;
     }
-    renderStops(startLabel, stops);
+    renderStops(startLabel, stops, trip);
 
     const points = [start, ...stops.map(s => s.at)];
     const ya = document.getElementById("routeYaLink");
