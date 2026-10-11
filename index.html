@@ -2111,6 +2111,28 @@
             gap: 0;
         }
 
+        .trip-how {
+            margin-top: 10px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: var(--lilac);
+        }
+
+        .trip-how-title {
+            margin-bottom: 6px;
+            color: var(--purple-dark);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .trip-how-steps {
+            display: grid;
+            gap: 4px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
         .q-card {
             margin-bottom: 14px;
             padding: 22px;
@@ -2573,7 +2595,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v28</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v28.1</span></div>
 </aside>
 
 
@@ -6136,7 +6158,31 @@ function jitter(seed, name) {
     let h = 0;
     const str = String(seed) + name;
     for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
-    return (Math.abs(h) % 100) / 300;
+    return (Math.abs(h) % 100) / 110;      // до ~0,9 — заметно, чтобы прогулки отличались
+}
+
+// где человек уже гулял недавно — чтобы не водить его по одним и тем же местам
+let recentNames = new Set();
+let recentStations = new Set();
+
+async function loadRecent() {
+    recentNames = new Set();
+    recentStations = new Set();
+    try {
+        const list = await auth.listWalks();
+        list.slice(0, 6).forEach(w => {
+            const r = w.params && w.params.route;
+            if (!r) return;
+            (r.stops || []).forEach(st => st && st.name && recentNames.add(st.name.toLowerCase()));
+            if (r.trip && r.trip.station) recentStations.add(r.trip.station);
+        });
+    } catch (e) {
+        console.warn("не загрузили прошлые прогулки", e);
+    }
+}
+
+function wasRecently(place) {
+    return !!place && !!place.name && recentNames.has(place.name.toLowerCase());
 }
 
 // Подбираем остановки: интересные места, которые успеем обойти.
@@ -6390,6 +6436,7 @@ function pickStops(walk, start, pool, relaxed) {
         artwork: likesArt ? -0.3 : -2, mall: -0.4, fast_food: -0.3 };
     const score = place => {
         let s = 1 + jitter(walk.id || walk.created_at, place.name);
+        if (wasRecently(place)) s -= 2.5;                         // уже были недавно — ищем новое
         s += KIND_BONUS[place.kind] !== undefined ? KIND_BONUS[place.kind] : ((place.tags || []).includes("nature") ? 1 : 0);
         (place.tags || []).forEach(t => { if (likes.includes(t)) s += 1.2; });
         if (dislikes.includes("crowds") && (place.tags || []).includes("crowded")) s -= 1.5;
@@ -6563,7 +6610,22 @@ function renderStops(startName, stops, trip) {
     };
     add(startName, "Точка старта", "start");
     // едем на метро: старт остаётся твоим, а гулять начинаем от станции
-    if (trip) add("м. " + trip.station, "Едем на метро ≈ " + trip.minutes + " мин · " + FARE.metro + " ₽, отсюда начинаем гулять", "start");
+    if (trip) {
+        add("м. " + trip.station, "Едем на метро ≈ " + trip.minutes + " мин · " + FARE.metro + " ₽, отсюда начинаем гулять", "start");
+        if (trip.from) {
+            const how = document.createElement("div");
+            how.className = "trip-how";
+            how.innerHTML = '<div class="trip-how-title">Как доехать</div><div class="trip-how-steps" id="tripHowSteps"><div>Ищем дорогу до метро…</div></div>';
+            const a = document.createElement("a");
+            a.className = "walk-open";
+            a.target = "_blank";
+            a.rel = "noopener";
+            a.href = "https://yandex.ru/maps/?rtext=" + trip.from.join(",") + "~" + trip.at.join(",") + "&rtt=mt";
+            a.textContent = "Открыть дорогу в Яндекс Картах →";
+            how.appendChild(a);
+            ol.lastElementChild.appendChild(how);
+        }
+    }
     stops.forEach(s => {
         const info = stopInfo(s);
         add(s.name, s.why ? s.note + " · " + s.why : s.note, null, info.todo, true, info.dwell);
@@ -6585,6 +6647,8 @@ async function askServer(walk, start, osmPlaces) {
             survey: currentUser && currentUser.survey,
             friendSurvey: p.friendSurvey || null,
             radiusKm: walkRadiusKm(walk) * 3,
+            // места из недавних прогулок — нейросеть постарается их не повторять
+            avoid: [...recentNames].slice(0, 40),
             // места из OpenStreetMap, которые браузер уже нашёл (у них нет id — дадим)
             extra: (osmPlaces || []).slice(0, 250).map((x, i) => ({
                 id: "b" + i, name: x.name, at: x.at, kind: x.kind, note: x.note,
@@ -6649,6 +6713,57 @@ function stopsFromAI(walk, start, pool, ai) {
 }
 
 /* ---------- поездка на метро ---------- */
+// пошагово: дойти до метро, на какую линию сесть, в какую сторону ехать, где выйти
+async function fillTripHow(ymaps, trip) {
+    const box = document.getElementById("tripHowSteps");
+    if (!box || !trip || !trip.from) return;
+    const steps = [];
+    try {
+        const route = await ymaps.route([trip.from, trip.at], { routingMode: "masstransit", multiRoute: true });
+        const active = route.getActiveRoute ? route.getActiveRoute() : null;
+        if (!active) throw new Error("нет маршрута");
+        active.getPaths().each(path => path.getSegments().each(seg => {
+            const pr = seg.properties;
+            const type = pr.get("type");
+            const dur = (pr.get("duration") || {}).text || "";
+            if (type === "walk") {
+                const dist = (pr.get("distance") || {}).text || "";
+                steps.push("Пешком" + (dist ? " " + dist : "") + (dur ? " · " + dur : "") +
+                    (steps.length ? "" : " до метро"));
+            } else if (type === "transfer") {
+                steps.push("Пересадка" + (pr.get("text") ? ": " + pr.get("text") : "") + (dur ? " · " + dur : ""));
+            } else if (type === "transport") {
+                const tr = (pr.get("transports") || [])[0] || {};
+                const line = tr.name ? (tr.type === "underground" ? "Метро, " : "") + tr.name : (pr.get("text") || "Транспорт");
+                let dir = "";
+                try {
+                    const model = seg.model || seg;
+                    const stops = model.getStops ? model.getStops() : null;
+                    const n = stops ? (stops.length !== undefined ? stops.length : stops.getLength()) : 0;
+                    const nameOf = i => {
+                        const st = stops.length !== undefined ? stops[i] : stops.get(i);
+                        return st.properties ? st.properties.get("name") : st.name;
+                    };
+                    if (n >= 2) {
+                        dir = ": садись на «" + nameOf(0) + "» в сторону «" + nameOf(1) + "», выходи на «" + nameOf(n - 1) + "»" +
+                            " (" + (n - 1) + " " + plural(n - 1, "остановка", "остановки", "остановок") + ")";
+                    }
+                } catch (e) { /* без станций — только линия */ }
+                steps.push(line + dir + (dur ? " · " + dur : ""));
+            }
+        }));
+    } catch (e) {
+        console.warn("дорога до метро", e);
+    }
+    box.innerHTML = "";
+    (steps.length ? steps : ["Не получилось построить дорогу здесь — открой её в Яндекс Картах по ссылке ниже, там видно линию и направление."])
+        .forEach((t, i) => {
+            const row = document.createElement("div");
+            row.textContent = (steps.length ? (i + 1) + ". " : "") + t;
+            box.appendChild(row);
+        });
+}
+
 // цены проезда (октябрь 2026): метро и МЦК по «Тройке», МЦД с выездом в Подмосковье
 const FARE = { metro: 75, mcdRegion: 102 };
 
@@ -6692,6 +6807,7 @@ function pickTrip(walk, from) {
         const min = tripMinutes(from, spot.at);
         if (min > maxMin) return;
         let value = 1 + jitter(walk.id || walk.created_at, spot.station);
+        if (recentStations.has(spot.station)) value -= 1.5;       // туда недавно ездили
         spot.tags.forEach(t => { if (likes.includes(t)) value += 1; });
         if (dislikes.includes("crowds") && spot.tags.includes("crowded")) value -= 1.5;
         value -= min / 60;                                      // при прочих равных — поближе
@@ -6833,7 +6949,7 @@ function addPaidStop(walk, start, stops, pool) {
         const pos = bestInsert(start, stops, pl.at, true);
         if (pos.extra > 1.5) return;                                   // слишком большой крюк
         const kindCost = KIND_COST[pl.kind] !== undefined ? KIND_COST[pl.kind] : 0.7;
-        const value = pos.extra + kindCost;
+        const value = pos.extra + kindCost + (wasRecently(pl) ? 1 : 0);
         if (!best || value < best.value) best = { value, st, i: pos.i };
     });
     if (!best) return false;
@@ -6944,10 +7060,14 @@ async function showRoute(walk) {
             return;
         }
 
+        await loadRecent();
+        if (token !== routeToken) return;
+
         // готов(а) проехать на метро — переносим старт к станции, где интереснее гулять
         if (p.travel && p.travel !== "no") {
             trip = pickTrip(walk, start);
             if (trip) {
+                trip.from = start;                     // откуда идём к метро
                 start = trip.at;
                 planWalk = { ...walk, params: { ...p, budget: budgetAfterFare(p.budget, trip.fare) } };
             } else {
@@ -7019,6 +7139,7 @@ async function showRoute(walk) {
         routeNote = " Едем на метро до «" + trip.station + "» (≈ " + trip.minutes + " мин, " + FARE.metro + " ₽ в одну сторону) — там " + trip.about + "." + routeNote;
     }
     renderStops(startLabel, stops, trip);
+    if (trip && trip.from) fillTripHow(ymaps, trip);
 
     const points = [start, ...stops.map(s => s.at)];
     const ya = document.getElementById("routeYaLink");
