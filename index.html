@@ -872,6 +872,25 @@
             color: var(--success);
         }
 
+        .consent-row {
+            display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 10px;
+            font-size: 14px; line-height: 1.45; color: var(--muted); cursor: pointer;
+        }
+        .consent-row input { width: 20px; height: 20px; flex: none; margin-top: 1px; padding: 0; accent-color: var(--purple); }
+        .consent-note { font-size: 13px; color: var(--muted); margin: 0 0 18px 30px; line-height: 1.45; }
+        .link-inline {
+            background: none; border: 0; padding: 0; font: inherit; font-weight: 700;
+            color: var(--purple); cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+            display: inline; text-align: left; white-space: normal; border-radius: 0;
+        }
+        .legal-link { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; }
+        .legal-doc { max-width: 760px; }
+        .legal-doc h2 { font-size: 20px; font-weight: 800; margin: 28px 0 10px; letter-spacing: -.01em; }
+        .legal-doc p, .legal-doc li { color: #3a4152; line-height: 1.6; font-size: 15px; }
+        .legal-doc ul { padding-left: 20px; margin: 6px 0 10px; }
+        .legal-doc li { margin: 4px 0; }
+        .legal-meta { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+
         .form-footer {
             display: flex;
             justify-content: space-between;
@@ -1341,6 +1360,43 @@
 
         .action-card.quick .go {
             color: var(--purple);
+        }
+
+        /* v25: стрелка и пунктир оживают при наведении */
+        .action-card .go {
+            transition: transform 0.25s ease;
+        }
+
+        .action-card:hover .go {
+            transform: translateX(5px);
+        }
+
+        .action-card,
+        .action-card .card-art {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .action-card:hover .card-art {
+            transform: translate(-4px, -4px);
+        }
+
+        @keyframes art-march {
+            to { stroke-dashoffset: -26; }
+        }
+
+        .action-card:hover .art-line {
+            animation: art-march 0.9s linear infinite;
+        }
+
+        .action-card.main {
+            box-shadow: 0 14px 34px rgba(106, 53, 210, 0.22);
+        }
+
+        /* иконка «Быстрого» была бледной — делаем контрастнее */
+        .action-card.quick .ic {
+            background: var(--white);
+            color: var(--purple);
+            box-shadow: 0 6px 16px rgba(80, 60, 160, 0.10);
         }
 
         .action-card .card-title {
@@ -1932,8 +1988,7 @@
             pointer-events: none;
         }
 
-        .action-card.main .ic,
-        .action-card.quick .ic {
+        .action-card.main .ic {
             color: var(--white);
         }
 
@@ -2343,12 +2398,13 @@
     <button class="drawer-item" data-go="profile"><span class="ic">👤</span>Профиль</button>
     <button class="drawer-item" data-go="myWalks"><span class="ic blue">🗺</span>Ваши маршруты<span class="count-badge" id="walksCount" hidden>0</span></button>
     <button class="drawer-item" data-go="about"><span class="ic blue">✦</span>О проекте</button>
+    <button class="drawer-item" onclick="openLegal('privacy')"><span class="ic blue">§</span>Персональные данные</button>
     <!-- сюда потом можно добавить новые пункты меню -->
 
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 9 окт · v22</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v25</span></div>
 </aside>
 
 
@@ -2410,11 +2466,130 @@
 
                 <p class="help-line rise d6">
                     Проблемы со входом или сайтом? Пишите!<br>
-                    <a href="mailto:tochka.vashei.vstrechi@gmail.com">tochka.vashei.vstrechi@gmail.com</a>
+                    <a href="mailto:tochka.vashei.vstrechi@gmail.com">tochka.vashei.vstrechi@gmail.com</a><br>
+                    <a href="#" class="link-inline legal-link" onclick="openLegal('privacy'); return false;">Политика обработки персональных данных</a>
                 </p>
             </div>
         </section>
 
+
+        <!-- =====================================================
+             СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ
+             ===================================================== -->
+        <section class="screen wide" id="consent">
+            <button class="back-link" onclick="legalReturn()">← Назад</button>
+            <div class="legal-doc">
+                <div class="question-number">Документ</div>
+                <h1>Согласие на обработку персональных данных</h1>
+                <p class="legal-meta">Редакция от <span data-legal-version></span></p>
+
+                <p>Я, пользователь сайта «ТочкаВстречи» (далее — Сервис), отмечая галочку при регистрации,
+                свободно, своей волей и в своём интересе даю согласие оператору
+                <b data-op="name"></b> (г. <span data-op="city"></span>, e-mail: <span data-op="email"></span>)
+                на обработку моих персональных данных на следующих условиях.</p>
+
+                <h2>1. Какие данные</h2>
+                <ul>
+                    <li>адрес электронной почты, юзернейм, пароль (хранится в зашифрованном виде);</li>
+                    <li>ответы на опрос об интересах и предпочтениях;</li>
+                    <li>параметры прогулок: время, бюджет, компания, точка старта (адрес или координаты);</li>
+                    <li>местоположение во время прогулки — только если я сам(а) нажму «Я здесь» или «Начать прогулку»;</li>
+                    <li>отзывы и оценки прогулок;</li>
+                    <li>технические данные: дата регистрации, IP-адрес и сведения о браузере в журналах сервера.</li>
+                </ul>
+
+                <h2>2. Зачем</h2>
+                <ul>
+                    <li>создание и работа аккаунта, вход и восстановление пароля;</li>
+                    <li>подбор и сохранение прогулок под мои интересы;</li>
+                    <li>поиск друга по юзернейму и учёт его интересов (только с его согласия);</li>
+                    <li>улучшение подбора маршрутов по отзывам;</li>
+                    <li>ответы на мои обращения в поддержку.</li>
+                </ul>
+
+                <h2>3. Что с ними делают</h2>
+                <p>Сбор, запись, систематизация, накопление, хранение, уточнение (обновление, изменение), извлечение,
+                использование, передача (предоставление, доступ), обезличивание, блокирование, удаление и уничтожение —
+                с использованием средств автоматизации.</p>
+
+                <h2>4. Кому передаются</h2>
+                <p>Только в объёме, нужном для работы Сервиса:</p>
+                <ul>
+                    <li>хостинг базы данных и аккаунтов (Supabase);</li>
+                    <li>картографические сервисы — для поиска адреса и построения маршрута (Яндекс Карты, OpenStreetMap);</li>
+                    <li>нейросеть GigaChat (ООО «СалютДевайсы») — ответы опроса и параметры прогулки без e-mail и пароля, чтобы подобрать места;</li>
+                    <li>справочники мест (data.mos.ru, KudaGo) — только координаты района прогулки.</li>
+                </ul>
+                <p>Персональные данные не продаются и не передаются для рекламы.</p>
+
+                <h2>5. Срок и отзыв согласия</h2>
+                <p>Согласие действует до удаления аккаунта или до его отзыва. Отозвать согласие и удалить аккаунт
+                можно в любой момент, написав на <span data-op="email"></span> с адреса, указанного при регистрации.
+                Данные будут удалены в течение 30 дней, если закон не требует хранить их дольше.</p>
+
+                <h2>6. Несовершеннолетние</h2>
+                <p>Если мне меньше 14 лет, я регистрируюсь только с разрешения родителя (законного представителя),
+                и это согласие считается данным им.</p>
+
+                <p style="margin-top:22px">Подробнее — в <a href="#" class="link-inline" onclick="openLegal('privacy'); return false;">Политике обработки персональных данных</a>.</p>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             ПОЛИТИКА ОБРАБОТКИ ПЕРСОНАЛЬНЫХ ДАННЫХ
+             ===================================================== -->
+        <section class="screen wide" id="privacy">
+            <button class="back-link" onclick="legalReturn()">← Назад</button>
+            <div class="legal-doc">
+                <div class="question-number">Документ</div>
+                <h1>Политика обработки персональных данных</h1>
+                <p class="legal-meta">Редакция от <span data-legal-version></span></p>
+
+                <h2>1. Кто мы</h2>
+                <p>Сервис «ТочкаВстречи» помогает подбирать прогулки по Москве и Московской области.
+                Оператор персональных данных — <b data-op="name"></b>, г. <span data-op="city"></span>.
+                Связь по вопросам данных: <span data-op="email"></span>.</p>
+
+                <h2>2. Какие данные мы обрабатываем и зачем</h2>
+                <ul>
+                    <li><b>Аккаунт:</b> e-mail, юзернейм, пароль (в зашифрованном виде) — чтобы ты мог(ла) входить и восстанавливать доступ.</li>
+                    <li><b>Опрос:</b> интересы и предпочтения — чтобы подбирать прогулки под тебя.</li>
+                    <li><b>Прогулки:</b> время, бюджет, компания, точка старта, сохранённый маршрут — чтобы показывать и хранить твои прогулки.</li>
+                    <li><b>Геопозиция:</b> только когда ты сам(а) нажимаешь «Я здесь» или «Начать прогулку»; на сервере не хранится.</li>
+                    <li><b>Отзывы:</b> оценки и комментарии — чтобы улучшать подбор.</li>
+                </ul>
+                <p>Основание — твоё согласие (ст. 6 и 9 Федерального закона № 152-ФЗ «О персональных данных»).</p>
+
+                <h2>3. Кто ещё получает данные</h2>
+                <ul>
+                    <li>Supabase — хранение аккаунтов и прогулок;</li>
+                    <li>Яндекс Карты и OpenStreetMap — поиск адреса и построение пешеходного маршрута;</li>
+                    <li>GigaChat — подбор мест по ответам опроса (без e-mail и пароля);</li>
+                    <li>data.mos.ru и KudaGo — поиск мест рядом (передаются только координаты района).</li>
+                </ul>
+
+                <h2>4. Друзья</h2>
+                <p>Если ты ищешь друга по юзернейму, Сервис использует его ответы на опрос, только чтобы подобрать
+                общую прогулку. Проходить опрос «за друга» можно только с его согласия.</p>
+
+                <h2>5. Хранение и защита</h2>
+                <p>Пароли хранятся только в зашифрованном виде. Доступ к данным в базе ограничен: каждый пользователь
+                видит только свои данные. Данные хранятся, пока существует аккаунт, и удаляются в течение 30 дней
+                после удаления аккаунта или отзыва согласия.</p>
+
+                <h2>6. Cookies и хранилище браузера</h2>
+                <p>Сайт сохраняет в твоём браузере данные для входа и временные настройки. Рекламных и аналитических
+                счётчиков на сайте нет.</p>
+
+                <h2>7. Твои права</h2>
+                <p>Ты можешь узнать, какие данные о тебе хранятся, попросить исправить или удалить их, отозвать согласие.
+                Напиши на <span data-op="email"></span> — ответим в течение 10 рабочих дней.</p>
+
+                <h2>8. Изменения</h2>
+                <p>Мы можем обновлять эту Политику. Актуальная версия всегда доступна на сайте.</p>
+            </div>
+        </section>
 
         <!-- =====================================================
              2. О ПРОЕКТЕ
@@ -3151,6 +3326,16 @@
                     </div>
                 </div>
 
+                <label class="consent-row">
+                    <input type="checkbox" id="regConsent">
+                    <span>Даю <a href="#" class="link-inline" onclick="openLegal('consent'); return false;">согласие на обработку персональных данных</a></span>
+                </label>
+                <label class="consent-row">
+                    <input type="checkbox" id="regAge">
+                    <span>Мне исполнилось 14 лет. Если меньше — регистрируюсь с разрешения родителей.</span>
+                </label>
+                <p class="consent-note">Как мы храним и защищаем данные — в <a href="#" class="link-inline" onclick="openLegal('privacy'); return false;">Политике обработки персональных данных</a>.</p>
+
                 <button type="submit" class="btn-primary btn-full btn-big" id="registerBtn">Создать аккаунт</button>
 
                 <div class="form-footer">
@@ -3250,7 +3435,7 @@
             </svg>
 
             <div class="home-inner">
-                <p class="hello">Привет, <b id="homeUser">@user</b> 👋</p>
+                <p class="hello">Привет, <b id="homeUser">@user</b></p>
                 <h1 class="home-title">Куда пойдём <span class="accent">сегодня?</span></h1>
                 <p class="subtitle">Выбери, как собрать прогулку.</p>
 
@@ -3258,9 +3443,8 @@
                     <button class="action-card main" onclick="startBuilder()">
                         <!-- декоративный маршрут в углу -->
                         <svg class="card-art" viewBox="0 0 200 160" aria-hidden="true">
-                            <path d="M10 150 C 50 90, 80 130, 110 90 C 135 55, 160 80, 182 40" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 12"/>
+                            <path class="art-line" d="M10 150 C 50 90, 80 130, 110 90 C 135 55, 160 80, 182 40" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 12"/>
                             <circle cx="10" cy="150" r="7" fill="rgba(255,255,255,.35)"/>
-                            <path d="M182 44 C 174 33, 164 25, 164 13 A 18 18 0 1 1 200 13 C 200 25, 190 33, 182 44 Z" fill="rgba(255,255,255,.4)"/>
                         </svg>
                         <span class="ic">
                             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
@@ -4434,7 +4618,7 @@ const demo = {
         return { id: user.id, username: user.username, email: user.email, survey: user.survey };
     },
 
-    async signUp(email, username, password, survey) {
+    async signUp(email, username, password, survey, consent) {
         const users = this.users();
         if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
             throw new Error("User already registered");
@@ -4448,6 +4632,7 @@ const demo = {
             username,
             pass: await hashPassword(password),
             survey,
+            consent: consent || null,
             created: new Date().toISOString()
         };
         users.push(user);
@@ -4561,7 +4746,7 @@ const cloud = {
         return this.profileFor(data.user);
     },
 
-    async signUp(email, username, password, survey) {
+    async signUp(email, username, password, survey, consent) {
         const { data: taken, error: rpcError } = await sb.rpc("username_taken", { p_username: username });
         if (rpcError) throw rpcError;
         if (taken) throw new Error("USERNAME_TAKEN");
@@ -4570,7 +4755,7 @@ const cloud = {
             email,
             password,
             options: {
-                data: { username, survey },
+                data: { username, survey, consent: consent || null },   // согласие хранится вместе с аккаунтом
                 emailRedirectTo: location.origin + location.pathname
             }
         });
@@ -4741,11 +4926,19 @@ document.getElementById("registerForm").addEventListener("submit", async e => {
         return showMsg("registerMsg", "Пароли не совпадают.");
     }
 
+    if (!document.getElementById("regConsent").checked) {
+        return showMsg("registerMsg", "Чтобы создать аккаунт, отметь согласие на обработку персональных данных.");
+    }
+    if (!document.getElementById("regAge").checked) {
+        return showMsg("registerMsg", "Подтверди, что тебе есть 14 лет или что родители разрешили регистрацию.");
+    }
+
     const survey = store.get("tochkaVstrechiProfile") || answers;
+    const consent = { version: LEGAL_VERSION, at: new Date().toISOString(), age14: true };
 
     setLoading("registerBtn", true, "Создаём аккаунт…");
     try {
-        const result = await auth.signUp(email, username, pass, survey);
+        const result = await auth.signUp(email, username, pass, survey, consent);
         document.getElementById("registerForm").reset();
 
         if (result.needsConfirm) {
@@ -4871,6 +5064,27 @@ document.querySelectorAll(".drawer-item[data-go]").forEach(btn => {
 document.addEventListener("keydown", e => {
     if (e.key === "Escape") closeMenu();
 });
+
+/* ---------- согласие и политика ---------- */
+// ⚠️ ЗАПОЛНИ: кто отвечает за данные (оператор). Если тебе меньше 18 — лучше указать родителя.
+const OPERATOR = {
+    name: "[ФИО оператора — заполнить]",
+    city: "Москва",
+    email: "tochka.vashei.vstrechi@gmail.com"
+};
+const LEGAL_VERSION = "2026-10-10";
+let legalBack = "welcome";
+
+function openLegal(id) {
+    if (currentScreen !== "consent" && currentScreen !== "privacy") legalBack = currentScreen || "welcome";
+    document.querySelectorAll("[data-op]").forEach(el => { el.textContent = OPERATOR[el.dataset.op]; });
+    document.querySelectorAll("[data-legal-version]").forEach(el => { el.textContent = LEGAL_VERSION.split("-").reverse().join("."); });
+    go(id);
+}
+
+function legalReturn() {
+    go(legalBack);
+}
 
 function goHome() {
     go(currentUser ? "home" : "welcome");
@@ -5593,12 +5807,13 @@ function stopInfo(pl, alloc) {
 
     if (k === "cafe" || (!k && isFoodPlace(pl) && !t.includes("museums"))) {
         const spend = roundRub(clamp(a || 350, 300, 900));
-        const what = spend <= 400 ? "Кофе и десерт" : spend <= 650 ? "Кофе, десерт и сэндвич" : "Обед в кафе";
-        return { dwell: spend > 650 ? 40 : 25, spend, todo: what + " ≈ " + spend + " ₽" };
+        // кофейня — короткая остановка: взять кофе и идти дальше
+        const what = spend <= 400 ? "Взять кофе с собой" : spend <= 650 ? "Кофе и что-нибудь перекусить" : "Обед в кафе";
+        return { dwell: spend <= 400 ? 10 : spend <= 650 ? 15 : 30, spend, todo: what + " ≈ " + spend + " ₽" };
     }
     if (k === "fast_food") {
         const spend = roundRub(clamp(a || 400, 300, 700));
-        return { dwell: 20, spend, todo: (spend <= 450 ? "Перекус" : "Сытный обед") + " ≈ " + spend + " ₽" };
+        return { dwell: 15, spend, todo: (spend <= 450 ? "Перекус" : "Сытный обед") + " ≈ " + spend + " ₽" };
     }
     if (k === "restaurant") {
         const spend = roundRub(clamp(a || 1200, 900, 3000));
@@ -5695,7 +5910,7 @@ function pickStops(walk, start, pool, relaxed) {
             const info0 = stopInfo(pl, alloc);
             const info = { ...info0, dwell: Math.max(5, Math.round(info0.dwell * (info0.spend > 0 ? Math.max(0.8, dwellScale) : dwellScale))) };
             if (info.spend > budget - spent) return;                        // не по карману
-            if (pl.kind === "artwork" && stops.some(st => st.kind === "artwork")) return;   // максимум один арт-объект
+            if (/^(artwork|historic)$/.test(pl.kind) && stops.some(st => /^(artwork|historic)$/.test(st.kind))) return;   // арт-объект или памятник — максимум один
             if (info.spend > 0 && slotsLeft === 0 && info.spend > (budget - spent) * 0.5) return;
 
             const d = kmBetween(here, pl.at);
@@ -5856,7 +6071,7 @@ async function askServer(walk, start, osmPlaces) {
             }))
         }
     });
-    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 60000));
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 70000));
     try {
         const { data, error } = await Promise.race([call, timeout]);
         if (error) throw error;
@@ -5881,12 +6096,17 @@ function stopsFromAI(walk, start, pool, ai) {
     if (!seq.length) return null;
 
     const paidPlanned = seq.filter(x => stopInfo(x.pl, 500).spend > 0).length || 1;
+    const likes = [currentUser && currentUser.survey, p.friendSurvey].flatMap(surveyTags);
+    const likesArt = likes.includes("street-art") || likes.includes("arthouse");
     const stops = [];
     let here = start, timeUsed = 0, walkMin = 0, spent = 0, paidDone = 0;
     for (const { pl, why } of seq) {
         const alloc = Math.max(0, (Math.min(target, budget) - spent) / Math.max(1, paidPlanned - paidDone));
         const info = stopInfo(pl, alloc);
         if (info.spend > budget - spent) continue;
+        // арт-объекты — только тем, кто любит искусство; арт-объект или памятник — максимум один
+        if (pl.kind === "artwork" && !likesArt) continue;
+        if (/^(artwork|historic)$/.test(pl.kind) && stops.some(st => /^(artwork|historic)$/.test(st.kind))) continue;
         const legMin = (kmBetween(here, pl.at) * 1.3) / speed;
         if (timeUsed + legMin + info.dwell > minutes + 20) break;     // не влезает по времени
         timeUsed += legMin + info.dwell;
@@ -5988,7 +6208,7 @@ async function showRoute(walk) {
         }
 
         // 1) сервер: свежие места + GigaChat; 2) если не вышло — OpenStreetMap из браузера
-        setMapMsg("Ищем интересные места рядом… это может занять до 30 секунд");
+        setMapMsg("Ищем интересные места рядом и собираем прогулку… это может занять до минуты");
         // OpenStreetMap (парки, вода, бульвары) из браузера — это работает надёжнее, чем с сервера;
         // найденное отдаём серверу, чтобы GigaChat выбирал из всего сразу
         const osmPlaces = await fetchNearbyPlaces(start, walkRadiusKm(walk) * 3);
@@ -6011,8 +6231,9 @@ async function showRoute(walk) {
         if (!stops) stops = pickStops(walk, start, pool);
         if (!stops.length) stops = pickStops(walk, start, pool, true);   // ничего? пробуем чуть дальше
         // пока проверяем сервер — показываем, что пошло не так (потом можно убрать)
+        // мелкие сбои источников не показываем — только если не ответила нейросеть или мест нет совсем
         const important = server && server.errors
-            ? server.errors.filter(e => !/^osm/.test(e) || !(osmPlaces && osmPlaces.length))
+            ? server.errors.filter(e => /^gigachat/.test(e) || !(nearby && nearby.length))
             : [];
         if (important.length) {
             serverNote = " (Для разработчика: " + important.join("; ") + ")";
