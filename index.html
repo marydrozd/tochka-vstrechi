@@ -2061,6 +2061,56 @@
         /* =========================================================
            КАРТОЧКИ ВОПРОСОВ (построить / быстрый маршрут)
            ========================================================= */
+        .more-settings {
+            margin-bottom: 14px;
+        }
+
+        .more-settings > summary {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 14px;
+            padding: 18px 22px;
+            border-radius: 20px;
+            border: 1px dashed var(--purple);
+            background: var(--lilac);
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .more-settings > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .more-title {
+            color: var(--purple-dark);
+            font-weight: 800;
+        }
+
+        .more-title::after {
+            content: " ▾";
+        }
+
+        .more-settings[open] .more-title::after {
+            content: " ▴";
+        }
+
+        .more-opt {
+            margin-left: 6px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .more-sub {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .more-settings .q-head {
+            gap: 0;
+        }
+
         .q-card {
             margin-bottom: 14px;
             padding: 22px;
@@ -2523,7 +2573,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v25</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v26</span></div>
 </aside>
 
 
@@ -3102,7 +3152,7 @@
                     <div class="option" data-value="music">
                         <div class="option-title">🎵 Музыка</div>
                         <div class="option-description">
-                            Музыкальные магазины, концерты, необычные площадки и музыкальная культура.
+                            Улицы и парки, где часто играют уличные музыканты, летние сцены и музыкальная атмосфера.
                         </div>
                     </div>
     
@@ -3624,7 +3674,7 @@
 
             <div class="question-number">Новая прогулка</div>
             <h1>Построить маршрут</h1>
-            <p class="subtitle">Шесть коротких вопросов о сегодняшней прогулке. Твои интересы из профиля мы уже учли.</p>
+            <p class="subtitle">Четыре быстрых вопроса — остальное по желанию. Твои интересы из профиля мы уже учли.</p>
 
             <div class="form-msg" id="builderMsg"></div>
 
@@ -3737,56 +3787,6 @@
                 <div class="q-head">
                     <span class="q-num">04</span>
                     <div>
-                        <div class="q-title">Какая будет прогулка?</div>
-                        <div class="q-sub">Темп и настроение.</div>
-                    </div>
-                </div>
-                <div class="chips opt-grid" data-draft="walk" data-field="pace" data-single>
-                    <button type="button" class="chip opt" data-value="calm">
-                        <span class="opt-title">Спокойная</span>
-                        <span class="opt-desc">Без спешки, больше остановок</span>
-                    </button>
-                    <button type="button" class="chip opt" data-value="active">
-                        <span class="opt-title">Энергичная</span>
-                        <span class="opt-desc">Много ходьбы и новых мест</span>
-                    </button>
-                    <button type="button" class="chip opt" data-value="mixed">
-                        <span class="opt-title">Смешанная</span>
-                        <span class="opt-desc">Понемногу всего</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 05 -->
-            <div class="q-card">
-                <div class="q-head">
-                    <span class="q-num">05</span>
-                    <div>
-                        <div class="q-title">Заглянем на мероприятие?</div>
-                        <div class="q-sub">Концерт, выставка, фестиваль — подберём по афише на сегодня.</div>
-                    </div>
-                </div>
-                <div class="chips opt-grid" data-draft="walk" data-field="events" data-single>
-                    <button type="button" class="chip opt" data-value="yes">
-                        <span class="opt-title">Да, хочу</span>
-                        <span class="opt-desc">Встроим событие в маршрут</span>
-                    </button>
-                    <button type="button" class="chip opt" data-value="maybe">
-                        <span class="opt-title">Если по пути</span>
-                        <span class="opt-desc">Только если что-то интересное рядом</span>
-                    </button>
-                    <button type="button" class="chip opt" data-value="no">
-                        <span class="opt-title">Просто гуляем</span>
-                        <span class="opt-desc">Парки, улицы, кофейни</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 06 -->
-            <div class="q-card">
-                <div class="q-head">
-                    <span class="q-num">06</span>
-                    <div>
                         <div class="q-title">Откуда начинаем?</div>
                         <div class="q-sub">Станция метро, адрес, известное место — или отметь точку на карте.</div>
                     </div>
@@ -3801,24 +3801,99 @@
                 </button>
             </div>
 
-            <!-- 07 -->
-            <div class="q-card">
-                <div class="q-head">
-                    <span class="q-num">07</span>
-                    <div>
-                        <div class="q-title">Куда обязательно зайти?</div>
-                        <div class="q-sub">Необязательно. Любимая кофейня, парк, магазин — маршрут пройдёт через это место.</div>
+            <!-- необязательные настройки: по умолчанию «смешанная», «если по пути», «гуляем рядом» -->
+            <details class="more-settings" id="moreSettings">
+                <summary>
+                    <span class="more-title">Ещё настройки <span class="more-opt">по желанию</span></span>
+                    <span class="more-sub" id="moreSummary"></span>
+                </summary>
+
+                <div class="q-card">
+                    <div class="q-head">
+                        <div>
+                            <div class="q-title">Какая будет прогулка?</div>
+                            <div class="q-sub">Темп и настроение.</div>
+                        </div>
+                    </div>
+                    <div class="chips opt-grid" data-draft="walk" data-field="pace" data-single>
+                        <button type="button" class="chip opt" data-value="calm">
+                            <span class="opt-title">Спокойная</span>
+                            <span class="opt-desc">Без спешки, больше остановок</span>
+                        </button>
+                        <button type="button" class="chip opt" data-value="active">
+                            <span class="opt-title">Энергичная</span>
+                            <span class="opt-desc">Много ходьбы и новых мест</span>
+                        </button>
+                        <button type="button" class="chip opt" data-value="mixed">
+                            <span class="opt-title">Смешанная</span>
+                            <span class="opt-desc">Понемногу всего</span>
+                        </button>
                     </div>
                 </div>
-                <div class="input-icon">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg>
-                    <input id="builderMust" type="text" maxlength="120" placeholder="Например: Парк Горького">
+
+                <div class="q-card">
+                    <div class="q-head">
+                        <div>
+                            <div class="q-title">Заглянем на мероприятие?</div>
+                            <div class="q-sub">Концерт, выставка, фестиваль — подберём по афише на сегодня.</div>
+                        </div>
+                    </div>
+                    <div class="chips opt-grid" data-draft="walk" data-field="events" data-single>
+                        <button type="button" class="chip opt" data-value="yes">
+                            <span class="opt-title">Да, хочу</span>
+                            <span class="opt-desc">Встроим событие в маршрут</span>
+                        </button>
+                        <button type="button" class="chip opt" data-value="maybe">
+                            <span class="opt-title">Если по пути</span>
+                            <span class="opt-desc">Только если что-то интересное рядом</span>
+                        </button>
+                        <button type="button" class="chip opt" data-value="no">
+                            <span class="opt-title">Просто гуляем</span>
+                            <span class="opt-desc">Парки, улицы, кофейни</span>
+                        </button>
+                    </div>
                 </div>
-                <button type="button" class="pick-btn" onclick="openPicker('builderMust')">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
-                    Выбрать на карте
-                </button>
-            </div>
+
+                <div class="q-card">
+                    <div class="q-head">
+                        <div>
+                            <div class="q-title">Готов(а) проехать на метро?</div>
+                            <div class="q-sub">Доедем туда, где интереснее гулять. Проезд по «Тройке» — 75 ₽ в одну сторону, учтём его в бюджете.</div>
+                        </div>
+                    </div>
+                    <div class="chips opt-grid" data-draft="walk" data-field="travel" data-single>
+                        <button type="button" class="chip opt" data-value="no">
+                            <span class="opt-title">Нет, гуляем рядом</span>
+                            <span class="opt-desc">Начнём прямо от точки старта</span>
+                        </button>
+                        <button type="button" class="chip opt" data-value="20">
+                            <span class="opt-title">Да, до 20 минут</span>
+                            <span class="opt-desc">Пара-тройка станций</span>
+                        </button>
+                        <button type="button" class="chip opt" data-value="any">
+                            <span class="opt-title">Да, хоть куда</span>
+                            <span class="opt-desc">Выберем самое интересное место в Москве</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="q-card">
+                    <div class="q-head">
+                        <div>
+                            <div class="q-title">Куда обязательно зайти?</div>
+                            <div class="q-sub">Необязательно. Любимая кофейня, парк, магазин — маршрут пройдёт через это место.</div>
+                        </div>
+                    </div>
+                    <div class="input-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg>
+                        <input id="builderMust" type="text" maxlength="120" placeholder="Например: Парк Горького">
+                    </div>
+                    <button type="button" class="pick-btn" onclick="openPicker('builderMust')">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
+                        Выбрать на карте
+                    </button>
+                </div>
+            </details>
 
             <!-- нижняя панель с итогом -->
             <div class="builder-bar">
@@ -5370,6 +5445,7 @@ async function saveSurvey() {
    ПОДПИСИ ДЛЯ ПАРАМЕТРОВ ПРОГУЛКИ
    ============================================================= */
 const TIME_LABELS = { 30: "30 мин", 60: "1 ч", 120: "2 ч", 180: "3 ч", 240: "4+ ч" };
+const TRAVEL_LABELS = { no: "гуляем рядом", "20": "на метро до 20 мин", any: "на метро хоть куда" };
 const BUDGET_LABELS = { "0": "0 ₽", "500": "до 500 ₽", "1500": "до 1500 ₽", "3000": "до 3000 ₽", any: "бюджет неважен" };
 const GOAL_LABELS = {
     walk: "походить", sit: "посидеть", eat: "поесть",
@@ -5396,8 +5472,9 @@ function newWalkDraft() {
         nickSurvey: null,
         time: null,
         budget: null,
-        pace: null,
-        events: null
+        pace: "mixed",
+        events: "maybe",
+        travel: "no"
     };
 }
 
@@ -5749,6 +5826,7 @@ function startBuilder() {
     delete pickedStart.builderStart;
     document.getElementById("builderMust").value = "";
     delete pickedStart.builderMust;
+    document.getElementById("moreSettings").open = false;
     document.getElementById("friendNick").value = "";
     syncChips("walk");
     updateCompanyBlocks();
@@ -5774,8 +5852,12 @@ function updateSummaries() {
         else if (d.company) parts.push(COMPANY_LABELS[d.company]);
         if (d.time) parts.push(TIME_LABELS[d.time]);
         if (d.budget) parts.push(BUDGET_LABELS[d.budget]);
-        if (d.pace) parts.push(PACE_LABELS[d.pace]);
-        if (d.events) parts.push(EVENTS_LABELS[d.events]);
+        if (d.pace && d.pace !== "mixed") parts.push(PACE_LABELS[d.pace]);
+        if (d.events && d.events !== "maybe") parts.push(EVENTS_LABELS[d.events]);
+        if (d.travel && d.travel !== "no") parts.push(TRAVEL_LABELS[d.travel]);
+        const more = document.getElementById("moreSummary");
+        if (more) more.textContent = [PACE_LABELS[d.pace] + " прогулка", EVENTS_LABELS[d.events], TRAVEL_LABELS[d.travel || "no"]]
+            .filter(Boolean).join(" · ");
         const el = document.getElementById("builderSummary");
         el.innerHTML = "";
         if (parts.length) {
@@ -5847,6 +5929,7 @@ async function submitBuilder() {
         events: d.events,
         start,
         startAt: pickedAt("builderStart", start),
+        travel: d.travel || "no",
         must: must || null,
         mustAt: must ? pickedAt("builderMust", must) : null
     };
@@ -5894,6 +5977,7 @@ function walkTags(walk) {
     if (p.time) tags.push({ text: TIME_LABELS[p.time], blue: true });
     if (p.start) tags.push({ text: "старт: " + p.start, blue: true });
     if (p.must) tags.push({ text: "через: " + p.must, blue: true });
+    if (p.travel && p.travel !== "no") tags.push({ text: TRAVEL_LABELS[p.travel] });
 
     if (p.company) {
         let text = COMPANY_LABELS[p.company];
@@ -5943,7 +6027,7 @@ const PLACES = [
     { name: "Варварка и Старый Английский двор", at: [55.7518, 37.6280], tags: ["architecture", "quiet"], cost: 0, note: "Маленькие старинные церкви и палаты" },
     { name: "Патриаршие пруды", at: [55.7637, 37.5925], tags: ["nature", "books", "pop-culture", "cozy"], cost: 0, note: "Тот самый пруд из «Мастера и Маргариты»" },
     { name: "Музей «Булгаковский дом»", at: [55.7667, 37.5939], tags: ["books", "pop-culture", "museums", "dark"], cost: 300, note: "Нехорошая квартира и чёрный кот" },
-    { name: "Старый Арбат", at: [55.7494, 37.5918], tags: ["music", "street-art", "pop-culture", "crowded", "classic"], cost: 0, note: "Уличные музыканты и стена Цоя" },
+    { name: "Старый Арбат", at: [55.7494, 37.5918], tags: ["music", "street-art", "pop-culture", "crowded", "classic"], cost: 0, note: "Здесь часто играют уличные музыканты, рядом стена Цоя" },
     { name: "Московский Дом книги", at: [55.7525, 37.5866], tags: ["books"], cost: 0, note: "Огромный книжный на Новом Арбате" },
     { name: "Гоголевский бульвар", at: [55.7470, 37.6020], tags: ["nature", "quiet", "cozy", "books"], cost: 0, note: "Зелёный бульвар с лавочками" },
     { name: "Пушкинский музей", at: [55.7474, 37.6052], tags: ["museums", "architecture", "arthouse"], cost: 600, note: "Античные залы и импрессионисты" },
@@ -5959,7 +6043,7 @@ const PLACES = [
     { name: "Винзавод", at: [55.7556, 37.6656], tags: ["street-art", "arthouse", "museums", "photo"], cost: 0, note: "Галереи современного искусства" },
     { name: "Сад «Эрмитаж»", at: [55.7709, 37.6098], tags: ["nature", "music", "cozy"], cost: 0, note: "Уютный сад с летней сценой" },
     { name: "Тверской бульвар", at: [55.7600, 37.6000], tags: ["nature", "quiet", "books"], cost: 0, note: "Самый старый бульвар Москвы" },
-    { name: "Консерватория на Большой Никитской", at: [55.7567, 37.6040], tags: ["music", "architecture", "classic"], cost: 0, note: "Памятник Чайковскому и музыка из окон" },
+    { name: "Консерватория на Большой Никитской", at: [55.7567, 37.6040], tags: ["music", "architecture", "classic"], cost: 0, note: "Памятник Чайковскому у консерватории" },
     { name: "Центральный Детский Магазин", at: [55.7604, 37.6253], tags: ["pop-culture", "photo", "food"], cost: 0, note: "Огромные часы и смотровая на крыше" },
     { name: "Аптекарский огород", at: [55.7782, 37.6326], tags: ["nature", "quiet", "photo"], cost: 500, note: "Ботанический сад с оранжереями" },
     { name: "Фудмолл «Депо»", at: [55.7743, 37.5911], tags: ["food", "active", "crowded"], cost: 600, note: "Много еды под одной крышей" },
@@ -6063,15 +6147,19 @@ const OVERPASS_URLS = [
     "https://overpass.kumi.systems/api/interpreter"
 ];
 
+const BIG_VENUE = /арен[аы]|arena|стадион|stadium|концертн|concert|дворец спорта|спорткомплекс|крокус|crocus|холл(\s|$)|\bhall\b/i;
+
 // как теги OpenStreetMap превращаются в наши теги, цену и подпись
 function osmKind(t) {
     // реки и каналы — не «посидеть у воды»; из арт-объектов оставляем только скульптуры и муралы
     if (t.natural === "water" && /^(river|canal|stream|ditch|wastewater|reservoir)$/.test(t.water || "")) return null;
     if (t.tourism === "artwork" && t.artwork_type && !/^(mural|sculpture|statue)$/.test(t.artwork_type)) return null;
+    // арены, стадионы и концертные залы — не места для прогулки (концерт в тот же день всё равно не купить)
+    if (BIG_VENUE.test(t.name || "") || t.amenity === "concert_hall" || t.leisure === "stadium") return null;
     if (t.natural === "water")
         return { tags: ["nature", "photo", "quiet", "cozy"], cost: 0, note: "Пруд / озеро", kind: "water" };
     if (t.highway === "pedestrian")
-        return { tags: ["photo", "cozy", "active"], cost: 0, note: "Пешеходная улица", kind: "walkstreet" };
+        return { tags: ["photo", "cozy", "active", "music"], cost: 0, note: "Пешеходная улица", kind: "walkstreet" };
     if (t.leisure === "park" || t.leisure === "garden")
         return { tags: ["nature", "photo", "cozy"], cost: 0, note: "Парк", kind: "park" };
     if (t.tourism === "museum")
@@ -6091,7 +6179,7 @@ function osmKind(t) {
     if (t.amenity === "cinema")
         return { tags: ["pop-culture"], cost: 500, note: "Кинотеатр", kind: "cinema" };
     if (t.amenity === "theatre")
-        return { tags: ["music", "pop-culture"], cost: 0, note: "Театр", kind: "theatre" };
+        return { tags: ["pop-culture", "architecture"], cost: 0, note: "Театр", kind: "theatre" };
     if (t.amenity === "cafe")
         return { tags: ["food", "cozy"], cost: 300, note: "Кофейня", food: true, kind: "cafe" };
     if (t.amenity === "fast_food")
@@ -6413,9 +6501,11 @@ function routeStats(stops, walkMin, distanceText) {
     out.push("≈ " + fmtMinutes(walkMin + plan.dwell) + " вместе с остановками");
     if (distanceText) out.push("пешком " + distanceText);
     out.push(stops.length + " " + plural(stops.length, "остановка", "остановки", "остановок"));
+    if (plan.trip) out.push("проезд " + plan.trip.fare + " ₽ туда-обратно");
+    const total = plan.spent + (plan.trip ? plan.trip.fare : 0);
     if (plan.spent > 0) {
-        out.push("≈ " + plan.spent + " ₽" + (typeof plan.budget === "number" && isFinite(plan.budget) ? " из " + plan.budget + " ₽" : ""));
-    } else if (plan.budget === 0) {
+        out.push("≈ " + total + " ₽" + (typeof plan.budget === "number" && isFinite(plan.budget) ? " из " + plan.budget + " ₽" : "") + (plan.trip ? " вместе с проездом" : ""));
+    } else if (plan.budget === 0 && !plan.trip) {
         out.push("бесплатно");
     }
     return out;
@@ -6552,6 +6642,68 @@ function stopsFromAI(walk, start, pool, ai) {
     stops.trimmed = stops.length < seq.length;
     stops.plan = { minutes: Math.round(timeUsed), walkMin: Math.round(walkMin), dwell: stops.reduce((a, s) => a + s.dwell, 0), spent, budget };
     return stops;
+}
+
+/* ---------- поездка на метро ---------- */
+// цены проезда (октябрь 2026): метро и МЦК по «Тройке», МЦД с выездом в Подмосковье
+const FARE = { metro: 75, mcdRegion: 102 };
+
+// куда стоит доехать: станция метро и чем там хорошо гулять
+const TRIP_SPOTS = [
+    { station: "Китай-город", at: [55.7564, 37.6316], tags: ["street-art", "architecture", "photo", "cozy"], about: "Ивановская горка, Хохловка, Маросейка" },
+    { station: "Чистые пруды", at: [55.7650, 37.6385], tags: ["nature", "cozy", "photo"], about: "пруд и Чистопрудный бульвар" },
+    { station: "Трубная", at: [55.7677, 37.6219], tags: ["quiet", "cozy", "architecture"], about: "Цветной и Рождественский бульвары" },
+    { station: "Арбатская", at: [55.7522, 37.6035], tags: ["music", "street-art", "classic", "crowded"], about: "Арбат и Гоголевский бульвар" },
+    { station: "Кропоткинская", at: [55.7452, 37.6038], tags: ["architecture", "classic", "photo"], about: "Пречистенка и набережная у храма Христа Спасителя" },
+    { station: "Пушкинская", at: [55.7656, 37.6043], tags: ["classic", "music", "cozy"], about: "Тверской бульвар и Патриаршие" },
+    { station: "Октябрьская", at: [55.7293, 37.6114], tags: ["arthouse", "street-art", "nature"], about: "Музеон и Крымская набережная" },
+    { station: "Парк культуры", at: [55.7355, 37.5944], tags: ["nature", "active", "photo"], about: "Парк Горького и Нескучный сад" },
+    { station: "Курская", at: [55.7586, 37.6593], tags: ["arthouse", "street-art", "pop-culture"], about: "Винзавод и Артплей" },
+    { station: "Бауманская", at: [55.7724, 37.6790], tags: ["cozy", "quiet", "architecture"], about: "Сад Баумана и Старая Басманная" },
+    { station: "Спортивная", at: [55.7230, 37.5622], tags: ["nature", "classic", "quiet"], about: "Новодевичьи пруды" },
+    { station: "Воробьёвы горы", at: [55.7101, 37.5592], tags: ["nature", "photo", "active"], about: "смотровая и набережная" },
+    { station: "ВДНХ", at: [55.8210, 37.6413], tags: ["architecture", "nature", "photo", "active"], about: "ВДНХ и Ботанический сад" },
+    { station: "Сокольники", at: [55.7889, 37.6798], tags: ["nature", "quiet", "active"], about: "парк Сокольники" },
+    { station: "Коломенская", at: [55.6774, 37.6634], tags: ["nature", "classic", "quiet"], about: "музей-заповедник Коломенское" }
+];
+
+// примерно сколько ехать: вход и ожидание + метро ~35 км/ч по прямой
+function tripMinutes(from, to) {
+    return Math.round(5 + kmBetween(from, to) * 1.8);
+}
+
+// выбираем, куда поехать: по интересам и в пределах времени в дороге
+function pickTrip(walk, from) {
+    const p = walk.params || {};
+    if (!p.travel || p.travel === "no") return null;
+    const maxMin = p.travel === "20" ? 20 : 55;
+    const surveys = [currentUser && currentUser.survey, p.friendSurvey];
+    const likes = surveys.flatMap(surveyTags);
+    const dislikes = surveys.flatMap(surveyDislikes);
+
+    let best = null;
+    TRIP_SPOTS.forEach(spot => {
+        const km = kmBetween(from, spot.at);
+        if (km < 2) return;                                     // и так рядом — дойдём пешком
+        const min = tripMinutes(from, spot.at);
+        if (min > maxMin) return;
+        let value = 1 + jitter(walk.id || walk.created_at, spot.station);
+        spot.tags.forEach(t => { if (likes.includes(t)) value += 1; });
+        if (dislikes.includes("crowds") && spot.tags.includes("crowded")) value -= 1.5;
+        value -= min / 60;                                      // при прочих равных — поближе
+        if (!best || value > best.value) best = { value, spot, min };
+    });
+    if (!best) return null;
+    return {
+        station: best.spot.station, about: best.spot.about, at: best.spot.at,
+        minutes: best.min, fare: FARE.metro * 2
+    };
+}
+
+// бюджет на месте = выбранный бюджет минус проезд туда и обратно
+function budgetAfterFare(budget, fare) {
+    if (budget === "any" || budget === undefined || budget === null) return budget;
+    return String(Math.max(0, Number(budget) - fare));
 }
 
 /* ---------- обязательное место и бюджет ---------- */
@@ -6755,6 +6907,9 @@ async function showRoute(walk) {
     let aiInfo = savedRoute ? (savedRoute.ai || null) : null;
     let serverNote = "";
     let routeNote = "";
+    let startLabel = startText;
+    let trip = savedRoute ? (savedRoute.trip || null) : null;
+    let planWalk = walk;      // с бюджетом за вычетом проезда
 
     if (savedRoute) {
         // сохранённая прогулка — показываем ровно тот же маршрут
@@ -6785,13 +6940,24 @@ async function showRoute(walk) {
             return;
         }
 
+        // готов(а) проехать на метро — переносим старт к станции, где интереснее гулять
+        if (p.travel && p.travel !== "no") {
+            trip = pickTrip(walk, start);
+            if (trip) {
+                start = trip.at;
+                planWalk = { ...walk, params: { ...p, budget: budgetAfterFare(p.budget, trip.fare) } };
+            } else {
+                routeNote += " Подходящей поездки на метро не нашлось — гуляем рядом со стартом.";
+            }
+        }
+
         // 1) сервер: свежие места + GigaChat; 2) если не вышло — OpenStreetMap из браузера
         setMapMsg("Ищем интересные места рядом и собираем прогулку… это может занять до минуты");
         // OpenStreetMap (парки, вода, бульвары) из браузера — это работает надёжнее, чем с сервера;
         // найденное отдаём серверу, чтобы GigaChat выбирал из всего сразу
         const osmPlaces = await fetchNearbyPlaces(start, walkRadiusKm(walk) * 3);
         if (token !== routeToken) return;
-        const server = await askServer(walk, start, osmPlaces);
+        const server = await askServer(planWalk, start, osmPlaces);
         if (token !== routeToken) return;
         if (server && server.places && server.places.length) {
             nearby = server.places;
@@ -6803,23 +6969,24 @@ async function showRoute(walk) {
 
         stops = null;
         if (server && server.ai && server.ai.stops && server.ai.stops.length) {
-            stops = stopsFromAI(walk, start, pool, server.ai);
+            stops = stopsFromAI(planWalk, start, pool, server.ai);
             if (stops) aiInfo = { title: server.ai.title || "", comment: stops.trimmed ? "" : (server.ai.comment || "") };
         }
-        if (!stops) stops = pickStops(walk, start, pool);
-        if (!stops.length) stops = pickStops(walk, start, pool, true);   // ничего? пробуем чуть дальше
+        if (!stops) stops = pickStops(planWalk, start, pool);
+        if (!stops.length) stops = pickStops(planWalk, start, pool, true);   // ничего? пробуем чуть дальше
 
         // обязательное место и место, где потратить бюджет
         const trimmed = stops.trimmed;
         const must = await findMustPlace(ymaps, p, start, pool);
         if (token !== routeToken) return;
-        if (must && must.place) addMustStop(walk, start, stops, must.place);
+        if (must && must.place) addMustStop(planWalk, start, stops, must.place);
         if (must && must.error) routeNote += " " + must.error;
-        if (!addPaidStop(walk, start, stops, pool)) {
+        if (!addPaidStop(planWalk, start, stops, pool)) {
             routeNote += " Рядом по пути не нашлось кафе или другого места в пределах бюджета — эта прогулка получилась бесплатной.";
         }
-        fitTime(walk, start, stops);
+        fitTime(planWalk, start, stops);
         stops.trimmed = trimmed;
+        if (trip) Object.assign(stops.plan, { trip, budget: walkBudget(p) });
         // пока проверяем сервер — показываем, что пошло не так (потом можно убрать)
         // мелкие сбои источников не показываем — только если не ответила нейросеть или мест нет совсем
         const important = server && server.errors
@@ -6834,7 +7001,7 @@ async function showRoute(walk) {
         // новая прогулка → сохраняем вместе с маршрутом
         if (walk.draft && stops.length) {
             try {
-                const saved = await persistWalk(walk, { v: 1, start, stops: stops.slice(), plan: stops.plan, ai: aiInfo });
+                const saved = await persistWalk(walk, { v: 1, start, stops: stops.slice(), plan: stops.plan, ai: aiInfo, trip });
                 if (currentRouteWalk === walk) currentRouteWalk = saved;
                 walk = saved;
             } catch (err) {
@@ -6844,7 +7011,11 @@ async function showRoute(walk) {
         }
     }
 
-    renderStops(startText, stops);
+    if (trip) {
+        startLabel = "м. " + trip.station;
+        routeNote = " Едем на метро до «" + trip.station + "» (≈ " + trip.minutes + " мин, " + FARE.metro + " ₽ в одну сторону) — там " + trip.about + "." + routeNote;
+    }
+    renderStops(startLabel, stops);
 
     const points = [start, ...stops.map(s => s.at)];
     const ya = document.getElementById("routeYaLink");
