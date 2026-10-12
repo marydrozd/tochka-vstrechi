@@ -2345,6 +2345,31 @@
             font-weight: 800;
         }
 
+        .friends-heading {
+            margin: 22px 0 10px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .drawer-badge {
+            margin-left: auto;
+            min-width: 22px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: var(--purple-dark);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .drawer-badge[hidden] {
+            display: none;
+        }
+
         .sub-row {
             display: flex;
             align-items: center;
@@ -2586,7 +2611,7 @@
 
     <button class="drawer-item" data-go="home"><span class="ic">🧭</span>Главная</button>
     <button class="drawer-item" data-go="profile"><span class="ic">👤</span>Профиль</button>
-    <button class="drawer-item" data-go="friends"><span class="ic">👥</span>Друзья</button>
+    <button class="drawer-item" data-go="friends"><span class="ic">👥</span>Друзья<span class="drawer-badge" id="friendBadge" hidden></span></button>
     <button class="drawer-item" data-go="myWalks"><span class="ic blue">🗺</span>Ваши маршруты<span class="count-badge" id="walksCount" hidden>0</span></button>
     <button class="drawer-item" data-go="about"><span class="ic blue">✦</span>О проекте</button>
     <button class="drawer-item" onclick="openLegal('privacy')"><span class="ic blue">§</span>Персональные данные</button>
@@ -2595,7 +2620,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 11 окт · v28.3</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 12 окт · v28.6</span></div>
 </aside>
 
 
@@ -4160,14 +4185,14 @@
 
             <div class="question-number">Меню</div>
             <h1>Друзья</h1>
-            <p class="subtitle">Добавь друзей по юзернейму — и выбирай их одним нажатием, когда собираешь прогулку вдвоём.</p>
+            <p class="subtitle">Отправь другу заявку по юзернейму. Когда он её примет, вы появитесь друг у друга в списке и сможете выбирать друг друга одним нажатием.</p>
 
             <div class="nick-row friends-add">
                 <div class="nick-input">
                     <span class="at">@</span>
                     <input id="addFriendNick" type="text" maxlength="20" autocomplete="off" placeholder="юзернейм друга">
                 </div>
-                <button type="button" class="btn-primary" id="addFriendBtn" onclick="addFriend()">Добавить</button>
+                <button type="button" class="btn-primary" id="addFriendBtn" onclick="addFriend()">Позвать</button>
             </div>
 
             <div class="form-msg" id="friendsMsg"></div>
@@ -4969,16 +4994,21 @@ const demo = {
         return (store.get(this.friendsKey()) || [])
             .map(n => users.find(u => u.username.toLowerCase() === n.toLowerCase()))
             .filter(Boolean)
-            .map(u => ({ username: u.username, hasSurvey: !!u.survey }));
+            .map(u => ({ username: u.username, hasSurvey: !!u.survey, status: "friend" }));
     },
 
+    // без базы второго человека нет, поэтому заявка сразу считается принятой
     async addFriend(username) {
         const user = this.users().find(u => u.username.toLowerCase() === username.toLowerCase());
         if (!user) return null;
         const list = store.get(this.friendsKey()) || [];
         if (!list.some(n => n.toLowerCase() === user.username.toLowerCase())) list.unshift(user.username);
         store.set(this.friendsKey(), list);
-        return user.username;
+        return { username: user.username, status: "friend" };
+    },
+
+    async declineFriend(username) {
+        return this.removeFriend(username);
     },
 
     async removeFriend(username) {
@@ -5139,13 +5169,20 @@ const cloud = {
     async listFriends() {
         const { data, error } = await sb.rpc("my_friends");
         if (error) throw error;
-        return (data || []).map(r => ({ username: r.username, hasSurvey: r.has_survey }));
+        return (data || []).map(r => ({ username: r.username, hasSurvey: r.has_survey, status: r.status || "friend" }));
     },
 
+    // { username, status: "outgoing" | "friend" } или null, если такого нет
     async addFriend(username) {
         const { data, error } = await sb.rpc("add_friend", { p_username: username });
         if (error) throw error;
-        return data || null;
+        const row = Array.isArray(data) ? data[0] : data;
+        return row && row.username ? { username: row.username, status: row.status } : null;
+    },
+
+    async declineFriend(username) {
+        const { error } = await sb.rpc("decline_friend", { p_username: username });
+        if (error) throw error;
     },
 
     async removeFriend(username) {
@@ -5342,6 +5379,7 @@ function enterApp(user) {
     document.body.classList.add("logged");
     fillUserInfo();
     go("home");
+    loadFriends(true).catch(() => {});
 }
 
 async function logout() {
@@ -5644,13 +5682,33 @@ document.getElementById("friendNick").addEventListener("keydown", e => {
 /* ---------- друзья ---------- */
 let friendsCache = null;     // список друзей, чтобы не грузить его на каждый клик
 
+// в кэше и друзья, и заявки: status = "friend" | "incoming" | "outgoing"
 async function loadFriends(force) {
     if (!friendsCache || force) friendsCache = await auth.listFriends();
+    updateFriendBadge();
     return friendsCache;
 }
 
+function onlyFriends(list) {
+    return (list || []).filter(f => f.status === "friend");
+}
+
+function friendEntry(username) {
+    return (friendsCache || []).find(f => f.username.toLowerCase() === String(username).toLowerCase());
+}
+
 function isFriend(username) {
-    return (friendsCache || []).some(f => f.username.toLowerCase() === String(username).toLowerCase());
+    const f = friendEntry(username);
+    return !!f && f.status === "friend";
+}
+
+// счётчик входящих заявок в меню
+function updateFriendBadge() {
+    const n = (friendsCache || []).filter(f => f.status === "incoming").length;
+    const badge = document.getElementById("friendBadge");
+    if (!badge) return;
+    badge.textContent = n;
+    badge.hidden = !n;
 }
 
 // конструктор: кнопки с друзьями над полем для ника
@@ -5658,7 +5716,7 @@ async function renderFriendPick() {
     const box = document.getElementById("friendPick");
     box.innerHTML = "";
     let list = [];
-    try { list = await loadFriends(); } catch (e) { console.warn("Друзья не загрузились:", e); }
+    try { list = onlyFriends(await loadFriends()); } catch (e) { console.warn("Друзья не загрузились:", e); }
 
     const hint = document.createElement("div");
     hint.className = "hint";
@@ -5691,17 +5749,24 @@ function markPickedFriend() {
 
 // нашли человека по нику, а в друзьях его нет — предлагаем добавить
 function offerAddFriend(username) {
-    if (!friendsCache || isFriend(username)) return;
+    if (!friendsCache) return;
     const el = document.getElementById("friendStatus");
+    const known = friendEntry(username);
+    if (known && known.status === "friend") return;
+    if (known && known.status === "outgoing") {
+        el.append(" Заявка в друзья уже отправлена.");
+        return;
+    }
     const b = document.createElement("button");
     b.type = "button";
     b.className = "friend-add-link";
-    b.textContent = "Добавить в друзья";
+    b.textContent = known ? "Принять заявку в друзья" : "Позвать в друзья";
     b.addEventListener("click", async () => {
         try {
-            await auth.addFriend(username);
+            const res = await auth.addFriend(username);
             await loadFriends(true);
-            b.replaceWith(document.createTextNode(" Добавили в друзья ✓"));
+            const done = res && res.status === "friend" ? " Теперь вы друзья ✓" : " Заявка отправлена ✓";
+            b.replaceWith(document.createTextNode(done));
             renderFriendPick();
         } catch (err) {
             b.replaceWith(document.createTextNode(" " + humanError(err)));
@@ -5710,7 +5775,7 @@ function offerAddFriend(username) {
     el.append(" ", b);
 }
 
-// экран «Друзья»
+// экран «Друзья»: входящие заявки, друзья, мои заявки
 async function renderFriends() {
     const box = document.getElementById("friendsList");
     box.innerHTML = '<p class="subtitle">Загружаем…</p>';
@@ -5725,68 +5790,117 @@ async function renderFriends() {
     }
 
     box.innerHTML = "";
-    if (!list.length) {
+    const incoming = list.filter(f => f.status === "incoming");
+    const friends = list.filter(f => f.status === "friend");
+    const outgoing = list.filter(f => f.status === "outgoing");
+
+    if (incoming.length) {
+        friendsHeading(box, "Заявки в друзья");
+        incoming.forEach(f => {
+            const accept = document.createElement("button");
+            accept.className = "walk-open";
+            accept.textContent = "Принять";
+            accept.addEventListener("click", () => friendAction(accept, async () => {
+                await auth.addFriend(f.username);
+                showMsg("friendsMsg", `Теперь вы с @${f.username} друзья ✓`, "ok");
+            }));
+            const decline = confirmButton("Отклонить", "Точно отклонить?", () => auth.declineFriend(f.username));
+            box.appendChild(friendCard(f, "Хочет добавить тебя в друзья", accept, decline));
+        });
+    }
+
+    friendsHeading(box, "Друзья");
+    if (!friends.length) {
         const empty = document.createElement("div");
         empty.className = "profile-card";
         empty.innerHTML =
             '<div class="profile-title">Пока никого нет</div>' +
-            '<p class="subtitle" style="margin-bottom:0">Спроси у друга его юзернейм на сайте и добавь его выше.</p>';
+            '<p class="subtitle" style="margin-bottom:0">Спроси у друга его юзернейм на сайте и отправь заявку выше. Когда он её примет, вы появитесь друг у друга в списке.</p>';
         box.appendChild(empty);
-        return;
     }
-
-    list.forEach(f => {
-        const card = document.createElement("div");
-        card.className = "walk-card";
-
-        const ic = document.createElement("div");
-        ic.className = "walk-ic friend-ic";
-        ic.textContent = f.username.charAt(0).toUpperCase();
-
-        const body = document.createElement("div");
-        body.className = "walk-body";
-
-        const title = document.createElement("div");
-        title.className = "walk-title";
-        title.textContent = "@" + f.username;
-
-        const meta = document.createElement("div");
-        meta.className = "walk-meta";
-        meta.textContent = f.hasSurvey
-            ? "Опрос пройден — учтём его интересы"
-            : "Ещё не прошёл(ла) опрос — подберём по твоим интересам";
-
+    friends.forEach(f => {
         const walkBtn = document.createElement("button");
         walkBtn.className = "walk-open";
         walkBtn.textContent = "Гулять вместе →";
         walkBtn.addEventListener("click", () => walkWithFriend(f.username));
-
-        body.append(title, meta, walkBtn);
-
-        const del = document.createElement("button");
-        del.className = "walk-del";
-        del.textContent = "Убрать";
-        del.addEventListener("click", async () => {
-            if (!del.classList.contains("confirm")) {
-                del.classList.add("confirm");
-                del.textContent = "Точно убрать?";
-                setTimeout(() => {
-                    del.classList.remove("confirm");
-                    del.textContent = "Убрать";
-                }, 3000);
-                return;
-            }
-            try {
-                await auth.removeFriend(f.username);
-                renderFriends();
-            } catch (err) {
-                showMsg("friendsMsg", humanError(err));
-            }
-        });
-
-        card.append(ic, body, del);
-        box.appendChild(card);
+        const meta = f.hasSurvey
+            ? "Опрос пройден — учтём его интересы"
+            : "Ещё не прошёл(ла) опрос — подберём по твоим интересам";
+        const del = confirmButton("Убрать", "Точно убрать?", () => auth.removeFriend(f.username));
+        box.appendChild(friendCard(f, meta, walkBtn, del));
     });
+
+    if (outgoing.length) {
+        friendsHeading(box, "Ждут ответа");
+        outgoing.forEach(f => {
+            const cancel = confirmButton("Отменить", "Точно отменить?", () => auth.removeFriend(f.username));
+            box.appendChild(friendCard(f, "Заявка отправлена, ждём, когда примет", null, cancel));
+        });
+    }
+}
+
+function friendsHeading(box, text) {
+    const h = document.createElement("div");
+    h.className = "friends-heading";
+    h.textContent = text;
+    box.appendChild(h);
+}
+
+function friendCard(f, metaText, actionBtn, sideBtn) {
+    const card = document.createElement("div");
+    card.className = "walk-card";
+
+    const ic = document.createElement("div");
+    ic.className = "walk-ic friend-ic";
+    ic.textContent = f.username.charAt(0).toUpperCase();
+
+    const body = document.createElement("div");
+    body.className = "walk-body";
+
+    const title = document.createElement("div");
+    title.className = "walk-title";
+    title.textContent = "@" + f.username;
+
+    const meta = document.createElement("div");
+    meta.className = "walk-meta";
+    meta.textContent = metaText;
+
+    body.append(title, meta);
+    if (actionBtn) body.appendChild(actionBtn);
+    card.append(ic, body, sideBtn);
+    return card;
+}
+
+// кнопка, которая просит нажать второй раз для подтверждения
+function confirmButton(label, confirmLabel, action) {
+    const b = document.createElement("button");
+    b.className = "walk-del";
+    b.textContent = label;
+    b.addEventListener("click", () => {
+        if (!b.classList.contains("confirm")) {
+            b.classList.add("confirm");
+            b.textContent = confirmLabel;
+            setTimeout(() => {
+                b.classList.remove("confirm");
+                b.textContent = label;
+            }, 3000);
+            return;
+        }
+        friendAction(b, action);
+    });
+    return b;
+}
+
+async function friendAction(btn, action) {
+    hideMsg("friendsMsg");
+    btn.disabled = true;
+    try {
+        await action();
+        renderFriends();
+    } catch (err) {
+        btn.disabled = false;
+        showMsg("friendsMsg", humanError(err));
+    }
 }
 
 async function addFriend() {
@@ -5804,14 +5918,16 @@ async function addFriend() {
         return;
     }
 
-    setLoading("addFriendBtn", true, "Ищем…");
+    setLoading("addFriendBtn", true, "Отправляем…");
     try {
-        const name = await auth.addFriend(nick);
-        if (!name) {
+        const res = await auth.addFriend(nick);
+        if (!res) {
             showMsg("friendsMsg", `Пользователя @${nick} не нашли. Проверь юзернейм.`);
         } else {
             input.value = "";
-            showMsg("friendsMsg", `@${name} теперь в друзьях ✓`, "ok");
+            showMsg("friendsMsg", res.status === "friend"
+                ? `Теперь вы с @${res.username} друзья ✓`
+                : `Заявка отправлена @${res.username} ✓ Когда примет, появится в друзьях.`, "ok");
             renderFriends();
         }
     } catch (err) {
@@ -6060,9 +6176,17 @@ const PLACES = [
     { name: "Красный Октябрь", at: [55.7425, 37.6091], tags: ["street-art", "arthouse", "photo", "dark"], cost: 0, note: "Кирпичные корпуса бывшей фабрики" },
     { name: "Третьяковская галерея", at: [55.7414, 37.6208], tags: ["museums", "classic"], cost: 500, note: "Главные русские картины" },
     { name: "Чистые пруды", at: [55.7651, 37.6386], tags: ["nature", "cozy"], cost: 0, note: "Бульвар, утки и трамвайчик «Аннушка»" },
-    { name: "Библиотека-читальня им. Тургенева", at: [55.7647, 37.6388], tags: ["books", "quiet", "cozy"], cost: 0, note: "Тихо посидеть с книгой" },
+    { name: "Библиотека-читальня им. Тургенева", at: [55.7647, 37.6388], kind: "library", tags: ["books", "quiet", "cozy", "atmo"], cost: 0, note: "Старинная читальня в особняке, тихо и уютно" },
+    { name: "Библиотека «Некрасовка»", at: [55.7737, 37.6764], kind: "library", tags: ["books", "cozy", "atmo"], cost: 0, note: "Библиотека в старом особняке с уютными залами" },
+    { name: "Библиотека им. Достоевского", at: [55.7616, 37.6438], kind: "library", tags: ["books", "quiet", "atmo"], cost: 0, note: "Старая библиотека на Чистопрудном бульваре" },
+    { name: "Кривоколенный переулок", at: [55.7601, 37.6352], kind: "walkstreet", tags: ["atmo", "cozy", "architecture", "photo"], cost: 0, note: "Изогнутый старый переулок и тихие дворы" },
+    { name: "Колокольников переулок", at: [55.7683, 37.6268], kind: "walkstreet", tags: ["atmo", "quiet", "cozy"], cost: 0, note: "Тихий переулок у Сретенки" },
+    { name: "Большой Козихинский переулок", at: [55.7627, 37.5937], kind: "walkstreet", tags: ["atmo", "cozy", "photo"], cost: 0, note: "Уютные переулки у Патриарших" },
+    { name: "Кривоарбатский переулок", at: [55.7487, 37.5890], kind: "walkstreet", tags: ["atmo", "architecture", "quiet"], cost: 0, note: "Дом Мельникова и тихие дворы у Арбата" },
+    { name: "Климентовский переулок", at: [55.7402, 37.6292], kind: "walkstreet", tags: ["atmo", "architecture", "cozy"], cost: 0, note: "Старое Замоскворечье: особняки и дворики" },
+    { name: "Лялин переулок", at: [55.7598, 37.6551], kind: "walkstreet", tags: ["atmo", "quiet", "architecture"], cost: 0, note: "Холмы и старые особняки за Покровкой" },
     { name: "Хохловский переулок", at: [55.7563, 37.6421], tags: ["street-art", "photo", "arthouse", "dark"], cost: 0, note: "Хохловка — стены с граффити" },
-    { name: "Ивановская горка", at: [55.7547, 37.6450], tags: ["architecture", "quiet", "dark", "photo"], cost: 0, note: "Кривые переулочки старой Москвы" },
+    { name: "Ивановская горка", at: [55.7547, 37.6450], tags: ["architecture", "quiet", "dark", "photo", "atmo"], cost: 0, note: "Кривые переулочки старой Москвы" },
     { name: "Покровка и Маросейка", at: [55.7590, 37.6460], tags: ["food", "cozy"], cost: 400, note: "Кофейни и маленькие кафе" },
     { name: "Винзавод", at: [55.7556, 37.6656], tags: ["street-art", "arthouse", "museums", "photo"], cost: 0, note: "Галереи современного искусства" },
     { name: "Сад «Эрмитаж»", at: [55.7709, 37.6098], tags: ["nature", "music", "cozy"], cost: 0, note: "Уютный сад с летней сценой" },
@@ -6220,10 +6344,12 @@ function osmKind(t) {
         return { tags: ["photo", "nature"], cost: 0, note: "Смотровая площадка", kind: "viewpoint" };
     if (t.tourism === "attraction")
         return { tags: ["photo", "architecture"], cost: 0, note: "Достопримечательность", kind: "attraction" };
+    if (/^(monument|memorial)$/.test(t.historic || "")) return null;       // памятники подросткам неинтересны
+    if (/^(church|monastery)$/.test(t.historic || ""))
+        return { tags: ["architecture", "dark"], cost: 0, note: "Красивый храм", kind: "church" };
     if (t.historic)
-        return { tags: ["architecture", "classic", "dark"], cost: 0, note: "Историческое место", kind: "historic" };
-    if (t.amenity === "library")
-        return { tags: ["books", "quiet"], cost: 0, note: "Библиотека", kind: "library" };
+        return { tags: ["architecture", "classic", "atmo"], cost: 0, note: "Старая усадьба", kind: "historic" };
+    if (t.amenity === "library") return null;      // обычные районные библиотеки не берём — только атмосферные из подборки
     if (t.amenity === "cinema")
         return { tags: ["pop-culture"], cost: 500, note: "Кинотеатр", kind: "cinema" };
     if (t.amenity === "theatre")
@@ -6430,6 +6556,7 @@ function pickStops(walk, start, pool, relaxed) {
     const idealLeg = Math.max(0.35, (minutes * walkShare * speed / detour) / baseStops);
 
     const likesArt = likes.includes("street-art") || likes.includes("arthouse");
+    const prefs = placePrefs(walk);
     // что людям обычно нравится на прогулке: парки, вода, бульвары, кофейни
     const KIND_BONUS = { park: 1.4, water: 1.4, walkstreet: 0.9, viewpoint: 0.7, cafe: 0.8,
         attraction: 0.3, museum: 0.2, gallery: 0, historic: -0.2, library: -0.2,
@@ -6437,6 +6564,7 @@ function pickStops(walk, start, pool, relaxed) {
     const score = place => {
         let s = 1 + jitter(walk.id || walk.created_at, place.name);
         if (wasRecently(place)) s -= 2.5;                         // уже были недавно — ищем новое
+        if ((place.tags || []).includes("atmo")) s += 1.5;          // атмосферные переулки, дворики, старые библиотеки
         s += KIND_BONUS[place.kind] !== undefined ? KIND_BONUS[place.kind] : ((place.tags || []).includes("nature") ? 1 : 0);
         (place.tags || []).forEach(t => { if (likes.includes(t)) s += 1.2; });
         if (dislikes.includes("crowds") && (place.tags || []).includes("crowded")) s -= 1.5;
@@ -6474,7 +6602,7 @@ function pickStops(walk, start, pool, relaxed) {
             const info0 = stopInfo(pl, alloc);
             const info = { ...info0, dwell: Math.max(5, Math.round(info0.dwell * (info0.spend > 0 ? Math.max(0.8, dwellScale) : dwellScale))) };
             if (info.spend > budget - spent) return;                        // не по карману
-            if (/^(artwork|historic)$/.test(pl.kind) && stops.some(st => /^(artwork|historic)$/.test(st.kind))) return;   // арт-объект или памятник — максимум один
+            if (!placeAllowed(pl, stops, prefs)) return;                    // музеи, арт-объекты, храмы — по интересам и по одному
             if (info.spend > 0 && slotsLeft === 0 && info.spend > (budget - spent) * 0.5) return;
 
             const d = kmBetween(here, pl.at);
@@ -6621,7 +6749,7 @@ function renderStops(startName, stops, trip) {
             a.target = "_blank";
             a.rel = "noopener";
             a.href = "https://yandex.ru/maps/?rtext=" + trip.from.join(",") + "~" + trip.at.join(",") + "&rtt=mt";
-            a.textContent = "Открыть дорогу в Яндекс Картах →";
+            a.textContent = "Дорога до метро в Яндекс Картах →";
             how.appendChild(a);
             ol.lastElementChild.appendChild(how);
         }
@@ -6650,10 +6778,12 @@ async function askServer(walk, start, osmPlaces) {
             // места из недавних прогулок — нейросеть постарается их не повторять
             avoid: [...recentNames].slice(0, 40),
             // места из OpenStreetMap, которые браузер уже нашёл (у них нет id — дадим)
-            extra: (osmPlaces || []).slice(0, 250).map((x, i) => ({
-                id: "b" + i, name: x.name, at: x.at, kind: x.kind, note: x.note,
-                tags: x.tags, cost: x.cost, food: !!x.food, source: "osm"
-            }))
+            extra: (osmPlaces || []).slice(0, 250)
+                .concat(PLACES.filter(x => (x.tags || []).includes("atmo") && kmBetween(x.at, start) < walkRadiusKm(walk) * 3))
+                .map((x, i) => ({
+                    id: "b" + i, name: x.name, at: x.at, kind: x.kind || "walkstreet", note: x.note,
+                    tags: x.tags, cost: x.cost, food: !!x.food, source: "osm"
+                }))
         }
     });
     const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 70000));
@@ -6681,17 +6811,14 @@ function stopsFromAI(walk, start, pool, ai) {
     if (!seq.length) return null;
 
     const paidPlanned = seq.filter(x => stopInfo(x.pl, 500).spend > 0).length || 1;
-    const likes = [currentUser && currentUser.survey, p.friendSurvey].flatMap(surveyTags);
-    const likesArt = likes.includes("street-art") || likes.includes("arthouse");
+    const prefs = placePrefs(walk);
     const stops = [];
     let here = start, timeUsed = 0, walkMin = 0, spent = 0, paidDone = 0;
     for (const { pl, why } of seq) {
         const alloc = Math.max(0, (Math.min(target, budget) - spent) / Math.max(1, paidPlanned - paidDone));
         const info = stopInfo(pl, alloc);
         if (info.spend > budget - spent) continue;
-        // арт-объекты — только тем, кто любит искусство; арт-объект или памятник — максимум один
-        if (pl.kind === "artwork" && !likesArt) continue;
-        if (/^(artwork|historic)$/.test(pl.kind) && stops.some(st => /^(artwork|historic)$/.test(st.kind))) continue;
+        if (!placeAllowed(pl, stops, prefs)) continue;     // музеи, арт-объекты, храмы — по интересам и по одному
         const legMin = (kmBetween(here, pl.at) * 1.3) / speed;
         if (timeUsed + legMin + info.dwell > minutes + 20) break;     // не влезает по времени
         timeUsed += legMin + info.dwell;
@@ -6712,20 +6839,59 @@ function stopsFromAI(walk, start, pool, ai) {
     return stops;
 }
 
+/* ---------- музеи, арт-объекты, храмы ---------- */
+// «культурное» место: арт-объект или музей/галерея
+function cultureKind(pl) {
+    if (!pl) return null;
+    if (pl.kind === "artwork") return "art";
+    if (pl.kind === "museum" || pl.kind === "gallery") return "museum";
+    if (!pl.kind && (pl.tags || []).includes("museums") && pl.cost > 0) return "museum";
+    return null;
+}
+
+// что человек отметил в опросе (у прогулки вдвоём — любой из двоих)
+function placePrefs(walk) {
+    const p = (walk && walk.params) || {};
+    const likes = [currentUser && currentUser.survey, p.friendSurvey].flatMap(surveyTags);
+    return {
+        art: likes.includes("street-art") || likes.includes("arthouse"),
+        museums: likes.includes("museums"),
+        dark: likes.includes("dark")
+    };
+}
+
+// можно ли поставить место в маршрут
+function placeAllowed(pl, stops, prefs) {
+    const c = cultureKind(pl);
+    if (c === "art" && !prefs.art) return false;               // арт-объекты — только любителям
+    if (c === "museum" && !prefs.museums) return false;        // музеи и галереи — только если отмечены «Выставки и музеи»
+    if (c && stops.some(st => cultureKind(st))) return false;  // и всего одно такое место на прогулку
+    if (pl.kind === "church" && (!prefs.dark || stops.some(st => st.kind === "church"))) return false;   // храм — любителям атмосферы, один
+    if (pl.kind === "library" && !(pl.tags || []).includes("atmo")) return false;
+    return true;
+}
+
 /* ---------- поездка на метро ---------- */
 // пошагово: дойти до метро, на какую линию сесть, в какую сторону ехать, где выйти
 async function fillTripHow(ymaps, trip) {
     const box = document.getElementById("tripHowSteps");
     if (!box || !trip || !trip.from) return;
     const steps = [];
+    // коллекции Яндекса бывают и массивами, и объектами с .each — обходим оба вида
+    const each = (list, f) => { if (!list) return; if (Array.isArray(list)) list.forEach(f); else if (list.each) list.each(f); };
     try {
-        const route = await Promise.race([
-            ymaps.route([trip.from, trip.at], { routingMode: "masstransit", multiRoute: true }),
+        // модель маршрута без карты — тот же способ, которым строится пеший маршрут на карте
+        const model = new ymaps.multiRouter.MultiRouteModel([trip.from, trip.at], { routingMode: "masstransit" });
+        await Promise.race([
+            new Promise((res, rej) => {
+                model.events.add("requestsuccess", res);
+                model.events.add("requestfail", e => rej(new Error((e && e.get && e.get("error") && e.get("error").message) || "requestfail")));
+            }),
             new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 15000))
         ]);
-        const active = route.getActiveRoute ? route.getActiveRoute() : null;
+        const active = (model.getRoutes() || [])[0];
         if (!active) throw new Error("нет маршрута");
-        active.getPaths().each(path => path.getSegments().each(seg => {
+        each(active.getPaths(), path => each(path.getSegments(), seg => {
             const pr = seg.properties;
             const type = pr.get("type");
             const dur = (pr.get("duration") || {}).text || "";
@@ -6989,6 +7155,7 @@ function addPaidStop(walk, start, stops, pool) {
     const used = new Set(stops.map(st => st.name));
     const hasFood = stops.some(st => st.food);
     const KIND_COST = { cafe: 0, fast_food: 0.4, museum: 0.5, gallery: 0.6, restaurant: 0.6, mall: 0.9 };
+    const prefs = placePrefs(walk);
 
     let best = null;
     pool.forEach(pl => {
@@ -6996,6 +7163,7 @@ function addPaidStop(walk, start, stops, pool) {
         const st = stopFromPlace(pl, target);
         if (!(st.spend > 0) || st.spend > budget) return;
         if (st.food && hasFood) return;
+        if (!placeAllowed(pl, stops, prefs)) return;
         const pos = bestInsert(start, stops, pl.at, true);
         if (pos.extra > 1.5) return;                                   // слишком большой крюк
         const kindCost = KIND_COST[pl.kind] !== undefined ? KIND_COST[pl.kind] : 0.7;
@@ -7193,10 +7361,10 @@ async function showRoute(walk) {
 
     const points = [start, ...stops.map(s => s.at)];
     const ya = document.getElementById("routeYaLink");
-    // с метро: весь путь от твоей точки старта, режим «общественный транспорт»
-    // (Яндекс сам предложит пешком, где близко); без метро — пешком
-    const yaPoints = trip && trip.from ? [trip.from, ...points] : points;
-    ya.href = "https://yandex.ru/maps/?rtext=" + yaPoints.map(pt => pt[0] + "," + pt[1]).join("~") + "&rtt=" + (trip && trip.from ? "mt" : "pd");
+    // Яндекс Карты не умеют смешивать режимы в одной ссылке: в режиме «транспорт» он везёт и между остановками.
+    // Поэтому прогулка — всегда пешком от станции, а дорога до метро — отдельной ссылкой в блоке «Как доехать».
+    ya.href = "https://yandex.ru/maps/?rtext=" + points.map(pt => pt[0] + "," + pt[1]).join("~") + "&rtt=pd";
+    ya.textContent = trip ? "Прогулка в Яндекс Картах (пешком)" : "Открыть в Яндекс Картах";
     ya.style.display = "";
 
     setMapMsg("");
