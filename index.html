@@ -2643,7 +2643,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 12 окт · v29.1</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 14 окт · v29.2</span></div>
 </aside>
 
 
@@ -5635,7 +5635,7 @@ document.querySelectorAll(".chips[data-field]").forEach(group => {
 // «несколько районов» имеет смысл только для 3+ часов и с метро
 function updateMultiCard() {
     const card = document.getElementById("multiCard");
-    if (card && walkDraft) card.hidden = !(Number(walkDraft.time) >= 180 && walkDraft.travel && walkDraft.travel !== "no");
+    if (card && walkDraft) card.hidden = !MULTI_ENABLED || !(Number(walkDraft.time) >= 180 && walkDraft.travel && walkDraft.travel !== "no");
 }
 
 function updateCompanyBlocks() {
@@ -7160,8 +7160,11 @@ function pickTrip(walk, from) {
 }
 
 // прогулка по нескольким районам: 3+ часа, с метро и человек не выбрал «один район»
+// выключено (14 окт): Маша пока отказалась от нескольких районов; вернуть — поставить true
+const MULTI_ENABLED = false;
+
 function isMultiParams(p) {
-    return !!p && Number(p.time) >= 180 && !!p.travel && p.travel !== "no" && p.multi !== "no";
+    return MULTI_ENABLED && !!p && Number(p.time) >= 180 && !!p.travel && p.travel !== "no" && p.multi !== "no";
 }
 
 // цепочка районов: первый — как обычная поездка, следующие в 10–20 минутах метро от предыдущего,
