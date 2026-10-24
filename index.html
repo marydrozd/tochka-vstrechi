@@ -359,7 +359,7 @@
             font-size: clamp(54px, 11vw, 132px);
             font-weight: 800;
             line-height: 0.92;
-            letter-spacing: -0.045em;
+            letter-spacing: -0.025em;
             text-transform: uppercase;
             margin-bottom: 22px;
         }
@@ -547,7 +547,7 @@
             font-size: clamp(40px, 7vw, 82px);
             font-weight: 800;
             line-height: 0.98;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.02em;
             text-transform: uppercase;
             margin-bottom: 26px;
         }
@@ -684,7 +684,7 @@
         .about-final h2 {
             font-size: clamp(30px, 5vw, 52px);
             font-weight: 800;
-            letter-spacing: -0.035em;
+            letter-spacing: -0.015em;
             line-height: 1.05;
             margin-bottom: 26px;
         }
@@ -1042,7 +1042,7 @@
             font-size: clamp(38px, 7vw, 72px);
             font-weight: 800;
             line-height: 1;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.02em;
             margin-bottom: 16px;
         }
 
@@ -1314,7 +1314,7 @@
             font-size: clamp(38px, 6vw, 64px);
             font-weight: 800;
             line-height: 1;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.02em;
             margin-bottom: 14px;
         }
 
@@ -1918,7 +1918,7 @@
             font-size: clamp(34px, 6vw, 56px);
             font-weight: 800;
             line-height: 1.02;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.02em;
             margin-bottom: 14px;
         }
 
@@ -2583,7 +2583,368 @@
             .step-card { padding: 16px 18px; }
             .step-card .num { margin-bottom: 6px; }
         }
-    </style>
+    
+        /* =========================================================
+           1а. ЗАСТАВКА: ниже первого экрана — «Знакомо?» и бизнес
+           ========================================================= */
+        #welcome.active {
+            flex-direction: column;
+        }
+
+        .scroll-cue {
+            margin-top: 34px;
+            background: none;
+            border: none;
+            padding: 6px 10px;
+            color: var(--purple);
+            font-size: 14px;
+            font-weight: 700;
+            word-spacing: 0.12em;
+            opacity: 0.85;
+        }
+
+        .scroll-cue:hover {
+            opacity: 1;
+            background: none;
+        }
+
+        .welcome-more {
+            position: relative;
+            z-index: 2;
+            width: min(1040px, 90%);
+            margin: 0 auto;
+        }
+
+        /* крупные заголовки блоков: обычный трекинг, чтобы слова не слипались */
+        .block-title {
+            font-size: clamp(30px, 4.4vw, 46px);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.01em;
+            word-spacing: 0.08em;
+            margin: 14px 0 0;
+        }
+
+        .pain-block {
+            padding: 110px 0 40px;
+            text-align: center;
+        }
+
+        .pain-rows {
+            max-width: 780px;
+            margin: 64px auto 60px;
+            text-align: left;
+        }
+
+        .pain-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 56px;
+            padding: 32px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .pain-row:last-child {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .pain-q {
+            font-size: 21px;
+            font-weight: 700;
+            line-height: 1.4;
+            word-spacing: 0.06em;
+            color: var(--text);
+        }
+
+        .pain-a {
+            font-size: 16px;
+            line-height: 1.65;
+            color: var(--muted);
+            padding-top: 3px;
+        }
+
+        .pain-a b {
+            color: var(--purple);
+        }
+
+        .biz-teaser {
+            margin: 120px 0 100px;
+            background: var(--lilac);
+            border-radius: 28px;
+            padding: 64px 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 48px;
+        }
+
+        .biz-teaser .block-title {
+            font-size: clamp(28px, 3.4vw, 38px);
+        }
+
+        .biz-teaser p {
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.65;
+            max-width: 500px;
+            margin-top: 16px;
+        }
+
+        .biz-teaser .btn-secondary {
+            flex: none;
+            color: var(--purple);
+        }
+
+        .welcome-end {
+            text-align: center;
+            font-size: clamp(20px, 2.6vw, 28px);
+            font-weight: 800;
+            word-spacing: 0.08em;
+            padding: 0 0 80px;
+        }
+
+        /* ссылка «Для бизнеса» в шапке — только для гостей */
+        .head-link {
+            background: none;
+            border: none;
+            padding: 8px 4px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .head-link:hover {
+            color: var(--purple);
+            background: none;
+        }
+
+        body.logged .head-link {
+            display: none;
+        }
+
+        /* =========================================================
+           2а. ДЛЯ БИЗНЕСА
+           ========================================================= */
+        .biz-hero {
+            text-align: center;
+            padding: 40px 0 0;
+        }
+
+        .biz-title {
+            font-size: clamp(40px, 7vw, 76px);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.015em;
+            word-spacing: 0.08em;
+            margin: 18px 0 0;
+        }
+
+        .biz-lead {
+            color: var(--muted);
+            font-size: clamp(16px, 2vw, 19px);
+            line-height: 1.65;
+            max-width: 640px;
+            margin: 24px auto 0;
+        }
+
+        .biz-section {
+            margin-top: 110px;
+        }
+
+        .biz-section > .eyebrow,
+        .biz-section > .block-title {
+            text-align: center;
+        }
+
+        .who-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-top: 48px;
+        }
+
+        .who-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 30px 28px;
+        }
+
+        .who-card .ic {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            background: var(--lilac);
+            display: grid;
+            place-items: center;
+            font-size: 20px;
+            margin-bottom: 18px;
+        }
+
+        .who-card h3 {
+            font-size: 19px;
+            font-weight: 800;
+            line-height: 1.3;
+            word-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .who-card p {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .biz-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-top: 48px;
+        }
+
+        .biz-steps > div {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 30px 28px;
+        }
+
+        .biz-steps .n {
+            color: var(--purple-soft);
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .biz-steps h3 {
+            font-size: 19px;
+            font-weight: 800;
+            word-spacing: 0.05em;
+            margin: 10px 0 8px;
+        }
+
+        .biz-steps p {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .biz-rules {
+            max-width: 720px;
+            margin: 44px auto 0;
+            list-style: none;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 8px 32px;
+        }
+
+        .biz-rules li {
+            position: relative;
+            padding: 18px 0 18px 34px;
+            border-top: 1px solid var(--border);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .biz-rules li:first-child {
+            border-top: none;
+        }
+
+        .biz-rules li::before {
+            content: "";
+            position: absolute;
+            left: 6px;
+            top: 27px;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--purple);
+        }
+
+        .biz-contact {
+            text-align: center;
+            margin: 120px 0 40px;
+        }
+
+        .biz-contact p {
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 16px 0 28px;
+        }
+
+        .biz-contact a.btn-primary {
+            display: inline-block;
+            text-decoration: none;
+            border-radius: 13px;
+        }
+
+        @media (max-width: 860px) {
+            .who-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .pain-block {
+                padding-top: 80px;
+            }
+
+            .pain-rows {
+                margin: 40px auto 44px;
+            }
+
+            .pain-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 24px 0;
+            }
+
+            .pain-q {
+                font-size: 19px;
+            }
+
+            .pain-block .btn-big {
+                width: 100%;
+                max-width: 340px;
+            }
+
+            .biz-teaser {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 36px 24px;
+                margin: 90px 0 70px;
+                border-radius: 22px;
+                gap: 28px;
+            }
+
+            .who-grid,
+            .biz-steps {
+                grid-template-columns: 1fr;
+            }
+
+            .biz-steps {
+                gap: 14px;
+            }
+
+            .biz-rules {
+                padding: 4px 20px;
+            }
+
+            .biz-section {
+                margin-top: 80px;
+            }
+
+            .head-link {
+                font-size: 13px;
+            }
+
+            body:not(.logged) .clock {
+                display: none;
+            }
+        }
+</style>
 </head>
 
 <body>
@@ -2637,13 +2998,14 @@
     <button class="drawer-item" data-go="friends"><span class="ic">👥</span>Друзья<span class="drawer-badge" id="friendBadge" hidden></span></button>
     <button class="drawer-item" data-go="myWalks"><span class="ic blue">🗺</span>Ваши маршруты<span class="count-badge" id="walksCount" hidden>0</span></button>
     <button class="drawer-item" data-go="about"><span class="ic blue">✦</span>О проекте</button>
+    <button class="drawer-item" data-go="business"><span class="ic blue">☕</span>Для бизнеса</button>
     <button class="drawer-item" onclick="openLegal('privacy')"><span class="ic blue">§</span>Персональные данные</button>
     <!-- сюда потом можно добавить новые пункты меню -->
 
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 14 окт · v29.3</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 24 окт · v29.4.1</span></div>
 </aside>
 
 
@@ -2652,6 +3014,7 @@
     <header>
         <div class="logo" id="logo" role="button" tabindex="0">ТочкаВстречи</div>
         <div class="header-right">
+            <button class="head-link" onclick="go('business')">Для бизнеса</button>
             <div class="clock">Москва <b id="clock">--:--</b></div>
             <button class="menu-btn" id="menuBtn" aria-label="Открыть меню" onclick="openMenu()">
                 <span></span><span></span><span></span>
@@ -2708,6 +3071,141 @@
                     <a href="mailto:tochka.vashei.vstrechi@gmail.com">tochka.vashei.vstrechi@gmail.com</a><br>
                     <a href="#privacy" class="link-inline legal-link" onclick="openLegal('privacy'); return false;">Политика обработки персональных данных</a>
                 </p>
+
+                <button class="scroll-cue rise d6" onclick="document.getElementById('painBlock').scrollIntoView({behavior: 'smooth'})">Зачем это и кому ↓</button>
+            </div>
+
+            <!-- ниже первого экрана: боль пользователя и блок для бизнеса (видно без входа) -->
+            <div class="welcome-more">
+
+                <section class="pain-block" id="painBlock">
+                    <div class="eyebrow">Знакомо?</div>
+                    <h2 class="block-title">Выходные снова прошли <span class="accent">в телефоне</span></h2>
+
+                    <div class="pain-rows">
+                        <div class="pain-row">
+                            <div class="pain-q">«Хочется выйти, но куда? Опять в тот же ТЦ»</div>
+                            <div class="pain-a"><b>Новые места каждый раз.</b> Маршрут собирается заново и не повторяет недавние места.</div>
+                        </div>
+                        <div class="pain-row">
+                            <div class="pain-q">«У меня 500 ₽ на весь день, и всё»</div>
+                            <div class="pain-a"><b>Бюджет до рубля.</b> Делим деньги по остановкам, включая проезд на метро.</div>
+                        </div>
+                        <div class="pain-row">
+                            <div class="pain-q">«Договориться с другом сложнее, чем пойти»</div>
+                            <div class="pain-a"><b>Прогулка на двоих.</b> Учтём интересы обоих, чтобы понравилось каждому.</div>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary btn-big" onclick="tryNow()">Собрать первую прогулку →</button>
+                </section>
+
+                <section class="biz-teaser">
+                    <div>
+                        <div class="eyebrow">Для бизнеса</div>
+                        <h2 class="block-title">Станьте <span class="accent">точкой встречи</span></h2>
+                        <p>Кофейни, театры, культурные центры и бренды могут стать остановкой в прогулках молодёжи по Москве.</p>
+                    </div>
+                    <button class="btn-secondary btn-big" onclick="go('business')">Как с нами сотрудничать →</button>
+                </section>
+
+                <p class="welcome-end">Каждый маршрут — <span class="accent">своя точка встречи</span></p>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             ДЛЯ БИЗНЕСА (видно без входа)
+             ===================================================== -->
+        <section class="screen wide" id="business">
+
+            <button class="back-link" onclick="goHome()">← На главную</button>
+
+            <div class="biz-hero">
+                <div class="eyebrow">Для бизнеса <span>и города</span></div>
+                <h1 class="biz-title">Стать <span class="accent">точкой встречи</span></h1>
+                <p class="biz-lead">
+                    Мы собираем пешие прогулки по Москве для подростков и молодёжи: под их время,
+                    бюджет и интересы. Ваше место может стать одной из остановок на этом пути.
+                </p>
+            </div>
+
+            <div class="biz-section">
+                <div class="eyebrow">Кому и зачем</div>
+                <h2 class="block-title">С кем мы хотим <span class="accent">сотрудничать</span></h2>
+
+                <div class="who-grid">
+                    <div class="who-card">
+                        <div class="ic">☕</div>
+                        <h3>Кофейни и кафе</h3>
+                        <p>Гости приходят сами, по пути. Мы ставим кофейню в маршрут тем, кому она подходит по бюджету и настроению.</p>
+                    </div>
+                    <div class="who-card">
+                        <div class="ic">🎭</div>
+                        <h3>Театры, концерты и билетные сервисы</h3>
+                        <p>Прогулка заканчивается у вас: спектакль или концерт становятся частью вечера, а не отдельным планом.</p>
+                    </div>
+                    <div class="who-card">
+                        <div class="ic">🏛</div>
+                        <h3>Культурные центры и музеи</h3>
+                        <p>Приводим молодёжь, которая сама бы не дошла: выставка или мастер-класс прямо в маршруте.</p>
+                    </div>
+                    <div class="who-card">
+                        <div class="ic">🌿</div>
+                        <h3>Парки и сады</h3>
+                        <p>Новые гости из других районов. Например, ботанический сад как тихая остановка в прогулке.</p>
+                    </div>
+                    <div class="who-card">
+                        <div class="ic">📸</div>
+                        <h3>Бренды и фотозоны</h3>
+                        <p>Ваша фотозона становится точкой маршрута, а фотографии с неё уходят в сторис.</p>
+                    </div>
+                    <div class="who-card">
+                        <div class="ic">🏙</div>
+                        <h3>Застройщики и новые районы</h3>
+                        <p>Люди приезжают в ваш район погулять и узнают его изнутри, пешком.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="biz-section">
+                <div class="eyebrow">Как это работает</div>
+                <h2 class="block-title">Три <span class="accent">простых шага</span></h2>
+
+                <div class="biz-steps">
+                    <div>
+                        <div class="n">01</div>
+                        <h3>Вы пишете нам</h3>
+                        <p>Рассказываете, что у вас за место и кого вы хотели бы видеть в гостях.</p>
+                    </div>
+                    <div>
+                        <div class="n">02</div>
+                        <h3>Встраиваем вас в маршруты</h3>
+                        <p>Вместе решаем, кому и когда ваше место подходит: по интересам, бюджету и времени.</p>
+                    </div>
+                    <div>
+                        <div class="n">03</div>
+                        <h3>К вам приходят гости</h3>
+                        <p>Люди доходят до вас пешком, в хорошем настроении и уже с планом на вечер.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="biz-section">
+                <div class="eyebrow">Наши правила</div>
+                <h2 class="block-title">Честно для <span class="accent">всех</span></h2>
+                <ul class="biz-rules">
+                    <li>Не больше одного партнёра на одну прогулку.</li>
+                    <li>Партнёр попадает в маршрут, только если подходит человеку по интересам и бюджету.</li>
+                    <li>Никакой рекламы посреди маршрута.</li>
+                    <li>Мы не передаём личные данные пользователей.</li>
+                </ul>
+            </div>
+
+            <div class="biz-contact">
+                <h2 class="block-title">Давайте <span class="accent">встретимся</span></h2>
+                <p>Напишите нам, и мы придумаем, как ваше место станет частью прогулок.</p>
+                <a class="btn-primary btn-big" href="mailto:tochka.vashei.vstrechi@gmail.com?subject=Сотрудничество с Точкой встречи">Написать нам →</a>
             </div>
         </section>
 
