@@ -3249,7 +3249,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 25 окт · v30</span></div>
+    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 25 окт · v30.1</span></div>
 </aside>
 
 
@@ -7314,6 +7314,150 @@ function walkRadiusKm(walk) {
     return (minutes * speed) / 1.3 / 2;
 }
 
+/* =============================================================
+   МКАД И БОЛЬШИЕ ДОРОГИ: не уводим через трассы
+   Внутри МКАДа гуляем как раньше. За МКАДом (без метро) держимся
+   рядом со стартом и не переходим шоссе. Через сам МКАД пешком не идём.
+   ============================================================= */
+// МКАД приблизительно (по развязкам, по часовой стрелке с севера) — [широта, долгота]
+const MKAD_POLY = [
+    [55.9110, 37.5880], [55.9070, 37.6500], [55.8960, 37.7190], [55.8830, 37.7340],
+    [55.8700, 37.7580], [55.8480, 37.8000], [55.8250, 37.8290], [55.8100, 37.8380],
+    [55.7900, 37.8420], [55.7770, 37.8430], [55.7500, 37.8420], [55.7300, 37.8410],
+    [55.7080, 37.8360], [55.6880, 37.8330], [55.6620, 37.8390], [55.6380, 37.8320],
+    [55.6180, 37.7900], [55.6080, 37.7620], [55.5930, 37.7290], [55.5810, 37.6850],
+    [55.5745, 37.6060], [55.5800, 37.5650], [55.5920, 37.5340], [55.6040, 37.5150],
+    [55.6120, 37.4900], [55.6340, 37.4590], [55.6400, 37.4420], [55.6555, 37.4120],
+    [55.6720, 37.3980], [55.6900, 37.3880], [55.7110, 37.3850], [55.7350, 37.3720],
+    [55.7600, 37.3690], [55.7800, 37.3700], [55.8000, 37.3850], [55.8285, 37.3880],
+    [55.8445, 37.3935], [55.8640, 37.4100], [55.8800, 37.4430], [55.8890, 37.4880],
+    [55.9000, 37.5150], [55.9080, 37.5420]
+];
+
+function insideMkad(at) {
+    // луч из точки: нечётное число пересечений с границей — точка внутри
+    let inside = false;
+    for (let i = 0, j = MKAD_POLY.length - 1; i < MKAD_POLY.length; j = i++) {
+        const [yi, xi] = MKAD_POLY[i], [yj, xj] = MKAD_POLY[j];
+        if ((yi > at[0]) !== (yj > at[0]) && at[1] < (xj - xi) * (at[0] - yi) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+}
+
+// как далеко точка от линии МКАДа (км, грубо — по вершинам)
+function kmToMkad(at) {
+    return Math.min(...MKAD_POLY.map(p => kmBetween(at, p)));
+}
+
+// пересекаются ли отрезки a–b и c–d (точки [широта, долгота], для коротких расстояний)
+function segmentsCross(a, b, c, d) {
+    const k = Math.cos(a[0] * Math.PI / 180);
+    const xy = p => [p[1] * k, p[0]];
+    const [A, B, C, D] = [a, b, c, d].map(xy);
+    const turn = (p, q, r) => Math.sign((q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]));
+    return turn(A, B, C) * turn(A, B, D) < 0 && turn(C, D, A) * turn(C, D, B) < 0;
+}
+
+// шоссе и МКАД вокруг старта из OpenStreetMap (линии) — null, если сервис не ответил
+async function fetchBigRoads(start, radiusKm) {
+    const km = Math.min(Math.max(radiusKm, 1), 4);
+    const dLat = km / 111;
+    const dLon = km / (111 * Math.cos(start[0] * Math.PI / 180));
+    const f = (x) => x.toFixed(4);
+    const bb = `(${f(start[0] - dLat)},${f(start[1] - dLon)},${f(start[0] + dLat)},${f(start[1] + dLon)})`;
+    const cacheKey = "tv_roads1_" + bb;
+    try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+        if (cached && Date.now() - cached.t < 7 * 864e5) return cached.roads;
+    } catch (e) { /* без кэша */ }
+
+    const q = `[out:json][timeout:10];way["highway"~"^(motorway|trunk)$"]${bb};out tags geom;`;
+    const askFetch = async url => {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 20000);
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                body: "data=" + encodeURIComponent(q),
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                signal: ctrl.signal
+            });
+            if (!res.ok) throw new Error("overpass " + res.status);
+            const json = await res.json();
+            if (!json || !Array.isArray(json.elements)) throw new Error("пустой ответ");
+            return json;
+        } finally {
+            clearTimeout(timer);
+        }
+    };
+    const askJsonp = url => new Promise((resolve, reject) => {
+        const cb = "tvRoads" + Math.random().toString(36).slice(2);
+        const el = document.createElement("script");
+        const done = () => { clearTimeout(timer); delete window[cb]; el.remove(); };
+        const timer = setTimeout(() => { done(); reject(new Error("timeout")); }, 20000);
+        window[cb] = data => { done(); data && Array.isArray(data.elements) ? resolve(data) : reject(new Error("empty")); };
+        el.onerror = () => { done(); reject(new Error("script error")); };
+        el.src = url + "?data=" + encodeURIComponent(q) + "&jsonp=" + cb;
+        document.head.appendChild(el);
+    });
+
+    let json;
+    try {
+        json = await Promise.any(OVERPASS_URLS.flatMap(url => [askFetch(url), askJsonp(url)]));
+    } catch (e) {
+        console.warn("Не получили шоссе из OpenStreetMap — фильтруем только по МКАДу");
+        return null;
+    }
+    const roads = json.elements
+        .filter(el => Array.isArray(el.geometry) && el.geometry.length > 1)
+        .map(el => {
+            const t = el.tags || {};
+            return {
+                mkad: /МКАД/i.test(t.ref || "") || /кольцевая автомобильная/i.test(t.name || ""),
+                line: el.geometry.map(g => [+g.lat.toFixed(5), +g.lon.toFixed(5)])
+            };
+        });
+    try { localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), roads })); } catch (e) { /* ок */ }
+    return roads;
+}
+
+// путь от старта до места переходит одну из этих дорог?
+function crossesRoad(start, at, roads) {
+    return roads.some(r => r.line.some((p, i) => i > 0 && segmentsCross(start, at, r.line[i - 1], p)));
+}
+
+// Правила для старта прогулки (для прогулки с метро — это станция, а не дом)
+function areaRules(walk, start) {
+    const inside = insideMkad(start);
+    const nearMkad = kmToMkad(start) < 4;
+    return {
+        inside,
+        // за МКАДом гуляем рядом: 1–1,5 км от старта
+        capKm: inside ? Infinity : clamp(walkRadiusKm(walk), 1, 1.5),
+        // дороги нужны за МКАДом и у самого МКАДа
+        needRoads: !inside || nearMkad
+    };
+}
+
+// оставляем только места, куда можно дойти пешком без трасс
+function filterByArea(places, start, rules, roads) {
+    const list = places || [];
+    const blocked = roads
+        ? roads.filter(r => !rules.inside || r.mkad)      // в городе мешает только МКАД, за МКАДом — любое шоссе
+        : null;
+    const ok = (pl, capKm) => {
+        if (!pl || !Array.isArray(pl.at)) return false;
+        if (kmBetween(start, pl.at) > capKm) return false;
+        if (blocked) return !crossesRoad(start, pl.at, blocked);
+        return insideMkad(pl.at) === rules.inside;        // шоссе не загрузились — хотя бы не через МКАД
+    };
+    const strict = list.filter(pl => ok(pl, rules.capKm));
+    if (rules.inside || strict.length >= 3 || !blocked) return strict;
+    // за МКАДом совсем пусто — разрешаем чуть дальше, но только если знаем, где шоссе
+    const wider = list.filter(pl => ok(pl, 2.5));
+    return wider.length > strict.length ? wider : strict;
+}
+
 const FOOD_KINDS = ["cafe", "fast_food", "restaurant"];
 const roundRub = x => Math.round(x / 50) * 50;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -8273,8 +8417,14 @@ async function showRoute(walk) {
         setMapMsg("Ищем интересные места рядом и собираем прогулку… это может занять до минуты");
         // OpenStreetMap (парки, вода, бульвары) из браузера — это работает надёжнее, чем с сервера;
         // найденное отдаём серверу, чтобы GigaChat выбирал из всего сразу
-        const osmPlaces = await fetchNearbyPlaces(start, walkRadiusKm(walk) * 3);
+        // правила МКАДа считаем от места, где начинается прогулка (с метро — от станции)
+        const rules = areaRules(walk, start);
+        const [osmAll, roads] = await Promise.all([
+            fetchNearbyPlaces(start, walkRadiusKm(walk) * 3),
+            rules.needRoads ? fetchBigRoads(start, Math.min(walkRadiusKm(walk) * 3, rules.capKm + 1)) : null
+        ]);
         if (token !== routeToken) return;
+        const osmPlaces = osmAll ? filterByArea(osmAll, start, rules, roads) : osmAll;
         const server = await askServer(planWalk, start, osmPlaces);
         if (token !== routeToken) return;
         if (server && server.places && server.places.length) {
@@ -8282,8 +8432,14 @@ async function showRoute(walk) {
         } else {
             nearby = osmPlaces;
         }
-        const pool = PLACES.concat((nearby || []).filter(n =>
+        const fullPool = PLACES.concat((nearby || []).filter(n =>
             !PLACES.some(pl => kmBetween(pl.at, n.at) < 0.2)));
+        const pool = filterByArea(fullPool, start, rules, roads);
+        if (!rules.inside && pool.length < 4) {
+            routeNote += trip
+                ? " Рядом со станцией немного интересных мест, поэтому прогулка получилась короткой."
+                : " За МКАДом рядом немного интересных мест, поэтому гуляем недалеко и без перехода через шоссе. Хочешь больше — выбери прогулку с метро, и мы отвезём тебя в центр.";
+        }
 
         stops = null;
         if (server && server.ai && server.ai.stops && server.ai.stops.length) {
@@ -8295,7 +8451,7 @@ async function showRoute(walk) {
 
         // обязательное место и место, где потратить бюджет
         const trimmed = stops.trimmed;
-        const must = await findMustPlace(ymaps, p, start, pool);
+        const must = await findMustPlace(ymaps, p, start, fullPool);   // своё место — даже если оно далеко
         if (token !== routeToken) return;
         if (must && must.place) addMustStop(planWalk, start, stops, must.place);
         if (must && must.error) routeNote += " " + must.error;
@@ -9034,52 +9190,62 @@ function drawShareCard(walk) {
     const lines = wrapLines(ctx, title, W - 180, 4);
     lines.forEach((ln, i) => ctx.fillText(ln, 90, 380 + i * 92));
 
-    // линия маршрута по настоящим координатам
+    // километры считаем по настоящим координатам
     const pts = [route && route.start].concat(stops.map(st => st.at)).filter(p => Array.isArray(p));
-    const box = { x: 110, y: 380 + lines.length * 92 + 60, w: W - 220, h: 0 };
-    box.h = 1500 - box.y;
     let km = 0;
     for (let i = 1; i < pts.length; i++) km += kmBetween(pts[i - 1], pts[i]);
     km *= 1.25;   // по улицам идти дальше, чем по прямой
-    if (pts.length >= 2) {
-        const lat0 = pts.reduce((a, p) => a + p[0], 0) / pts.length;
-        const kx = Math.cos(lat0 * Math.PI / 180);
-        const xs = pts.map(p => p[1] * kx), ys = pts.map(p => -p[0]);
-        const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-        const sc = Math.min(box.w / Math.max(maxX - minX, 1e-6), box.h / Math.max(maxY - minY, 1e-6));
-        const ox = box.x + (box.w - (maxX - minX) * sc) / 2, oy = box.y + (box.h - (maxY - minY) * sc) / 2;
-        const P = pts.map((p, i) => [ox + (xs[i] - minX) * sc, oy + (ys[i] - minY) * sc]);
 
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 14;
-        ctx.lineCap = ctx.lineJoin = "round";
-        // плавная линия через все точки (сплайн Катмулла — Рома)
+    // а рисуем не карту, а единый «змейкой» путь: старт и остановки по порядку
+    const box = { x: 170, y: 380 + lines.length * 92 + 90, w: W - 340, h: 0 };
+    box.h = 1480 - box.y;
+    const n = Math.max(2, stops.length + 1);
+    const P = [];
+    for (let i = 0; i < n; i++) {
+        const side = n === 2 ? (i ? 0.85 : 0.15) : (i % 2 ? 0.88 : 0.12);
+        const wave = n > 2 && i > 0 && i < n - 1 ? (i % 2 ? -0.06 : 0.06) : 0;   // чуть неровно, как живая прогулка
+        P.push([box.x + box.w * (side + wave), box.y + box.h * i / (n - 1)]);
+    }
+    const trace = () => {
         ctx.beginPath();
         ctx.moveTo(P[0][0], P[0][1]);
-        for (let i = 0; i < P.length - 1; i++) {
-            const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
-            ctx.bezierCurveTo(
-                p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6,
-                p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6,
-                p2[0], p2[1]);
+        for (let i = 1; i < P.length; i++) {
+            const a = P[i - 1], b = P[i], dy = b[1] - a[1];
+            ctx.bezierCurveTo(a[0], a[1] + dy * 0.75, b[0], b[1] - dy * 0.75, b[0], b[1]);
         }
-        ctx.stroke();
+    };
+    ctx.lineCap = ctx.lineJoin = "round";
+    ctx.strokeStyle = "rgba(255,255,255,.14)";
+    ctx.lineWidth = 46;
+    trace(); ctx.stroke();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 12;
+    ctx.setLineDash([2, 26]);       // пунктир из точек — как следы шагов
+    trace(); ctx.stroke();
+    ctx.setLineDash([]);
 
-        // старт — небольшая точка, остановки — кружки с номерами
+    // старт — кольцо, остановки — кружки с номерами, последняя — побольше
+    ctx.fillStyle = "#fff";
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.arc(P[0][0], P[0][1], 22, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(P[0][0], P[0][1], 8, 0, Math.PI * 2); ctx.fill();
+    ctx.font = "700 30px " + FONT;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = P[0][0] < W / 2 ? "left" : "right";
+    ctx.fillStyle = "rgba(255,255,255,.8)";
+    ctx.fillText("старт", P[0][0] + (P[0][0] < W / 2 ? 40 : -40), P[0][1]);
+    ctx.textAlign = "center";
+    ctx.font = "800 34px " + FONT;
+    P.slice(1).forEach(([x, y], i) => {
+        const r = i === P.length - 2 ? 42 : 34;
         ctx.fillStyle = "#fff";
-        ctx.beginPath(); ctx.arc(P[0][0], P[0][1], 16, 0, Math.PI * 2); ctx.fill();
-        ctx.font = "800 30px " + FONT;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        P.slice(1).forEach(([x, y], i) => {
-            ctx.fillStyle = "#fff";
-            ctx.beginPath(); ctx.arc(x, y, 30, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = "#5a2cc4";
-            ctx.fillText(String(i + 1), x, y + 1);
-        });
-        ctx.textAlign = "left";
-        ctx.textBaseline = "alphabetic";
-    }
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#5a2cc4";
+        ctx.fillText(stops.length ? String(i + 1) : "★", x, y + 2);
+    });
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
 
     // цифры: километры, время, траты
     const minutes = (plan.walkMin || 0) + (plan.dwell || 0) || plan.minutes || 0;
