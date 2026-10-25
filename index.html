@@ -3185,6 +3185,13 @@
         .head-login { padding: 10px 18px; font-size: 14px; border-radius: 12px; }
         body.logged .head-login { display: none; }
         .head-link, .head-login { white-space: nowrap; }
+        /* телефон: в шапке только логотип, название и «Для бизнеса» (или меню); часы — в меню */
+        .drawer-clock { display: none; }
+        @media (max-width: 600px) {
+            .head-login, .header-right .clock { display: none; }
+            .drawer-clock { display: block; margin-bottom: 10px; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+            .drawer-clock b { color: var(--text); }
+        }
 
         /* поделиться прогулкой */
         .share-preview { display: none; }
@@ -3249,7 +3256,7 @@
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot">Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 25 окт · v30.1</span></div>
+    <div class="drawer-foot"><div class="drawer-clock">Москва <b id="clock2">--:--</b></div>Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 25 окт · v30.1</span></div>
 </aside>
 
 
@@ -5124,6 +5131,8 @@ document.querySelectorAll('[role="button"]').forEach(el => {
    ЧАСЫ «МОСКВА 14:32»
    ============================================================= */
 function tickClock() {
+    const c2 = document.getElementById("clock2");
+    if (c2) c2.textContent = new Date().toLocaleTimeString("ru-RU", { timeZone: "Europe/Moscow", hour: "2-digit", minute: "2-digit" });
     document.getElementById("clock").textContent =
         new Date().toLocaleTimeString("ru-RU", {
             timeZone: "Europe/Moscow",
