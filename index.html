@@ -2,7 +2,19 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- v30.3: «Точка встречи» как приложение на экране «Домой» (iPhone и Android) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Точка встречи">
+    <meta name="application-name" content="Точка встречи">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#f9f9fb">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
 
     <title>ТочкаВстречи</title>
 
@@ -908,7 +920,7 @@
         .legal-doc { max-width: 760px; }
         .legal-doc h2 { font-size: 20px; font-weight: 800; margin: 28px 0 10px; letter-spacing: -.01em; }
         .legal-doc p, .legal-doc li { color: #3a4152; line-height: 1.6; font-size: 15px; }
-        .legal-doc ul { padding-left: 20px; margin: 6px 0 10px; }
+        .legal-doc ul, .legal-doc ol { padding-left: 20px; margin: 6px 0 10px; }
         .legal-doc li { margin: 4px 0; }
         .legal-meta { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
 
@@ -3193,8 +3205,244 @@
             .drawer-clock b { color: var(--text); }
         }
 
+
+        /* =============================================================
+           v30.4: НИК, ФОТО ПРОФИЛЯ, ВКЛАДКА «СКАЧАТЬ»
+           ============================================================= */
+        .avatar.has-photo { background-size: cover; background-position: center; color: transparent; }
+        button.avatar { border: 0; padding: 0; font-family: inherit; cursor: pointer; position: relative; }
+        .avatar-edit::after {
+            content: "📷"; position: absolute; right: -6px; bottom: -6px;
+            width: 28px; height: 28px; border-radius: 50%; background: var(--white);
+            border: 1px solid var(--border); font-size: 14px; line-height: 26px; text-align: center;
+            color: initial; box-shadow: 0 4px 10px rgba(40,20,90,.12);
+        }
+        .nick-count { float: right; font-variant-numeric: tabular-nums; }
+        .field .hint.bad, .nick-count.full { color: #c4314b; }
+        .nick-wrap { position: relative; }
+        .nick-wrap > span { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 700; pointer-events: none; }
+        .nick-wrap input { padding-left: 32px; }
+        .profile-edit .row { margin-top: 12px; }
+        .profile-edit .btn-primary, .profile-edit .btn-secondary { padding: 12px 18px; font-size: 15px; }
+        .profile-warn { background: #fff4e5; border: 1px solid #f3d29b; color: #7a4a00; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; font-size: 14px; }
+
+        .dl-demo { display: flex; gap: 12px; align-items: flex-start; background: #f0e9ff; border: 1px solid #dccbfb; color: #3b1d86; border-radius: 17px; padding: 14px 16px; margin: 18px 0 14px; font-size: 15px; line-height: 1.45; }
+        .dl-demo b { display: block; }
+        .dl-card { background: var(--white); border: 1px solid var(--border); border-radius: 22px; padding: 22px; margin-bottom: 14px; }
+        .dl-card.mine { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(106,53,210,.10); }
+        .dl-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+        .dl-head img { width: 54px; height: 54px; border-radius: 14px; flex: none; }
+        .dl-head h2 { margin: 0; font-size: 21px; }
+        .dl-head .dl-sub { color: var(--muted); font-size: 14px; margin-top: 2px; }
+        .dl-pill { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--lilac-2, #efe8fc); color: var(--purple); font-size: 12px; font-weight: 800; vertical-align: 3px; }
+        .dl-card p { margin: 0 0 12px; line-height: 1.5; }
+        .dl-steps { margin: 0 0 14px; padding-left: 22px; line-height: 1.55; }
+        .dl-steps li { margin-bottom: 6px; }
+        .dl-steps .a2hs-ico { display: inline-block; vertical-align: -3px; width: 17px; height: 17px; color: var(--purple); }
+
+        .dl-status { margin-top: 10px; font-size: 14px; color: var(--muted); }
+        .dl-status.ok { color: #1e7a46; font-weight: 700; }
+        .w3-app { margin-top: 26px; }
+
         /* поделиться прогулкой */
         .share-preview { display: none; }
+
+        /* =========================================================
+           v30.3: ПРИЛОЖЕНИЕ НА ЭКРАНЕ «ДОМОЙ»
+           отступы под «чёлку» и полоску внизу айфона.
+           В обычном браузере и в Android-приложении эти отступы = 0,
+           поэтому там ничего не меняется.
+           ========================================================= */
+        header {
+            padding-top: calc(24px + env(safe-area-inset-top, 0px));
+            padding-left: max(7%, env(safe-area-inset-left, 0px));
+            padding-right: max(7%, env(safe-area-inset-right, 0px));
+        }
+        @media (max-width: 600px) {
+            header {
+                padding-top: calc(18px + env(safe-area-inset-top, 0px));
+                padding-left: max(5%, env(safe-area-inset-left, 0px));
+                padding-right: max(5%, env(safe-area-inset-right, 0px));
+            }
+        }
+        body { padding-bottom: env(safe-area-inset-bottom, 0px); }
+        .drawer {
+            padding-top: calc(22px + env(safe-area-inset-top, 0px));
+            padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+            padding-right: calc(22px + env(safe-area-inset-right, 0px));
+        }
+        .builder-bar { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+        .demo-badge { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+        .picker {
+            padding-top: calc(16px + env(safe-area-inset-top, 0px));
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        }
+        /* в режиме приложения убираем «резиновую» прокрутку за край и выделение по долгому нажатию на кнопках */
+        @media (display-mode: standalone) {
+            html, body { overscroll-behavior-y: none; }
+            button, .btn, a { -webkit-touch-callout: none; }
+        }
+
+        /* подсказка «Добавь на экран Домой» (только iPhone/iPad в Safari) */
+        .a2hs {
+            position: fixed;
+            left: 12px;
+            right: 12px;
+            bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+            z-index: 70;
+            display: none;
+            align-items: flex-start;
+            gap: 12px;
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 14px 14px 14px 14px;
+            background: #fff;
+            border: 1px solid #e0d5f7;
+            border-radius: 18px;
+            box-shadow: 0 14px 40px rgba(60, 40, 120, .18);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.4;
+            animation: appear .35s ease;
+        }
+        .a2hs.show { display: flex; }
+        .a2hs img { width: 44px; height: 44px; border-radius: 11px; flex: none; }
+        .a2hs b { display: block; margin-bottom: 2px; font-size: 15px; }
+        .a2hs .a2hs-ico { display: inline-block; vertical-align: -3px; width: 16px; height: 16px; color: var(--purple); }
+        .a2hs-close {
+            flex: none;
+            display: grid;
+            place-items: center;
+            width: 30px; height: 30px;
+            min-width: 0; min-height: 0;
+            margin: -4px -4px 0 0;
+            padding: 0;
+            border: 0; border-radius: 50%;
+            background: var(--lilac-2);
+            box-shadow: none;
+            color: var(--muted);
+            font: 400 20px/1 -apple-system, BlinkMacSystemFont, sans-serif;
+            cursor: pointer;
+        }
+</style>
+
+<style>
+/* =============================================================
+   v31: ПРОФИЛЬ-«ПРОПУСК», ПРОФИЛЬ ДРУГА, СИМВОЛЫ НА ФОНЕ
+   ============================================================= */
+.pass{display:grid;grid-template-columns:minmax(0,1fr) 270px;background:linear-gradient(115deg,#fff 0,#fbf9ff 45%,#f4efff 100%);border-radius:28px;box-shadow:0 24px 60px rgba(60,30,130,.10);border:1px solid #efeaf8;position:relative;overflow:hidden;margin:6px 0 30px}
+.pass-main{padding:30px 32px;display:flex;gap:28px;align-items:center;position:relative;overflow:hidden;min-width:0}
+.pass-main>*:not(.pass-pattern),.pass-stub>*:not(.pass-pattern){position:relative;z-index:1}
+.pass-pattern{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.pass-pattern i{position:absolute;font-style:normal;font-weight:600;line-height:1;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.pass .avatar.big{width:112px;height:112px;border-radius:50%;font-size:42px;background:linear-gradient(150deg,var(--purple-soft),var(--purple));box-shadow:0 0 0 6px #fff,0 0 0 8px #e9e0ff}
+.pass .avatar.big.has-photo{background-size:cover;background-position:center}
+.pass .avatar-edit::after{content:"";right:-2px;bottom:-2px;width:34px;height:34px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236a35d2' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M4 8h3l2-3h6l2 3h3v11H4z'/%3E%3Ccircle cx='12' cy='13' r='3.5'/%3E%3C/svg%3E") center/17px no-repeat}
+.pass-who{flex:1;min-width:0}
+.pass-kicker{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--purple)}
+.pass-name-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.pass h1{font-size:30px;line-height:1.15;margin:0;color:#2a1460;word-break:break-all}
+.pass-edit{font:inherit;font-size:13px;font-weight:700;color:var(--purple);background:var(--lilac);border:0;border-radius:99px;padding:6px 12px 6px 10px;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.pass-edit svg{width:14px;height:14px}
+.pass-sub{color:var(--muted);font-size:14px;margin-top:4px}
+.pass-sub:empty{display:none}
+.pass .tags{margin-top:14px}
+.pass .tags:empty{display:none}
+.pass .tag{background:var(--lilac);color:var(--purple-dark);font-weight:700}
+.pass-nick{display:none;margin-top:12px;max-width:440px}
+.pass.editing .pass-nick{display:block}
+.pass.editing .pass-name-row,.pass.editing .pass-sub,.pass.editing .tags{display:none}
+.pass-nick .nick-wrap input{background:#fff;font-size:17px;font-weight:600}
+.pass-nick .hint{margin-top:8px;font-size:13px}
+.pass-nick .hint.ok{color:var(--success)}
+.pass-nick .row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pass-nick .btn-primary,.pass-nick .btn-secondary{padding:11px 18px;font-size:15px;width:auto}
+.pass-stub{background:linear-gradient(145deg,#7a45e0 0%,#5a2cc2 100%);color:#fff;padding:26px;position:relative;display:flex;flex-direction:column;justify-content:center;gap:18px;overflow:hidden}
+.pass-stub::before{content:"";position:absolute;left:-1px;top:16px;bottom:16px;border-left:2px dashed rgba(255,255,255,.55);z-index:1}
+.pass-stub .pass-pattern i{color:#fff!important;opacity:.16!important}
+.pass-notch{position:absolute;width:30px;height:30px;border-radius:50%;background:var(--bg);border:1px solid #efeaf8;z-index:2;right:255px}
+.pass-notch.t{top:-16px}.pass-notch.b{bottom:-16px}
+.pass-stub small{display:block;font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.78}
+.pass-big b{display:block;font-size:44px;line-height:1;font-weight:800;margin-top:6px;white-space:nowrap}
+.pass-two{display:flex;gap:26px}
+.pass-two b{display:block;font-size:24px;font-weight:800;line-height:1.1;margin-top:4px}
+.pass-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:24px;align-items:start}
+.pass-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 14px}
+.pass-h b{font-size:22px;font-weight:800;color:#2a1460}
+.pass-h span{font-size:14px;color:var(--muted);font-weight:600}
+.pass-routes{display:grid;gap:14px}
+.route-stub{display:grid;grid-template-columns:124px minmax(0,1fr) auto;background:linear-gradient(90deg,#fff 0,#fbf9ff 100%);border-radius:20px;overflow:hidden;border:1px solid var(--border);text-align:left;font:inherit;color:inherit;padding:0;width:100%}
+button.route-stub{cursor:pointer;transition:transform .15s,box-shadow .15s}
+button.route-stub:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(60,30,130,.10)}
+.mini-map{position:relative;background:#f4f2fa;min-height:112px}
+.mini-map svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.route-stub .rs-body{padding:16px 18px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.route-stub .rs-title{font-size:16px;font-weight:800;color:#2a1460;line-height:1.3}
+.route-stub .rs-meta{font-size:13.5px;color:var(--muted);font-weight:600;margin-top:4px}
+.route-stub .rs-go{font-size:13.5px;font-weight:800;color:var(--purple);margin-top:8px;background:none;border:0;padding:0;font-family:inherit;cursor:pointer;text-align:left}
+.route-stub .rs-km{border-left:2px dashed #e4d7ff;padding:14px 18px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:96px;background:linear-gradient(160deg,#f4efff 0,#e4d7ff 100%)}
+.route-stub .rs-km b{font-size:23px;font-weight:800;color:var(--purple);line-height:1}
+.route-stub .rs-km small{font-size:12px;color:var(--muted);font-weight:700;margin-top:3px}
+.pass-more{margin-top:14px;background:none;border:0;font:inherit;font-weight:800;color:var(--purple);cursor:pointer;padding:4px 0}
+.pass-empty,.pass-locked{border:2px dashed #dccbff;border-radius:24px;padding:32px 22px;text-align:center;background:linear-gradient(160deg,#fff 0,#f1e9ff 100%)}
+.pass-locked .lock{width:60px;height:60px;border-radius:50%;background:var(--lilac);display:grid;place-items:center;margin:0 auto 14px}
+.pass-empty b,.pass-locked b{display:block;font-size:18px;font-weight:800;color:#2a1460}
+.pass-empty p,.pass-locked p{font-size:14.5px;color:var(--muted);max-width:380px;margin:6px auto 0}
+.pass-empty .row{justify-content:center;margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+.side-card{background:linear-gradient(160deg,#fff 0,#f7f2ff 100%);border-radius:24px;border:1px solid var(--border);padding:22px;margin-bottom:16px}
+.side-card .profile-title{font-size:12px;letter-spacing:.14em;margin-bottom:14px}
+.side-card .hint{font-size:13px;color:var(--muted);margin:-6px 0 12px;line-height:1.45}
+.side-card .row{display:flex;gap:10px;flex-wrap:wrap}
+.side-card .btn-primary,.side-card .btn-secondary{padding:11px 16px;font-size:14.5px;width:auto;flex:1}
+.tg-row{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;cursor:pointer;background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left;width:100%}
+.tg-row h4{font-size:16px;font-weight:800;color:#2a1460;margin:0}
+.tg-row p{font-size:13.5px;color:var(--muted);margin:4px 0 0;line-height:1.5}
+.tg-switch{flex:none;width:52px;height:30px;border-radius:99px;background:#dcd8e6;position:relative;transition:.2s;margin-top:2px}
+.tg-switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:.2s}
+.tg-row[aria-checked="true"] .tg-switch{background:var(--purple)}
+.tg-row[aria-checked="true"] .tg-switch::after{left:25px}
+.tg-state{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:800;border-radius:99px;padding:4px 11px;background:#f1eff5;color:var(--muted)}
+.tg-row[aria-checked="true"] .tg-state{background:var(--lilac);color:var(--purple-dark)}
+.symset{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.symset button{font:inherit;border:1.5px solid var(--border);background:#fff;border-radius:14px;padding:10px 2px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.symset button b{font-size:19px;color:var(--purple);font-weight:600;letter-spacing:2px;line-height:1.2}
+.symset button small{font-size:11px;font-weight:700;color:var(--muted)}
+.symset button.on{border-color:var(--purple);background:var(--lilac);box-shadow:0 0 0 3px rgba(106,53,210,.12)}
+.friend-dots{display:flex;align-items:center}
+.friend-dots i{width:42px;height:42px;border-radius:50%;border:3px solid #fff;margin-left:-10px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:14px;text-transform:uppercase}
+.friend-dots i:first-child{margin-left:0}
+.friend-dots i:nth-child(5n+1){background:var(--purple);color:#fff}
+.friend-dots i:nth-child(5n+2){background:var(--purple-soft);color:#fff}
+.friend-dots i:nth-child(5n+3){background:#e9e0ff;color:var(--purple-dark)}
+.friend-dots i:nth-child(5n+4){background:var(--blue);color:#2a1460}
+.friend-dots i:nth-child(5n){background:var(--lilac);color:var(--purple-dark)}
+.friend-dots em{font-style:normal;color:var(--muted);font-size:14px;font-weight:600;margin-left:12px}
+.profile-prefs-title{font-size:22px;font-weight:800;color:#2a1460;margin:34px 0 14px}
+.friend-btns{display:flex;gap:6px 18px;flex-wrap:wrap;margin-top:10px}
+.friend-btns .walk-open{margin-top:0;width:auto;display:inline-block}
+.pass-nick .hint.bad{color:#c4314b}
+.pass-nick .hint.bad .nick-count{color:#c4314b}
+#profilePrefs .section-label{display:none}
+@media (max-width:760px){
+  .pass{grid-template-columns:1fr;border-radius:24px}
+  .pass-main{flex-direction:column;text-align:center;padding:26px 20px 22px;gap:18px}
+  .pass-who{width:100%}
+  .pass-name-row,.pass .tags{justify-content:center}
+  .pass h1{font-size:26px}
+  .pass .avatar.big{width:104px;height:104px;font-size:40px}
+  .pass-nick{margin-left:auto;margin-right:auto;text-align:left}
+  .pass-stub{flex-direction:row;align-items:flex-end;justify-content:space-between;padding:22px}
+  .pass-stub::before{left:16px;right:16px;top:-1px;bottom:auto;border-left:0;border-top:2px dashed rgba(255,255,255,.55)}
+  .pass-notch{display:none}
+  .pass-big b{font-size:36px}
+  .pass-two{gap:18px}.pass-two b{font-size:21px}
+  .pass-grid{grid-template-columns:1fr}
+  .route-stub{grid-template-columns:92px minmax(0,1fr) auto}
+  .route-stub .rs-body{padding:14px}
+  .route-stub .rs-title{font-size:14.5px}
+  .route-stub .rs-km{min-width:68px;padding:12px 8px}
+  .route-stub .rs-km b{font-size:19px}
+}
 </style>
 </head>
 
@@ -3250,13 +3498,14 @@
     <button class="drawer-item" data-go="myWalks"><span class="ic blue">🗺</span>Ваши маршруты<span class="count-badge" id="walksCount" hidden>0</span></button>
     <button class="drawer-item" data-go="about"><span class="ic blue">✦</span>О проекте</button>
     <button class="drawer-item" data-go="business"><span class="ic blue">☕</span>Для бизнеса</button>
+    <button class="drawer-item" data-go="download"><span class="ic blue">📲</span>Скачать приложение</button>
     <button class="drawer-item" onclick="openLegal('privacy')"><span class="ic blue">§</span>Персональные данные</button>
     <!-- сюда потом можно добавить новые пункты меню -->
 
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot"><div class="drawer-clock">Москва <b id="clock2">--:--</b></div>Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 25 окт · v30.1</span></div>
+    <div class="drawer-foot"><div class="drawer-clock">Москва <b id="clock2">--:--</b></div>Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 16 ноя · v31</span></div>
 </aside>
 
 
@@ -3396,13 +3645,62 @@
  <button class="w3-btn w3-s" style="color:var(--purple)" onclick="go('business')">Как с нами сотрудничать →</button>
 </div>
 
+<div class="w3-biz w3-app">
+ <div><div class="w3-kicker">Приложение · демо</div><h2>Точка встречи <span class="accent">на телефоне</span></h2><p>Android и iPhone: иконка на экране, открывается без браузера. Пока это демо, скоро добавим полноценное приложение.</p></div>
+ <button class="w3-btn w3-s" style="color:var(--purple)" onclick="go('download')">Скачать приложение →</button>
+</div>
+
 <footer class="w3-footer"><svg aria-hidden="true" style="width:84px;height:80px;display:block;margin:0 auto 18px"><use href="#logoMark"/></svg>Каждый маршрут — <span class="accent">своя точка встречи</span></footer>
                 <p class="help-line">
                     Проблемы со входом или сайтом? Пишите!<br>
                     <a href="mailto:tochka.vashei.vstrechi@gmail.com">tochka.vashei.vstrechi@gmail.com</a><br>
                     <a href="#about" onclick="go('about'); return false;">О проекте</a> ·
+                    <a href="#download" onclick="go('download'); return false;">Скачать приложение</a> ·
                     <a href="#privacy" class="link-inline legal-link" onclick="openLegal('privacy'); return false;">Политика обработки персональных данных</a>
                 </p>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             v30.4: СКАЧАТЬ ПРИЛОЖЕНИЕ (видно без входа)
+             ===================================================== -->
+        <section class="screen" id="download">
+
+            <button class="back-link" onclick="goHome()">← На главную</button>
+
+            <div class="eyebrow">Приложение</div>
+            <h1>Скачай <span class="accent">Точку встречи</span></h1>
+
+            <div class="dl-demo"><span style="font-size:22px">🧪</span><div><b>Пока это демо-версия.</b>Скоро добавим полноценное приложение. Всё, что ты сохранишь сейчас, останется в аккаунте.</div></div>
+
+            <div class="dl-card" id="dlAndroid">
+                <div class="dl-head">
+                    <img src="icon-192.png" alt="">
+                    <div><h2>Android <span class="dl-pill">демо</span></h2><div class="dl-sub">Файл .apk, Android 7 и новее</div></div>
+                </div>
+                <ol class="dl-steps">
+                    <li>Нажми «Скачать для Android», файл сохранится в «Загрузки».</li>
+                    <li>Открой его. Телефон спросит, можно ли ставить приложения из этого источника: разреши.</li>
+                    <li>Нажми «Установить». Иконка «Точка встречи» появится на экране.</li>
+                </ol>
+                <button type="button" class="btn-primary" id="apkBtn" onclick="downloadApk()">⬇ Скачать для Android</button>
+                <div class="dl-status" id="apkStatus">Приложения пока нет в Google Play и RuStore: ставится из файла, это нормально для демо.</div>
+            </div>
+
+            <div class="dl-card" id="dlIos">
+                <div class="dl-head">
+                    <img src="apple-touch-icon.png" alt="">
+                    <div><h2>iPhone и iPad <span class="dl-pill">демо</span></h2><div class="dl-sub">Через Safari, без App Store</div></div>
+                </div>
+                <p>В App Store нас пока нет. Но сайт можно поставить на экран «Домой»: появится иконка, и он будет открываться как приложение, без адресной строки.</p>
+                <ol class="dl-steps">
+                    <li>Открой этот сайт в <b>Safari</b> (в других браузерах кнопки может не быть).</li>
+                    <li>Нажми <svg class="a2hs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> «Поделиться» внизу экрана (на новых iOS сначала «•••»).</li>
+                    <li>Выбери «На экран „Домой“» и нажми «Добавить».</li>
+                </ol>
+                <button type="button" class="btn-secondary" id="copySiteBtn" onclick="copySiteLink()">Скопировать ссылку на сайт</button>
+                <div class="dl-status" id="iosStatus"></div>
             </div>
         </section>
 
@@ -3513,56 +3811,79 @@
                 <h1>Согласие на обработку персональных данных</h1>
                 <p class="legal-meta">Редакция от <span data-legal-version></span></p>
 
-                <p>Я, пользователь сайта «ТочкаВстречи» (далее — Сервис), отмечая галочку при регистрации,
-                свободно, своей волей и в своём интересе даю согласие оператору
-                <b data-op="name"></b> (г. <span data-op="city"></span>, e-mail: <span data-op="email"></span>)
-                на обработку моих персональных данных на следующих условиях.</p>
+                <p>Я, пользователь сайта «ТочкаВстречи» (далее — Сервис), свободно, своей волей и в своём интересе даю
+                конкретное, предметное, информированное, сознательное и однозначное согласие на обработку моих персональных
+                данных на условиях ниже (ст. 9 Федерального закона от 27.07.2006 № 152-ФЗ «О персональных данных»).
+                Согласие я даю, отмечая отдельную галочку при регистрации. Меня определяет адрес электронной почты,
+                указанный при регистрации.</p>
 
-                <h2>1. Какие данные</h2>
+                <h2>1. Оператор</h2>
+                <p><b data-op="name"></b>, адрес для писем: <span data-op="address"></span>, e-mail: <span data-op="email"></span> (далее — Оператор).</p>
+
+                <h2>2. Цели обработки</h2>
+                <ol>
+                    <li>Регистрация и работа аккаунта: вход, восстановление пароля, защита от подбора пароля.</li>
+                    <li>Подбор, построение и сохранение пеших прогулок под мои интересы.</li>
+                    <li>Совместные прогулки: поиск меня друзьями по юзернейму, заявки в друзья и учёт моих интересов в общей прогулке с другом, которого я подтвердил(а).</li>
+                    <li>Улучшение подбора маршрутов по моим отзывам и оценкам.</li>
+                    <li>Ответы на мои обращения и запросы по персональным данным.</li>
+                </ol>
+
+                <h2>3. Перечень данных</h2>
                 <ul>
-                    <li>адрес электронной почты, юзернейм, пароль (хранится в зашифрованном виде);</li>
+                    <li>адрес электронной почты, юзернейм, пароль (хранится только в виде хеша);</li>
                     <li>ответы на опрос об интересах и предпочтениях;</li>
-                    <li>параметры прогулок: время, бюджет, компания, точка старта (адрес или координаты);</li>
-                    <li>местоположение во время прогулки — только если я сам(а) нажму «Я здесь» или «Начать прогулку»;</li>
+                    <li>параметры прогулок: время, бюджет, компания, точка старта (адрес, станция метро или координаты), сохранённые маршруты;</li>
+                    <li>текущее местоположение — только когда я сам(а) нажимаю «Я здесь» или «Начать прогулку»; на сервере Сервиса не хранится;</li>
                     <li>отзывы и оценки прогулок;</li>
-                    <li>список друзей — юзернеймы, которые я сам(а) добавил(а);</li>
-                    <li>технические данные: дата регистрации, IP-адрес и сведения о браузере в журналах сервера.</li>
+                    <li>список друзей и заявок в друзья (юзернеймы);</li>
+                    <li>сведения о согласии: дата и время, редакция документа, подтверждение возраста 14+;</li>
+                    <li>технические данные: IP-адрес, сведения о браузере, даты регистрации и входа, попытки входа.</li>
                 </ul>
+                <p>Специальные категории данных (здоровье, убеждения и т. п.) и биометрия не собираются.</p>
 
-                <h2>2. Зачем</h2>
-                <ul>
-                    <li>создание и работа аккаунта, вход и восстановление пароля;</li>
-                    <li>подбор и сохранение прогулок под мои интересы;</li>
-                    <li>поиск друга по юзернейму и учёт его интересов (только с его согласия);</li>
-                    <li>улучшение подбора маршрутов по отзывам;</li>
-                    <li>ответы на мои обращения в поддержку.</li>
-                </ul>
-
-                <h2>3. Что с ними делают</h2>
+                <h2>4. Действия с данными и способ обработки</h2>
                 <p>Сбор, запись, систематизация, накопление, хранение, уточнение (обновление, изменение), извлечение,
-                использование, передача (предоставление, доступ), обезличивание, блокирование, удаление и уничтожение —
-                с использованием средств автоматизации.</p>
+                использование, передача (предоставление, доступ) лицам из раздела 5, обезличивание, блокирование, удаление,
+                уничтожение. Обработка автоматизированная, с передачей по сети Интернет. Решений, которые влекут для меня
+                юридические последствия, Сервис автоматически не принимает: он только предлагает маршрут.</p>
 
-                <h2>4. Кому передаются</h2>
-                <p>Только в объёме, нужном для работы Сервиса:</p>
+                <h2>5. Кому поручается обработка и кому передаются данные</h2>
                 <ul>
-                    <li>хостинг базы данных и аккаунтов (Supabase);</li>
-                    <li>картографические сервисы — для поиска адреса и построения маршрута (Яндекс Карты, OpenStreetMap);</li>
-                    <li>нейросеть GigaChat (ООО «СалютДевайсы») — ответы опроса и параметры прогулки без e-mail и пароля, чтобы подобрать места;</li>
-                    <li>справочники мест (data.mos.ru, KudaGo) — только координаты района прогулки.</li>
+                    <li><b data-op="host"></b>, <span data-op="hostAddress"></span> — хранение базы данных на серверах в России; все данные из раздела 3, кроме геопозиции;</li>
+                    <li><b>ООО «Яндекс»</b> (Яндекс Карты), 119021, г. Москва, ул. Льва Толстого, д. 16 — поиск адреса, карта и пешеходный маршрут; адрес и координаты точек маршрута, геопозиция, IP-адрес;</li>
+                    <li><b>ПАО Сбербанк</b> (сервис GigaChat), 117312, г. Москва, ул. Вавилова, д. 19 — подбор мест для прогулки; ответы опроса и параметры прогулки без e-mail, юзернейма и пароля;</li>
+                    <li><b>серверы OpenStreetMap</b> (FOSSGIS e.V. и другие операторы серверов OSM), Германия и другие страны ЕС — поиск мест рядом и пешеходного пути; только координаты точек маршрута и IP-адрес, без e-mail и юзернейма.</li>
                 </ul>
-                <p>Персональные данные не продаются и не передаются для рекламы.</p>
+                <p>Соглашаюсь на трансграничную передачу указанных координат на серверы OpenStreetMap (ст. 12 152-ФЗ).
+                Запись, систематизация, накопление и хранение моих данных идут в базах данных на территории России.
+                Мои данные не продаются, не передаются партнёрам и не используются для рекламы. Юзернейм виден другим
+                пользователям только при поиске друзей; e-mail другим пользователям не показывается.</p>
 
-                <h2>5. Срок и отзыв согласия</h2>
-                <p>Согласие действует до удаления аккаунта или до его отзыва. Отозвать согласие и удалить аккаунт
-                можно в любой момент, написав на <span data-op="email"></span> с адреса, указанного при регистрации.
-                Данные будут удалены в течение 30 дней, если закон не требует хранить их дольше.</p>
+                <h2>6. Срок действия согласия</h2>
+                <p>Согласие действует со дня регистрации до удаления аккаунта или отзыва согласия, но не дольше 3 лет
+                с моего последнего входа в аккаунт. После этого данные уничтожаются в течение 30 дней. Журналы сервера
+                с IP-адресами хранятся не дольше 90 дней.</p>
 
-                <h2>6. Несовершеннолетние</h2>
-                <p>Если мне меньше 14 лет, я регистрируюсь только с разрешения родителя (законного представителя),
-                и это согласие считается данным им.</p>
+                <h2>7. Как отозвать согласие</h2>
+                <p>Я могу отозвать согласие в любой момент одним из способов:</p>
+                <ol>
+                    <li>кнопкой «Удалить аккаунт и отозвать согласие» в меню Сервиса;</li>
+                    <li>письмом на <span data-op="email"></span> с адреса, указанного при регистрации;</li>
+                    <li>бумажным письмом на адрес Оператора из раздела 1.</li>
+                </ol>
+                <p>После отзыва Оператор прекращает обработку и уничтожает данные в срок не более 30 дней (ст. 21 ч. 5
+                152-ФЗ), если закон не обязывает хранить их дольше. Без аккаунта Сервисом можно пользоваться в гостевом
+                режиме без сохранения прогулок.</p>
 
-                <p style="margin-top:22px">Подробнее — в <a href="#privacy" class="link-inline" onclick="openLegal('privacy'); return false;">Политике обработки персональных данных</a>.</p>
+                <h2>8. Возраст</h2>
+                <p>Подтверждаю, что мне исполнилось 14 лет. Если мне нет 18 лет, мои родители (законные представители)
+                знают о регистрации и не возражают. Люди младше 14 лет аккаунт не создают. Родитель может потребовать
+                удалить данные ребёнка, написав на e-mail из раздела 1.</p>
+
+                <h2>9. Подтверждение</h2>
+                <p>Факт дачи согласия фиксируется в базе данных: дата и время, редакция этого текста и e-mail аккаунта.
+                С <a href="#privacy" class="link-inline" onclick="openLegal('privacy'); return false;">Политикой обработки персональных данных</a> можно ознакомиться на сайте в любой момент.</p>
             </div>
         </section>
 
@@ -3577,48 +3898,87 @@
                 <h1>Политика обработки персональных данных</h1>
                 <p class="legal-meta">Редакция от <span data-legal-version></span></p>
 
-                <h2>1. Кто мы</h2>
-                <p>Сервис «ТочкаВстречи» помогает подбирать прогулки по Москве и Московской области.
-                Оператор персональных данных — <b data-op="name"></b>, г. <span data-op="city"></span>.
-                Связь по вопросам данных: <span data-op="email"></span>.</p>
+                <h2>1. Общие положения</h2>
+                <p>Политика рассказывает, как сервис «ТочкаВстречи» (далее — Сервис) обрабатывает и защищает персональные
+                данные. Она составлена по ст. 18.1 Федерального закона от 27.07.2006 № 152-ФЗ «О персональных данных»
+                и опубликована на сайте в свободном доступе.</p>
+                <p>Оператор: <b data-op="name"></b>, адрес для писем: <span data-op="address"></span>, e-mail: <span data-op="email"></span>.<span data-op-row="rkn"> Номер в реестре операторов Роскомнадзора: <span data-op="rkn"></span>.</span></p>
 
-                <h2>2. Какие данные мы обрабатываем и зачем</h2>
+                <h2>2. Чьи данные мы обрабатываем</h2>
                 <ul>
-                    <li><b>Аккаунт:</b> e-mail, юзернейм, пароль (в зашифрованном виде) — чтобы ты мог(ла) входить и восстанавливать доступ.</li>
-                    <li><b>Опрос:</b> интересы и предпочтения — чтобы подбирать прогулки под тебя.</li>
-                    <li><b>Прогулки:</b> время, бюджет, компания, точка старта, сохранённый маршрут — чтобы показывать и хранить твои прогулки.</li>
-                    <li><b>Геопозиция:</b> только когда ты сам(а) нажимаешь «Я здесь» или «Начать прогулку»; на сервере не хранится.</li>
-                    <li><b>Отзывы:</b> оценки и комментарии — чтобы улучшать подбор.</li>
-                </ul>
-                <p>Основание — твоё согласие (ст. 6 и 9 Федерального закона № 152-ФЗ «О персональных данных»).</p>
-
-                <h2>3. Кто ещё получает данные</h2>
-                <ul>
-                    <li>Supabase — хранение аккаунтов и прогулок;</li>
-                    <li>Яндекс Карты и OpenStreetMap — поиск адреса и построение пешеходного маршрута;</li>
-                    <li>GigaChat — подбор мест по ответам опроса (без e-mail и пароля);</li>
-                    <li>data.mos.ru и KudaGo — поиск мест рядом (передаются только координаты района).</li>
+                    <li>Зарегистрированные пользователи от 14 лет.</li>
+                    <li>Гости сайта — только технические данные (IP-адрес) и точка старта, если они строят прогулку без аккаунта; на нашем сервере это не сохраняется.</li>
+                    <li>Люди, которые пишут нам на e-mail.</li>
                 </ul>
 
-                <h2>4. Друзья</h2>
-                <p>Если ты ищешь друга по юзернейму, Сервис использует его ответы на опрос, только чтобы подобрать
-                общую прогулку. Проходить опрос «за друга» можно только с его согласия.</p>
+                <h2>3. Какие данные, зачем и сколько храним</h2>
+                <ul>
+                    <li><b>E-mail, юзернейм, хеш пароля</b> — аккаунт, вход, восстановление пароля. Основание: согласие (ст. 6 ч. 1 п. 1). Срок: до удаления аккаунта или 3 года без входа.</li>
+                    <li><b>Ответы опроса</b> — подбор прогулок и общие прогулки с друзьями. Согласие. Тот же срок.</li>
+                    <li><b>Параметры прогулок, точка старта, сохранённые маршруты</b> — построение и история прогулок. Согласие. Тот же срок; маршрут можно удалить самому.</li>
+                    <li><b>Геопозиция</b> — навигация во время прогулки. Согласие и разрешение браузера. На сервере не хранится.</li>
+                    <li><b>Отзывы и оценки</b> — улучшение подбора. Согласие. До удаления аккаунта, дальше только в обезличенном виде.</li>
+                    <li><b>Список друзей и заявок</b> — совместные прогулки. Согласие обоих пользователей. До удаления друга из списка или аккаунта.</li>
+                    <li><b>Запись о согласии</b> (дата, редакция, 14+) — доказательство получения согласия (ст. 9 ч. 3). До удаления аккаунта.</li>
+                    <li><b>IP-адрес, браузер, попытки входа</b> — безопасность и защита от взлома. Согласие. Не дольше 90 дней.</li>
+                    <li><b>Письма на e-mail</b> — ответы на обращения. Согласие (отправка письма). 1 год после ответа.</li>
+                </ul>
+                <p>Специальные категории данных и биометрию мы не собираем. Данные не продаются, не передаются партнёрам
+                и не используются для рекламы. Партнёрам можно давать только обезличенную статистику, по которой нельзя
+                узнать человека.</p>
 
-                <h2>5. Хранение и защита</h2>
-                <p>Пароли хранятся только в зашифрованном виде. Доступ к данным в базе ограничен: каждый пользователь
-                видит только свои данные. Данные хранятся, пока существует аккаунт, и удаляются в течение 30 дней
-                после удаления аккаунта или отзыва согласия.</p>
+                <h2>4. Как мы обрабатываем данные</h2>
+                <p>Обработка автоматизированная: сбор, запись, систематизация, накопление, хранение, уточнение, извлечение,
+                использование, передача (предоставление, доступ), обезличивание, блокирование, удаление, уничтожение.
+                Запись, систематизация, накопление и хранение идут в базах данных на территории России (ст. 18 ч. 5),
+                у хостинг-провайдера <span data-op="host"></span>, центр обработки данных в г. <span data-op="hostCity"></span>.</p>
 
-                <h2>6. Cookies и хранилище браузера</h2>
-                <p>Сайт сохраняет в твоём браузере данные для входа и временные настройки. Рекламных и аналитических
-                счётчиков на сайте нет.</p>
+                <h2>5. Кому передаём данные</h2>
+                <p>Хостинг-провайдер <span data-op="host"></span>, ООО «Яндекс» (Яндекс Карты), ПАО Сбербанк (GigaChat)
+                и серверы OpenStreetMap — в объёме и для целей из раздела 5
+                <a href="#consent" class="link-inline" onclick="openLegal('consent'); return false;">Согласия</a>.
+                На серверы OpenStreetMap в Германии и других странах ЕС (участники Конвенции Совета Европы о защите данных)
+                уходят только координаты точек маршрута и IP-адрес, без e-mail и юзернейма. Государственным органам данные
+                передаются только в случаях, прямо предусмотренных законом.</p>
 
-                <h2>7. Твои права</h2>
-                <p>Ты можешь узнать, какие данные о тебе хранятся, попросить исправить или удалить их, отозвать согласие.
-                Напиши на <span data-op="email"></span> — ответим в течение 10 рабочих дней.</p>
+                <h2>6. Друзья</h2>
+                <p>Друга можно найти по юзернейму. Дружба начинается, только когда друг принял заявку. Для общей прогулки
+                Сервис учитывает ответы опроса друга, но сами ответы и e-mail друга тебе не показывает. Вписывать интересы
+                «за друга» можно только с его разрешения; такие ответы не связываются с его именем или почтой.</p>
 
-                <h2>8. Изменения</h2>
-                <p>Мы можем обновлять эту Политику. Актуальная версия всегда доступна на сайте.</p>
+                <h2>7. Защита данных</h2>
+                <ul>
+                    <li>Пароли хранятся только в виде хеша, их не видит даже Оператор.</li>
+                    <li>Данные передаются по защищённому соединению HTTPS.</li>
+                    <li>В базе включён контроль доступа: каждый пользователь видит только свои данные.</li>
+                    <li>После 5 неудачных попыток входа вход временно блокируется.</li>
+                    <li>Доступ к серверу и базе есть только у Оператора и разработчиков Сервиса, которые обязаны сохранять конфиденциальность.</li>
+                    <li>Об утечке данных Оператор сообщает в Роскомнадзор в течение 24 часов и проводит расследование (ст. 21 ч. 3.1).</li>
+                </ul>
+
+                <h2>8. Cookies и хранилище браузера</h2>
+                <p>Сайт сохраняет в твоём браузере данные для входа и временные настройки (localStorage). Рекламных
+                и аналитических счётчиков нет. Карта Яндекса может ставить свои cookies по правилам Яндекса.</p>
+
+                <h2>9. Твои права и сроки ответа</h2>
+                <ul>
+                    <li>Узнать, какие данные хранятся и зачем — 10 рабочих дней, можно продлить на 5 с объяснением (ст. 14, 20).</li>
+                    <li>Исправить неточные данные — 7 рабочих дней (ст. 20 ч. 3, ст. 21 ч. 2).</li>
+                    <li>Прекратить обработку — 10 рабочих дней, можно продлить на 5 (ст. 21 ч. 5.1).</li>
+                    <li>Отозвать согласие и удалить данные — 30 дней (ст. 21 ч. 5).</li>
+                </ul>
+                <p>Написать можно на <span data-op="email"></span> с почты аккаунта или бумажным письмом на адрес Оператора.
+                За несовершеннолетнего может обратиться родитель. Если ты считаешь, что данные обрабатываются неправильно,
+                можно пожаловаться в Роскомнадзор (rkn.gov.ru) или в суд.</p>
+
+                <h2>10. Уничтожение данных</h2>
+                <p>Данные уничтожаются в течение 30 дней после удаления аккаунта, отзыва согласия или достижения цели
+                (3 года без входа). Записи стираются из базы без возможности восстановления, из резервных копий — по мере
+                их замены, но не позже тех же 30 дней. Факт уничтожения Оператор записывает в журнал.</p>
+
+                <h2>11. Изменения Политики</h2>
+                <p>Новая редакция публикуется на этой странице с новой датой. Если меняются цели, перечень данных или
+                получатели, Сервис попросит новое согласие при следующем входе.</p>
             </div>
         </section>
 
@@ -4347,8 +4707,8 @@
 
                 <div class="field">
                     <label for="regUser">Юзернейм</label>
-                    <input id="regUser" type="text" autocomplete="username" placeholder="maria_walks">
-                    <div class="hint">3–20 символов: латинские буквы, цифры, точка и _</div>
+                    <input id="regUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="maria_walks" data-nick="regUserCount">
+                    <div class="hint" id="regUserHint"><span class="nick-count" id="regUserCount">0/20</span>3–20 символов: латинские буквы, цифры, точка и _</div>
                 </div>
 
                 <div class="field">
@@ -4368,11 +4728,16 @@
                 </div>
 
                 <div class="consent-box">
-                    <p class="consent-lead">Без этих документов никак, поставь галочку</p>
+                    <p class="consent-lead">Без этого аккаунт не создать — отметь обе галочки</p>
                     <label class="consent-row">
                         <input type="checkbox" id="regConsent" class="dot">
-                        <span>Даю <a href="#consent" class="link-inline" onclick="openLegal('consent'); return false;">согласие на обработку персональных данных</a> и принимаю <a href="#privacy" class="link-inline" onclick="openLegal('privacy'); return false;">Политику</a>. Мне есть 14 лет или родители разрешили регистрацию</span>
+                        <span>Даю <a href="#consent" class="link-inline" onclick="openLegal('consent'); return false;">согласие на обработку персональных данных</a></span>
                     </label>
+                    <label class="consent-row" style="margin-top:10px">
+                        <input type="checkbox" id="regAge" class="dot">
+                        <span>Мне исполнилось 14 лет</span>
+                    </label>
+                    <p class="consent-note" style="margin:12px 0 0">Как мы храним и защищаем данные — в <a href="#privacy" class="link-inline" onclick="openLegal('privacy'); return false;">Политике обработки персональных данных</a>.</p>
                 </div>
 
                 <button type="submit" class="btn-primary btn-full btn-big" id="registerBtn">Создать аккаунт</button>
@@ -4597,7 +4962,7 @@
                         <div class="nick-row">
                             <div class="nick-input">
                                 <span class="at">@</span>
-                                <input id="friendNick" type="text" maxlength="20" autocomplete="off" placeholder="юзернейм друга">
+                                <input id="friendNick" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="юзернейм друга" data-nick="">
                             </div>
                             <button type="button" class="btn-primary" id="findBtn" onclick="findFriend()">Найти</button>
                         </div>
@@ -5024,7 +5389,7 @@
             <div class="nick-row friends-add">
                 <div class="nick-input">
                     <span class="at">@</span>
-                    <input id="addFriendNick" type="text" maxlength="20" autocomplete="off" placeholder="юзернейм друга">
+                    <input id="addFriendNick" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="юзернейм друга" data-nick="">
                 </div>
                 <button type="button" class="btn-primary" id="addFriendBtn" onclick="addFriend()">Позвать</button>
             </div>
@@ -5037,23 +5402,140 @@
         <!-- =====================================================
              12. ПРОФИЛЬ
              ===================================================== -->
-        <section class="screen" id="profile">
+        <section class="screen wide" id="profile">
 
             <button class="back-link" onclick="go('home')">← На главную</button>
 
-            <div class="profile-head">
-                <div class="avatar big" id="profileAvatar">?</div>
+            <div class="form-msg" id="profileMsg"></div>
+            <div class="profile-warn" id="profileNickWarn" hidden>Твой ник длиннее 20 символов или с лишними знаками, поэтому друзья не смогут его ввести. Нажми «Сменить ник».</div>
+
+            <!-- v31: профиль-«пропуск» -->
+            <div class="pass" id="profilePass">
+                <div class="pass-main">
+                    <div class="pass-pattern" id="profilePattern" aria-hidden="true"></div>
+                    <button type="button" class="avatar big avatar-edit" id="profileAvatar" onclick="pickAvatar()" aria-label="Сменить фото профиля">?</button>
+                    <div class="pass-who">
+                        <div class="pass-kicker">Пропуск гуляющего</div>
+                        <div class="pass-name-row">
+                            <h1 id="profileName">@user</h1>
+                            <button type="button" class="pass-edit" onclick="openNickEdit()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>Сменить ник</button>
+                        </div>
+                        <div class="pass-sub" id="profileMail"></div>
+                        <div class="pass-sub" id="profileSince"></div>
+                        <div class="tags" id="profileTags"></div>
+                        <div class="pass-nick">
+                            <div class="nick-wrap"><span>@</span><input id="profileNick" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="maria_walks" data-nick="profileNickCount" aria-label="Новый ник"></div>
+                            <div class="hint" id="profileNickHint"><span class="nick-count" id="profileNickCount">0/20</span><span id="profileNickText">3–20 символов: латиница, цифры, точка и _. По нику тебя находят друзья.</span></div>
+                            <div class="row">
+                                <button type="button" class="btn-primary" id="saveNickBtn" onclick="saveNick()">Сохранить</button>
+                                <button type="button" class="btn-secondary" onclick="closeNickEdit()">Отмена</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pass-stub">
+                    <div class="pass-pattern" id="profileStubPattern" aria-hidden="true"></div>
+                    <div class="pass-big"><small>Пройдено</small><b id="profileKm">0 км</b></div>
+                    <div class="pass-two"><div><small>Прогулок</small><b id="profileWalksNum">0</b></div><div><small>Друзей</small><b id="profileFriendsNum">0</b></div></div>
+                </div>
+                <span class="pass-notch t"></span><span class="pass-notch b"></span>
+            </div>
+
+            <div class="pass-grid">
                 <div>
-                    <h1 id="profileName">@user</h1>
-                    <div class="drawer-mail" id="profileMail"></div>
+                    <div class="pass-h"><b>Мои маршруты</b><span id="profileRoutesCount"></span></div>
+                    <div class="pass-routes" id="profileRoutes"></div>
+                    <button type="button" class="pass-more" id="profileAllWalks" onclick="go('myWalks')" hidden>Все маршруты →</button>
+                </div>
+                <div>
+                    <div class="side-card">
+                        <div class="profile-title">Приватность</div>
+                        <button type="button" class="tg-row" id="showRoutesToggle" role="switch" aria-checked="false" onclick="toggleShowRoutes()">
+                            <span>
+                                <h4>Показывать мои маршруты</h4>
+                                <p>Друзья смогут открыть твой профиль и посмотреть маршруты. Точку старта (например, дом) мы не показываем.</p>
+                                <span class="tg-state" id="showRoutesState">Маршруты видишь только ты</span>
+                            </span>
+                            <span class="tg-switch"></span>
+                        </button>
+                    </div>
+                    <div class="side-card">
+                        <div class="profile-title">Символы на фоне</div>
+                        <p class="hint">Появляются на твоём пропуске и за курсором. Друзья тоже их видят.</p>
+                        <div class="symset" id="symSet"></div>
+                    </div>
+                    <div class="side-card">
+                        <div class="profile-title">Фото</div>
+                        <p class="hint">Фото видишь только ты: в профиле и в меню. Друзьям показываем первую букву ника.</p>
+                        <div class="row">
+                            <button type="button" class="btn-secondary" onclick="pickAvatar()">Загрузить фото</button>
+                            <button type="button" class="btn-secondary" id="removeAvatarBtn" onclick="removeAvatar()" hidden>Убрать фото</button>
+                        </div>
+                        <input type="file" id="avatarFile" accept="image/*" hidden>
+                    </div>
+                    <div class="side-card">
+                        <div class="profile-title">Друзья</div>
+                        <div class="friend-dots" id="profileFriendDots"></div>
+                        <div class="row" style="margin-top:16px">
+                            <button type="button" class="btn-primary" onclick="go('friends')">Мои друзья</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-msg" id="profileMsg"></div>
+            <div class="profile-prefs-title">Мои интересы</div>
             <div id="profilePrefs"></div>
 
             <div class="row" style="margin-top: 22px;">
                 <button class="btn-primary btn-big" onclick="editPreferences()">✎ Изменить предпочтения</button>
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             12б. v31: ПРОФИЛЬ ДРУГА
+             ===================================================== -->
+        <section class="screen wide" id="friendProfile">
+
+            <button class="back-link" onclick="go('friends')">← Друзья</button>
+            <div class="form-msg" id="fpMsg"></div>
+
+            <div class="pass" id="fpPass">
+                <div class="pass-main">
+                    <div class="pass-pattern" id="fpPattern" aria-hidden="true"></div>
+                    <div class="avatar big" id="fpAvatar">?</div>
+                    <div class="pass-who">
+                        <div class="pass-kicker">Пропуск гуляющего</div>
+                        <div class="pass-name-row"><h1 id="fpName">@user</h1></div>
+                        <div class="pass-sub" id="fpSince"></div>
+                        <div class="tags" id="fpTags"></div>
+                    </div>
+                </div>
+                <div class="pass-stub">
+                    <div class="pass-pattern" id="fpStubPattern" aria-hidden="true"></div>
+                    <div class="pass-big"><small>Пройдено</small><b id="fpKm">0 км</b></div>
+                    <div class="pass-two"><div><small>Прогулок</small><b id="fpWalksNum">0</b></div><div><small>Друзей</small><b id="fpFriendsNum">0</b></div></div>
+                </div>
+                <span class="pass-notch t"></span><span class="pass-notch b"></span>
+            </div>
+
+            <div class="pass-grid">
+                <div>
+                    <div class="pass-h"><b id="fpRoutesTitle">Маршруты</b><span id="fpRoutesCount"></span></div>
+                    <div class="pass-routes" id="fpRoutes"></div>
+                    <div class="pass-locked" id="fpLocked" hidden>
+                        <div class="lock"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6a35d2" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+                        <b id="fpLockedTitle">Маршруты скрыты</b>
+                        <p id="fpLockedText"></p>
+                    </div>
+                </div>
+                <div>
+                    <div class="side-card">
+                        <div class="profile-title">Погулять вместе</div>
+                        <p class="hint" style="margin-top:0">Соберём прогулку, в которой учтём и твои интересы, и интересы друга.</p>
+                        <div class="row"><button type="button" class="btn-primary" id="fpWalkBtn">Позвать гулять</button></div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -5084,7 +5566,7 @@ const SUPABASE_KEY = (CONFIG.key || "").trim();
 const screens = [...document.querySelectorAll(".screen")];
 let currentScreen = "welcome";
 
-const PRIVATE_SCREENS = ["home", "walkBuilder", "quickWalk", "routeSoon", "myWalks", "friends", "profile", "feedback"];
+const PRIVATE_SCREENS = ["home", "walkBuilder", "quickWalk", "routeSoon", "myWalks", "friends", "profile", "friendProfile", "feedback"];
 
 function go(id) {
     // экраны после входа не открываются без аккаунта
@@ -5101,8 +5583,12 @@ function go(id) {
 
     if (window.glyphWake) window.glyphWake();
     if (id === "myWalks") renderWalks();
+    if (id === "download") renderDownload();
     if (id === "friends") renderFriends();
     if (id === "profile") renderProfilePage();
+    if (id === "friendProfile") renderFriendProfile();
+    // v31: символы на фоне — свои, а в профиле друга — его
+    if (typeof applyBgSymbols === "function") applyBgSymbols(id === "friendProfile" && fpData ? fpData.bg_symbols : (currentUser && currentUser.bg_symbols));
     if (id === "home") updateWalksCount();
     if (id === "routeSoon" && currentRouteWalk) showRoute(currentRouteWalk);
     else if (typeof stopNav === "function") stopNav();
@@ -5154,7 +5640,7 @@ setInterval(tickClock, 10000);
 
     const CELL = 22;                  // размер клетки сетки
     const RADIUS = 140;               // радиус вокруг курсора
-    const SYMBOLS = ["›", "·", "○", "–", "+", "›", "◦", "›"];
+    let SYMBOLS = ["›", "·", "○", "–", "+", "›", "◦", "›"];   // v31: набор меняется в профиле
     const COLORS = ["#b0c4de", "#c9b3f5", "#8a5ae6", "#6a35d2"];
 
     let w, h, cols, rows, energy, glyph, dpr;
@@ -5275,6 +5761,14 @@ setInterval(tickClock, 10000);
         }
     }
     window.glyphWake = wake;
+
+    // v31: поменять набор символов (из профиля)
+    window.glyphSymbols = function (list) {
+        if (!list || !list.length || list.join("") === SYMBOLS.join("")) return;
+        SYMBOLS = list.slice();
+        if (glyph) glyph = glyph.map(() => Math.floor(Math.random() * SYMBOLS.length));
+        if (dpr) buildSprites();
+    };
 
     function onMove(x, y) {
         pointer.x = x;
@@ -5621,7 +6115,38 @@ function renderProfile(container, data, labelText = "Твой профиль") {
    ПРОВЕРКИ ПОЛЕЙ И СООБЩЕНИЯ
    ============================================================= */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const NICK_MAX = 20;
 const USER_RE = /^[a-zA-Z0-9_.]{3,20}$/;
+
+// v30.4: одно правило для ника везде (регистрация, профиль, поиск друга):
+// убираем «@» в начале, пробелы и кириллицу, не даём ввести больше 20 символов
+function cleanNick(v) {
+    return String(v || "").trim().replace(/^@+/, "").replace(/[^a-zA-Z0-9_.]/g, "").slice(0, NICK_MAX);
+}
+function updateNickCount(input) {
+    const cnt = input.dataset.nick && document.getElementById(input.dataset.nick);
+    if (!cnt) return;
+    cnt.textContent = input.value.length + "/" + NICK_MAX;
+    cnt.classList.toggle("full", input.value.length >= NICK_MAX);
+}
+document.querySelectorAll("input[data-nick]").forEach(input => {
+    input.addEventListener("input", () => {
+        const before = input.value;
+        const after = cleanNick(before);
+        if (after !== before) {
+            input.value = after;
+            const hint = input.dataset.nick && document.getElementById(input.dataset.nick).parentElement;
+            const dropped = before.replace(/^\s*@+/, "").replace(/\s+$/, "").length > NICK_MAX ? "long" : "chars";
+            if (hint) {
+                hint.classList.add("bad");
+                clearTimeout(input._nickT);
+                input._nickT = setTimeout(() => hint.classList.remove("bad"), 1800);
+            }
+            input.title = dropped === "long" ? "Максимум 20 символов" : "Только латиница, цифры, точка и _";
+        }
+        updateNickCount(input);
+    });
+});
 
 function showMsg(id, text, type = "error") {
     const el = document.getElementById(id);
@@ -5679,6 +6204,10 @@ function humanError(err) {
     if (m.includes("error sending") || m.includes("sending confirmation") || m.includes("sending recovery"))
         return "Supabase не смог отправить письмо. Выключи «Confirm email» в Authentication → Sign In / Providers (или подключи свою почту SMTP).";
     if (m.includes("rate limit") || m.includes("too many")) return "Слишком много попыток. Подожди немного и попробуй снова.";
+    if (m.includes("avatar") && (m.includes("column") || m.includes("schema cache")))
+        return "Чтобы сохранять фото, в Supabase → SQL Editor запусти файл supabase-profile.sql.";
+    if (m.includes("profiles_username_format") || m.includes("check constraint"))
+        return "Ник: 3–20 символов, только латиница, цифры, точка и _.";
     if (m.includes("could not find the function") || m.includes("schema cache") || m.includes("does not exist"))
         return "База не настроена: в Supabase → SQL Editor запусти недостающий SQL-файл (supabase-friends.sql, supabase-friends-list.sql или supabase-walks.sql).";
     if (m.includes("permission denied") || m.includes("row-level security"))
@@ -5740,7 +6269,16 @@ const demo = {
     async restore() {
         const id = store.get("tv_session");
         const user = id && this.users().find(u => u.id === id);
-        return user ? { id: user.id, username: user.username, email: user.email, survey: user.survey } : null;
+        return user ? this.me(user) : null;
+    },
+
+    // v31: что знаем о себе (+ настройки профиля)
+    me(user) {
+        return {
+            id: user.id, username: user.username, email: user.email, survey: user.survey,
+            avatar: user.avatar || null, show_routes: !!user.show_routes,
+            bg_symbols: user.bg_symbols || null, created: user.created || null
+        };
     },
 
     async login(identifier, password) {
@@ -5749,7 +6287,7 @@ const demo = {
             throw new Error("Invalid login credentials");
         }
         store.set("tv_session", user.id);
-        return { id: user.id, username: user.username, email: user.email, survey: user.survey };
+        return this.me(user);
     },
 
     async signUp(email, username, password, survey, consent) {
@@ -5794,6 +6332,55 @@ const demo = {
         if (!user) throw new Error("Not logged in");
         user.survey = survey;
         this.save(users);
+    },
+
+    // v30.4: смена ника и фото. changes = { username } или { avatar }
+    async updateProfile(changes) {
+        const users = this.users();
+        const user = users.find(u => u.id === store.get("tv_session"));
+        if (!user) throw new Error("Not logged in");
+        if ("username" in changes) {
+            const name = changes.username;
+            if (users.some(u => u.id !== user.id && u.username.toLowerCase() === name.toLowerCase())) {
+                throw new Error("USERNAME_TAKEN");
+            }
+            user.username = name;
+        }
+        if ("avatar" in changes) user.avatar = changes.avatar || null;
+        if ("show_routes" in changes) user.show_routes = !!changes.show_routes;
+        if ("bg_symbols" in changes) user.bg_symbols = changes.bg_symbols || null;
+        this.save(users);
+    },
+
+    // v31: ник занят кем-то другим?
+    async nickTaken(nick) {
+        const me = store.get("tv_session");
+        return this.users().some(u => u.id !== me && u.username.toLowerCase() === nick.toLowerCase());
+    },
+
+    // v31: профиль друга (только если он в друзьях)
+    async friendProfile(username) {
+        const user = this.users().find(u => u.username.toLowerCase() === username.toLowerCase());
+        const mine = store.get(this.friendsKey()) || [];
+        if (!user || !mine.some(n => n.toLowerCase() === user.username.toLowerCase())) return null;
+        const walks = store.get("tv_walks_" + user.id) || [];
+        return {
+            username: user.username,
+            bg_symbols: user.bg_symbols || null,
+            show_routes: !!user.show_routes,
+            friends_since: null,
+            walks_count: walks.length,
+            walk_km: walks.reduce((a, w) => a + walkKm(w), 0),
+            friends_count: (store.get("tv_friends_" + user.id) || []).length,
+            interests: (user.survey && user.survey.cityInterests) || []
+        };
+    },
+
+    // v31: маршруты друга — без точки старта
+    async friendWalks(username) {
+        const user = this.users().find(u => u.username.toLowerCase() === username.toLowerCase());
+        if (!user || !user.show_routes) return [];
+        return (store.get("tv_walks_" + user.id) || []).map(publicWalk).filter(Boolean);
     },
 
     walksKey() {
@@ -5875,19 +6462,89 @@ const demo = {
 /* ---------- Supabase-движок ---------- */
 const cloud = {
     async profileFor(user) {
-        const { data } = await sb
+        // v30.4: колонка avatar появляется после supabase-profile.sql; без неё читаем как раньше
+        // v31: show_routes и bg_symbols появляются после supabase-profile-v31.sql
+        let { data, error } = await sb
             .from("profiles")
-            .select("username, survey")
+            .select("username, survey, avatar, show_routes, bg_symbols")
             .eq("id", user.id)
             .maybeSingle();
+        if (error) ({ data, error } = await sb
+            .from("profiles")
+            .select("username, survey, avatar")
+            .eq("id", user.id)
+            .maybeSingle());
+        if (error) {
+            ({ data } = await sb
+                .from("profiles")
+                .select("username, survey")
+                .eq("id", user.id)
+                .maybeSingle());
+        }
 
         const meta = user.user_metadata || {};
         return {
             id: user.id,
             username: (data && data.username) || meta.username || user.email,
             email: user.email,
-            survey: (data && data.survey) || meta.survey || null
+            survey: (data && data.survey) || meta.survey || null,
+            avatar: (data && data.avatar) || null,
+            show_routes: !!(data && data.show_routes),
+            bg_symbols: (data && data.bg_symbols) || null,
+            created: user.created_at || null
         };
+    },
+
+    // v31: ник занят кем-то другим? null — не знаем (нет функции в базе)
+    async nickTaken(nick) {
+        const { data, error } = await sb.rpc("nick_taken_by_other", { p_username: nick });
+        if (error) return null;
+        return !!data;
+    },
+
+    // v31: профиль друга. null — не друзья или такого нет
+    async friendProfile(username) {
+        const { data, error } = await sb.rpc("friend_profile", { p_username: username });
+        if (error) throw error;
+        const row = Array.isArray(data) ? data[0] : data;
+        if (!row) return null;
+        return {
+            username: row.username,
+            bg_symbols: row.bg_symbols || null,
+            show_routes: !!row.show_routes,
+            friends_since: row.friends_since || null,
+            walks_count: row.walks_count || 0,
+            walk_km: Number(row.walk_km) || 0,
+            friends_count: row.friends_count || 0,
+            interests: Array.isArray(row.interests) ? row.interests : []
+        };
+    },
+
+    // v31: маршруты друга (база сама убирает точку старта и проверяет переключатель)
+    async friendWalks(username) {
+        const { data, error } = await sb.rpc("friend_walks", { p_username: username });
+        if (error) throw error;
+        return (data || []).map(r => ({
+            id: r.id, kind: r.kind, title: r.title, created_at: r.created_at,
+            params: { pace: r.pace || null, route: { stops: r.stops || [], plan: r.plan || null } }
+        }));
+    },
+
+    // v30.4: смена ника и фото. changes = { username } или { avatar }
+    async updateProfile(changes) {
+        const id = await this.uid();
+        if ("username" in changes) {
+            const { data: taken, error: rpcError } = await sb.rpc("username_taken", { p_username: changes.username });
+            if (!rpcError && taken) throw new Error("USERNAME_TAKEN");
+        }
+        const { error } = await sb.from("profiles").update(changes).eq("id", id);
+        if (error) {
+            if (error.code === "23505") throw new Error("USERNAME_TAKEN");
+            throw error;
+        }
+        if ("username" in changes) {
+            sb.auth.updateUser({ data: { username: changes.username } }).catch(() => {});
+        }
     },
 
     async restore() {
@@ -6094,7 +6751,7 @@ document.getElementById("registerForm").addEventListener("submit", async e => {
     hideMsg("registerMsg");
 
     const email = document.getElementById("regEmail").value.trim();
-    const username = document.getElementById("regUser").value.trim();
+    const username = document.getElementById("regUser").value.trim().replace(/^@+/, "");
     const pass = document.getElementById("regPass").value;
     const pass2 = document.getElementById("regPass2").value;
 
@@ -6116,11 +6773,14 @@ document.getElementById("registerForm").addEventListener("submit", async e => {
     }
 
     if (!document.getElementById("regConsent").checked) {
-        return showMsg("registerMsg", "Чтобы создать аккаунт, поставь галочку согласия внизу.");
+        return showMsg("registerMsg", "Чтобы создать аккаунт, отметь галочку согласия на обработку данных.");
+    }
+    if (!document.getElementById("regAge").checked) {
+        return showMsg("registerMsg", "Регистрация доступна с 14 лет. Отметь галочку про возраст, если тебе уже есть 14.");
     }
 
     const survey = store.get("tochkaVstrechiProfile") || answers;
-    const consent = { version: LEGAL_VERSION, at: new Date().toISOString(), age14: true };
+    const consent = { version: LEGAL_VERSION, at: new Date().toISOString(), consentPD: true, age14: true };
 
     setLoading("registerBtn", true, "Создаём аккаунт…");
     try {
@@ -6215,6 +6875,7 @@ function enterApp(user) {
     document.body.classList.add("logged");
     fillUserInfo();
     go("home");
+    applyBgSymbols(user.bg_symbols);
     loadFriends(true).catch(() => {});
 }
 
@@ -6224,6 +6885,7 @@ async function logout() {
     } catch (e) { /* ничего страшного */ }
     currentUser = null;
     document.body.classList.remove("logged");
+    applyBgSymbols(null);
     closeMenu();
     go("welcome");
 }
@@ -6253,18 +6915,24 @@ document.addEventListener("keydown", e => {
 });
 
 /* ---------- согласие и политика ---------- */
-// ⚠️ ЗАПОЛНИ: кто отвечает за данные (оператор). Если тебе меньше 18 — лучше указать родителя.
+// ⚠️ ЗАПОЛНИ перед открытым запуском (152-ФЗ, ст. 9 ч. 4): ФИО и почтовый адрес оператора (папа),
+// хостинг в РФ после переезда и номер из реестра Роскомнадзора. Пока поле в [скобках] — оно не заполнено.
 const OPERATOR = {
-    name: "частное лицо",
-    city: "Москва",
-    email: "tochka.vashei.vstrechi@gmail.com"
+    name: "частное лицо",                       // → «Фамилия Имя Отчество»
+    address: "[почтовый адрес — заполнить]",     // → «индекс, г. Москва, …» или абонентский ящик
+    email: "tochka.vashei.vstrechi@gmail.com",
+    host: "[хостинг в РФ — заполнить после переезда]",   // → напр. ООО «Яндекс.Облако»
+    hostAddress: "[адрес хостинга из договора]",
+    hostCity: "[город дата-центра]",
+    rkn: ""                                      // → номер в реестре операторов ПДн; пусто = строка скрыта
 };
-const LEGAL_VERSION = "2026-10-14";
+const LEGAL_VERSION = "2026-11-06";
 let legalBack = "welcome";
 
 function openLegal(id) {
     if (currentScreen !== "consent" && currentScreen !== "privacy") legalBack = currentScreen || "welcome";
-    document.querySelectorAll("[data-op]").forEach(el => { el.textContent = OPERATOR[el.dataset.op]; });
+    document.querySelectorAll("[data-op]").forEach(el => { el.textContent = OPERATOR[el.dataset.op] || ""; });
+    document.querySelectorAll("[data-op-row]").forEach(el => { el.hidden = !OPERATOR[el.dataset.opRow]; });
     document.querySelectorAll("[data-legal-version]").forEach(el => { el.textContent = LEGAL_VERSION.split("-").reverse().join("."); });
     go(id);
 }
@@ -6290,10 +6958,195 @@ function fillUserInfo() {
     document.getElementById("homeUser").textContent = "@" + name;
     document.getElementById("drawerName").textContent = "@" + name;
     document.getElementById("drawerMail").textContent = currentUser.email || "";
-    document.getElementById("drawerAvatar").textContent = letter;
     document.getElementById("profileName").textContent = "@" + name;
     document.getElementById("profileMail").textContent = currentUser.email || "";
-    document.getElementById("profileAvatar").textContent = letter;
+    ["drawerAvatar", "profileAvatar"].forEach(id => {
+        const el = document.getElementById(id);
+        el.textContent = letter;
+        el.classList.toggle("has-photo", !!currentUser.avatar);
+        el.style.backgroundImage = currentUser.avatar ? `url("${currentUser.avatar}")` : "";
+    });
+    document.getElementById("removeAvatarBtn").hidden = !currentUser.avatar;
+    document.getElementById("profileNickWarn").hidden = USER_RE.test(name);
+}
+
+
+/* =============================================================
+   v30.4: СМЕНА НИКА И ФОТО
+   ============================================================= */
+function fillNickEditor() {
+    const input = document.getElementById("profileNick");
+    const name = (currentUser && currentUser.username) || "";
+    input.value = USER_RE.test(name) ? name : cleanNick(name);
+    updateNickCount(input);
+}
+
+async function saveNick() {
+    hideMsg("profileMsg");
+    const input = document.getElementById("profileNick");
+    const nick = cleanNick(input.value);
+    input.value = nick;
+    updateNickCount(input);
+
+    if (!USER_RE.test(nick)) {
+        markInvalid("profileNick");
+        return showMsg("profileMsg", "Ник: 3–20 символов, только латиница, цифры, точка и _.");
+    }
+    if (nick === currentUser.username) {
+        closeNickEdit();
+        return;
+    }
+
+    setLoading("saveNickBtn", true, "Сохраняю…");
+    try {
+        await auth.updateProfile({ username: nick });
+        currentUser.username = nick;
+        fillUserInfo();
+        closeNickEdit();
+        showMsg("profileMsg", `Готово! Теперь ты @${nick}. Входить можно и по новому нику.`, "ok");
+    } catch (err) {
+        if (err && err.message === "USERNAME_TAKEN") {
+            markInvalid("profileNick");
+            showMsg("profileMsg", "Такой ник уже занят. Попробуй другой.");
+        } else {
+            showMsg("profileMsg", humanError(err));
+        }
+    } finally {
+        setLoading("saveNickBtn", false);
+    }
+}
+
+function pickAvatar() {
+    const file = document.getElementById("avatarFile");
+    file.value = "";
+    file.click();
+}
+
+// уменьшаем фото до квадрата 256×256 (≈15–30 КБ), чтобы оно быстро грузилось и не занимало место
+function shrinkPhoto(file) {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            const side = Math.min(img.naturalWidth, img.naturalHeight);
+            const sx = (img.naturalWidth - side) / 2;
+            const sy = (img.naturalHeight - side) / 2;
+            const c = document.createElement("canvas");
+            c.width = c.height = 256;
+            const ctx = c.getContext("2d");
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.drawImage(img, sx, sy, side, side, 0, 0, 256, 256);
+            URL.revokeObjectURL(url);
+            resolve(c.toDataURL("image/jpeg", 0.82));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("BAD_IMAGE")); };
+        img.src = url;
+    });
+}
+
+document.getElementById("avatarFile").addEventListener("change", async e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    hideMsg("profileMsg");
+    if (!/^image\//.test(file.type)) return showMsg("profileMsg", "Это не похоже на картинку. Выбери фото (JPG или PNG).");
+    if (file.size > 15 * 1024 * 1024) return showMsg("profileMsg", "Фото слишком большое (больше 15 МБ). Выбери другое.");
+    try {
+        const avatar = await shrinkPhoto(file);
+        await auth.updateProfile({ avatar });
+        currentUser.avatar = avatar;
+        fillUserInfo();
+        showMsg("profileMsg", "Фото обновлено ✓", "ok");
+    } catch (err) {
+        showMsg("profileMsg", err && err.message === "BAD_IMAGE"
+            ? "Не получилось открыть это фото. Попробуй другое (JPG или PNG)."
+            : humanError(err));
+    }
+});
+
+async function removeAvatar() {
+    hideMsg("profileMsg");
+    try {
+        await auth.updateProfile({ avatar: null });
+        currentUser.avatar = null;
+        fillUserInfo();
+        showMsg("profileMsg", "Фото убрали.", "ok");
+    } catch (err) {
+        showMsg("profileMsg", humanError(err));
+    }
+}
+
+
+/* =============================================================
+   v30.4: ЭКРАН «СКАЧАТЬ ПРИЛОЖЕНИЕ»
+   ============================================================= */
+// файл приложения кладётся на GitHub рядом с index.html под этим именем
+const APK_FILE = "tochka-vstrechi.apk";
+
+function downloadApk() {
+    const a = document.createElement("a");
+    a.href = APK_FILE;
+    a.download = APK_FILE;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
+function renderDownload() {
+    const ua = navigator.userAgent || "";
+    const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/.test(ua);
+    const inAndroidApp = /TochkaVstrechiApp/.test(ua);
+    const standalone = window.navigator.standalone === true ||
+        (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+
+    const android = document.getElementById("dlAndroid");
+    const ios = document.getElementById("dlIos");
+    android.classList.toggle("mine", isAndroid);
+    ios.classList.toggle("mine", isIOS);
+    // карточка «своего» телефона — первой
+    if (isIOS) ios.parentNode.insertBefore(ios, android);
+    else android.parentNode.insertBefore(android, ios);
+
+    const apkStatus = document.getElementById("apkStatus");
+    const apkBtn = document.getElementById("apkBtn");
+    // на этой странице и так есть инструкция — всплывающая подсказка для айфона не нужна
+    const a2hs = document.getElementById("a2hs");
+    if (a2hs) a2hs.classList.remove("show");
+    if (inAndroidApp) {
+        apkStatus.textContent = "✓ Ты уже в приложении.";
+        apkStatus.className = "dl-status ok";
+        apkBtn.hidden = true;
+    } else if (location.protocol.startsWith("http")) {
+        // проверяем, что файл .apk уже лежит рядом с сайтом
+        fetch(APK_FILE, { method: "HEAD", cache: "no-store" }).then(r => {
+            if (!r.ok) {
+                apkBtn.disabled = true;
+                apkStatus.textContent = "Файл для Android скоро появится здесь. Загляни чуть позже 💜";
+            }
+        }).catch(() => {});
+    }
+
+    const iosStatus = document.getElementById("iosStatus");
+    if (isIOS && standalone) {
+        iosStatus.textContent = "✓ Уже на экране «Домой», ты в приложении.";
+        iosStatus.className = "dl-status ok";
+    } else {
+        iosStatus.textContent = "";
+        iosStatus.className = "dl-status";
+    }
+}
+
+async function copySiteLink() {
+    const link = location.origin + location.pathname;
+    const status = document.getElementById("iosStatus");
+    try {
+        await navigator.clipboard.writeText(link);
+        status.textContent = "Ссылка скопирована. Вставь её в адресную строку Safari.";
+    } catch (e) {
+        status.textContent = "Ссылка на сайт: " + link;
+    }
+    status.className = "dl-status ok";
 }
 
 
@@ -6302,6 +7155,8 @@ function fillUserInfo() {
    ============================================================= */
 function renderProfilePage() {
     fillUserInfo();
+    fillNickEditor();
+    renderProfileV31();
     const box = document.getElementById("profilePrefs");
 
     if (!currentUser || !currentUser.survey) {
@@ -6314,6 +7169,443 @@ function renderProfilePage() {
     }
 
     renderProfile(box, currentUser.survey, "Твои предпочтения");
+}
+
+/* =============================================================
+   v31: ПРОФИЛЬ-«ПРОПУСК», ПРОФИЛЬ ДРУГА, СИМВОЛЫ НА ФОНЕ
+   ============================================================= */
+// наборы символов для фона (только символы, не смайлики: ︎ просит текстовый вид)
+const SYMBOL_SETS = [
+    { id: "site",    name: "Обычные",  s: ["›", "·", "○", "–", "+", "›", "◦", "›"] },
+    { id: "stars",   name: "Звёзды",   s: ["✦", "✧", "★", "☆", "·"] },
+    { id: "dots",    name: "Точки",    s: ["•", "◦", "·", "○", "●"] },
+    { id: "notes",   name: "Ноты",     s: ["♪", "♫", "♩", "·"] },
+    { id: "flowers", name: "Цветы",    s: ["✿", "❀", "❁", "·"] },
+    { id: "hearts",  name: "Сердечки", s: ["♡", "♥", "·"] },
+    { id: "rhombs",  name: "Ромбы",    s: ["◆", "◇", "❖", "·"] },
+    { id: "waves",   name: "Волны",    s: ["~", "≈", "∿", "·"] }
+];
+const VS15 = "︎";
+var fpUser = null;      // чей профиль открыт
+var fpData = null;      // данные друга
+
+function symbolSet(id) {
+    return SYMBOL_SETS.find(t => t.id === id) || SYMBOL_SETS[0];
+}
+
+function applyBgSymbols(id) {
+    if (window.glyphSymbols) window.glyphSymbols(symbolSet(id).s.map(c => c === "·" || c === "–" || c === "+" || c === "~" ? c : c + VS15));
+}
+
+// псевдослучайные числа, чтобы узор у человека всегда был одинаковый
+function seededRandom(seed) {
+    let h = 2166136261;
+    String(seed || "x").split("").forEach(ch => { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); });
+    return () => { h = (Math.imul(h ^ (h >>> 15), 2246822507) + 0x6d2b79f5) | 0; return ((h >>> 0) % 100000) / 100000; };
+}
+
+function drawPattern(el, setId, count, seed, colors) {
+    if (!el) return;
+    const set = symbolSet(setId).s;
+    const r = seededRandom(seed);
+    el.innerHTML = "";
+    for (let i = 0; i < count; i++) {
+        const ch = set[Math.floor(r() * set.length)];
+        const it = document.createElement("i");
+        it.textContent = ch + VS15;
+        it.style.left = (r() * 100).toFixed(1) + "%";
+        it.style.top = (r() * 100).toFixed(1) + "%";
+        it.style.fontSize = (10 + Math.round(r() * 14)) + "px";
+        it.style.color = colors[Math.floor(r() * colors.length)];
+        it.style.opacity = (0.14 + r() * 0.22).toFixed(2);
+        it.style.transform = "rotate(" + Math.round((r() - 0.5) * 40) + "deg)";
+        el.appendChild(it);
+    }
+}
+
+function drawPassPatterns(prefix, setId, seed) {
+    drawPattern(document.getElementById(prefix + "Pattern"), setId, 34, seed + "m", ["#b0c4de", "#c9b3f5", "#8a5ae6", "#6a35d2"]);
+    drawPattern(document.getElementById(prefix + "StubPattern"), setId, 18, seed + "s", ["#fff"]);
+}
+
+// километры прогулки: минуты пешком × скорость
+function walkKm(walk) {
+    const p = (walk && walk.params) || {};
+    const plan = p.route && p.route.plan;
+    if (!plan || !plan.walkMin) return 0;
+    return plan.walkMin * walkSpeed(p);
+}
+
+function kmText(km) {
+    if (!km) return "0";
+    return km < 10 ? km.toFixed(1).replace(".", ",") : String(Math.round(km));
+}
+
+function minutesText(min) {
+    min = Math.round(min || 0);
+    if (!min) return "";
+    const h = Math.floor(min / 60), m = min % 60;
+    return (h ? h + " ч" : "") + (h && m ? " " : "") + (m ? m + " мин" : "");
+}
+
+// «с сентября 2026»
+function monthYear(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return "";
+    const M = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+    return M[d.getMonth()] + " " + d.getFullYear();
+}
+
+// маршрут без точки старта: только места прогулки (так он уходит друзьям)
+function publicWalk(walk) {
+    const route = walk && walk.params && walk.params.route;
+    if (!route) return null;
+    const src = Array.isArray(route.legs) && route.legs.length && route.legs[0].stops ? route.legs[0].stops : route.stops;
+    const stops = (src || []).filter(s => s && Array.isArray(s.at)).map(s => ({ name: s.name, at: s.at }));
+    if (!stops.length) return null;
+    return {
+        id: walk.id, kind: walk.kind, title: walk.title, created_at: walk.created_at,
+        params: { pace: walk.params.pace || null, route: { stops, plan: route.plan || null } }
+    };
+}
+
+// мини-карта: только места, без дома
+function miniMapSvg(walk) {
+    const W = 130, H = 150, pad = 26;
+    const pw = publicWalk(walk);
+    const pts = pw ? pw.params.route.stops.map(s => s.at) : [];
+    const r = seededRandom(walk.id || walk.title || "w");
+    let svg = `<rect width="${W}" height="${H}" fill="#f4f2fa"/>`;
+    svg += `<path d="M0,${H * .8} C${W * .3},${H * .66} ${W * .6},${H * .98} ${W},${H * .74} L${W},${H} L0,${H}Z" fill="#e3eaf4"/>`;
+    svg += `<ellipse cx="${W * (.25 + r() * .5)}" cy="${H * (.25 + r() * .25)}" rx="${W * .16}" ry="${H * .17}" fill="#ece5fb"/>`;
+    for (let i = 0; i < 6; i++) { const y = r() * H; svg += `<path d="M0,${y} L${W},${y + (r() - .5) * H * .5}" stroke="#fff" stroke-width="${2 + r() * 3}"/>`; }
+    for (let i = 0; i < 5; i++) { const x = r() * W; svg += `<path d="M${x},0 L${x + (r() - .5) * W * .3},${H}" stroke="#fff" stroke-width="${2 + r() * 3}"/>`; }
+    if (pts.length) {
+        const lats = pts.map(p => p[0]), lons = pts.map(p => p[1]);
+        const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLon = Math.min(...lons), maxLon = Math.max(...lons);
+        const k = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
+        const spanX = Math.max((maxLon - minLon) * k, 0.002), spanY = Math.max(maxLat - minLat, 0.002);
+        const scale = Math.min((W - 2 * pad) / spanX, (H - 2 * pad - 24) / spanY);
+        const cx = (minLon + maxLon) / 2, cy = (minLat + maxLat) / 2;
+        const xy = pts.map(p => [W / 2 + (p[1] - cx) * k * scale, H / 2 + 12 - (p[0] - cy) * scale]);
+        let d = `M${xy[0][0].toFixed(1)},${xy[0][1].toFixed(1)}`;
+        for (let i = 1; i < xy.length; i++) {
+            const a = xy[i - 1], b = xy[i], m = (a[0] + b[0]) / 2;
+            d += ` C${m.toFixed(1)},${a[1].toFixed(1)} ${m.toFixed(1)},${b[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)}`;
+        }
+        svg += `<path d="${d}" fill="none" stroke="#6a35d2" stroke-opacity=".18" stroke-width="11" stroke-linecap="round"/>`;
+        svg += `<path d="${d}" fill="none" stroke="#6a35d2" stroke-width="4" stroke-linecap="round"/>`;
+        xy.slice(0, -1).forEach(q => { svg += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="4.5" fill="#fff" stroke="#6a35d2" stroke-width="2.5"/>`; });
+        const e = xy[xy.length - 1];
+        svg += `<g transform="translate(${(e[0] - 10).toFixed(1)},${(e[1] - 26).toFixed(1)})"><path d="M10 0C4.5 0 0 4.5 0 10c0 7.3 10 16 10 16s10-8.7 10-16C20 4.5 15.5 0 10 0z" fill="#6a35d2"/><circle cx="10" cy="10" r="4" fill="#fff"/></g>`;
+    }
+    return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg}</svg>`;
+}
+
+// карточка-«корешок» маршрута
+function routeStub(walk, opts) {
+    const card = document.createElement(opts.onClick ? "button" : "div");
+    card.className = "route-stub";
+    if (opts.onClick) { card.type = "button"; card.addEventListener("click", opts.onClick); }
+
+    const map = document.createElement("div");
+    map.className = "mini-map";
+    map.innerHTML = miniMapSvg(walk);
+
+    const body = document.createElement("div");
+    body.className = "rs-body";
+    const title = document.createElement("div");
+    title.className = "rs-title";
+    title.textContent = walk.title || "Прогулка";
+    const meta = document.createElement("div");
+    meta.className = "rs-meta";
+    const plan = walk.params && walk.params.route && walk.params.route.plan;
+    const d = new Date(walk.created_at);
+    meta.textContent = [isNaN(d) ? "" : d.toLocaleDateString("ru-RU", { day: "numeric", month: "short" }), plan ? minutesText(plan.minutes) : ""].filter(Boolean).join(" · ");
+    body.append(title, meta);
+    if (opts.goText) {
+        const go = document.createElement("button");
+        go.type = "button";
+        go.className = "rs-go";
+        go.textContent = opts.goText;
+        go.addEventListener("click", e => { e.stopPropagation(); opts.onGo(go); });
+        body.appendChild(go);
+    }
+
+    const km = document.createElement("div");
+    km.className = "rs-km";
+    km.innerHTML = `<b>${kmText(walkKm(walk))}</b><small>км</small>`;
+
+    card.append(map, body, km);
+    return card;
+}
+
+function interestTags(list) {
+    return (list || []).slice(0, 3).map(k => (labels.cityInterests && labels.cityInterests[k]) || k);
+}
+
+function fillTags(el, words) {
+    el.innerHTML = "";
+    words.forEach(w => {
+        const t = document.createElement("span");
+        t.className = "tag";
+        t.textContent = w;
+        el.appendChild(t);
+    });
+}
+
+/* ---------- свой профиль ---------- */
+async function renderProfileV31() {
+    if (!currentUser) return;
+    closeNickEdit();
+    const since = currentUser.created ? monthYear(currentUser.created) : "";
+    document.getElementById("profileSince").textContent = since ? "С нами с " + since : "";
+    fillTags(document.getElementById("profileTags"), interestTags(currentUser.survey && currentUser.survey.cityInterests));
+    setShowRoutesUI(!!currentUser.show_routes);
+    renderSymSet();
+    drawPassPatterns("profile", currentUser.bg_symbols, currentUser.username);
+
+    // друзья
+    let friends = [];
+    try { friends = onlyFriends(await loadFriends()); } catch (e) { /* без друзей */ }
+    document.getElementById("profileFriendsNum").textContent = friends.length;
+    const dots = document.getElementById("profileFriendDots");
+    dots.innerHTML = "";
+    friends.slice(0, 4).forEach(f => {
+        const i = document.createElement("i");
+        i.textContent = f.username.charAt(0);
+        i.title = "@" + f.username;
+        dots.appendChild(i);
+    });
+    if (friends.length > 4) { const i = document.createElement("i"); i.textContent = "+" + (friends.length - 4); dots.appendChild(i); }
+    if (!friends.length) { const em = document.createElement("em"); em.style.marginLeft = "0"; em.textContent = "Пока никого — позови друга по нику"; dots.appendChild(em); }
+
+    // маршруты и километры
+    const box = document.getElementById("profileRoutes");
+    box.innerHTML = '<p class="subtitle">Загружаем…</p>';
+    let list = [];
+    try { list = await auth.listWalks(); } catch (e) { box.innerHTML = ""; showMsg("profileMsg", humanError(e)); return; }
+    const km = list.reduce((a, w) => a + walkKm(w), 0);
+    document.getElementById("profileKm").textContent = kmText(km) + " км";
+    document.getElementById("profileWalksNum").textContent = list.length;
+    const withRoute = list.filter(w => w.params && w.params.route);
+    document.getElementById("profileRoutesCount").textContent = withRoute.length > 4 ? "4 из " + withRoute.length : "";
+    document.getElementById("profileAllWalks").hidden = !list.length;
+    box.innerHTML = "";
+    if (!withRoute.length) {
+        box.innerHTML = '<div class="pass-empty"><b>Пока ни одного маршрута</b><p>Собери первую прогулку, и она появится на твоём пропуске.</p><div class="row"><button class="btn-primary" onclick="startBuilder()">Построить маршрут</button></div></div>';
+        return;
+    }
+    withRoute.slice(0, 4).forEach(w => box.appendChild(routeStub(w, { onClick: () => openRoute(w) })));
+}
+
+/* ---------- смена ника на пропуске ---------- */
+let nickCheckTimer = null;
+function openNickEdit() {
+    document.getElementById("profilePass").classList.add("editing");
+    fillNickEditor();
+    nickLiveCheck();
+    const input = document.getElementById("profileNick");
+    input.focus();
+    input.select();
+}
+
+function closeNickEdit() {
+    document.getElementById("profilePass").classList.remove("editing");
+}
+
+function setNickHint(text, cls) {
+    document.getElementById("profileNickText").textContent = text;
+    const hint = document.getElementById("profileNickHint");
+    hint.classList.toggle("bad", cls === "bad");
+    hint.classList.toggle("ok", cls === "ok");
+}
+
+function nickLiveCheck() {
+    const input = document.getElementById("profileNick");
+    const nick = cleanNick(input.value);
+    const btn = document.getElementById("saveNickBtn");
+    clearTimeout(nickCheckTimer);
+    const base = "3–20 символов: латиница, цифры, точка и _. По нику тебя находят друзья.";
+    if (!currentUser || nick === currentUser.username) { setNickHint(base, ""); btn.disabled = false; return; }
+    if (nick.length < 3) { setNickHint(nick.length ? "Минимум 3 символа" : base, nick.length ? "bad" : ""); btn.disabled = true; return; }
+    btn.disabled = false;
+    setNickHint(base, "");
+    nickCheckTimer = setTimeout(async () => {
+        let taken = null;
+        try { taken = await auth.nickTaken(nick); } catch (e) { taken = null; }
+        if (cleanNick(input.value) !== nick) return;
+        if (taken === true) { setNickHint("Ник @" + nick + " уже занят, попробуй другой", "bad"); btn.disabled = true; }
+        else if (taken === false) setNickHint("@" + nick + " свободен", "ok");
+    }, 350);
+}
+document.getElementById("profileNick").addEventListener("input", () => setTimeout(nickLiveCheck, 0));
+document.getElementById("profileNick").addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); saveNick(); }
+    if (e.key === "Escape") closeNickEdit();
+});
+
+/* ---------- «Показывать мои маршруты» ---------- */
+function setShowRoutesUI(on) {
+    const t = document.getElementById("showRoutesToggle");
+    t.setAttribute("aria-checked", on ? "true" : "false");
+    document.getElementById("showRoutesState").textContent = on ? "Друзья видят маршруты" : "Маршруты видишь только ты";
+}
+
+// понятное сообщение, если в базе ещё нет новых колонок
+function v31Error(err) {
+    const m = String((err && (err.message || err.details)) || "");
+    if (/show_routes|bg_symbols|friend_profile|friend_walks|column|schema cache|function/i.test(m)) {
+        return "Чтобы это сохранилось, нужно один раз запустить в Supabase файл supabase-profile-v31.sql.";
+    }
+    return humanError(err);
+}
+
+async function toggleShowRoutes() {
+    hideMsg("profileMsg");
+    const on = !currentUser.show_routes;
+    setShowRoutesUI(on);
+    try {
+        await auth.updateProfile({ show_routes: on });
+        currentUser.show_routes = on;
+        showMsg("profileMsg", on ? "Готово! Друзья теперь видят твои маршруты (без точки старта)." : "Маршруты скрыты. Их видишь только ты.", "ok");
+    } catch (err) {
+        setShowRoutesUI(!on);
+        showMsg("profileMsg", v31Error(err));
+    }
+}
+
+/* ---------- символы на фоне ---------- */
+function renderSymSet() {
+    const box = document.getElementById("symSet");
+    const cur = symbolSet(currentUser && currentUser.bg_symbols).id;
+    box.innerHTML = "";
+    SYMBOL_SETS.forEach(t => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = t.id === cur ? "on" : "";
+        b.setAttribute("aria-pressed", t.id === cur ? "true" : "false");
+        const sample = t.s.filter(x => x !== "·").slice(0, 2).map(x => x + VS15).join("");
+        b.innerHTML = `<b>${sample}</b><small>${t.name}</small>`;
+        b.addEventListener("click", () => pickBgSymbols(t.id));
+        box.appendChild(b);
+    });
+}
+
+async function pickBgSymbols(id) {
+    hideMsg("profileMsg");
+    const before = currentUser.bg_symbols || null;
+    const value = id === "site" ? null : id;
+    currentUser.bg_symbols = value;
+    renderSymSet();
+    drawPassPatterns("profile", value, currentUser.username);
+    applyBgSymbols(value);
+    try {
+        await auth.updateProfile({ bg_symbols: value });
+    } catch (err) {
+        currentUser.bg_symbols = before;
+        renderSymSet();
+        drawPassPatterns("profile", before, currentUser.username);
+        applyBgSymbols(before);
+        showMsg("profileMsg", v31Error(err));
+    }
+}
+
+/* ---------- профиль друга ---------- */
+function openFriendProfile(username) {
+    fpUser = username;
+    fpData = null;
+    go("friendProfile");
+}
+
+async function renderFriendProfile() {
+    const name = fpUser;
+    if (!name) return go("friends");
+    document.getElementById("fpName").textContent = "@" + name;
+    document.getElementById("fpAvatar").textContent = name.charAt(0);
+    document.getElementById("fpSince").textContent = "";
+    document.getElementById("fpTags").innerHTML = "";
+    document.getElementById("fpRoutesTitle").textContent = "Маршруты @" + name;
+    document.getElementById("fpRoutesCount").textContent = "";
+    document.getElementById("fpLocked").hidden = true;
+    document.getElementById("fpWalkBtn").onclick = () => walkWithFriend(name);
+    ["fpKm", "fpWalksNum", "fpFriendsNum"].forEach(id => { document.getElementById(id).textContent = "…"; });
+    drawPassPatterns("fp", null, name);
+    const box = document.getElementById("fpRoutes");
+    box.innerHTML = '<p class="subtitle">Загружаем…</p>';
+
+    let data;
+    try {
+        data = await auth.friendProfile(name);
+    } catch (err) {
+        box.innerHTML = "";
+        showMsg("fpMsg", v31Error(err));
+        return;
+    }
+    if (fpUser !== name || currentScreen !== "friendProfile") return;
+    if (!data) {
+        box.innerHTML = "";
+        showMsg("fpMsg", "Профиль видят только друзья. Сначала добавьте друг друга в друзья.");
+        return;
+    }
+    fpData = data;
+    applyBgSymbols(data.bg_symbols);
+    drawPassPatterns("fp", data.bg_symbols, data.username);
+    document.getElementById("fpName").textContent = "@" + data.username;
+    document.getElementById("fpSince").textContent = data.friends_since ? "Вы друзья с " + monthYear(data.friends_since) : "Вы друзья";
+    fillTags(document.getElementById("fpTags"), interestTags(data.interests));
+    document.getElementById("fpKm").textContent = kmText(data.walk_km) + " км";
+    document.getElementById("fpWalksNum").textContent = data.walks_count;
+    document.getElementById("fpFriendsNum").textContent = data.friends_count;
+
+    if (!data.show_routes) {
+        box.innerHTML = "";
+        document.getElementById("fpLockedTitle").textContent = "@" + data.username + " пока не показывает маршруты";
+        document.getElementById("fpLockedText").textContent = "Когда в профиле включат «Показывать мои маршруты», здесь появятся прогулки. А пока можно позвать гулять вместе.";
+        document.getElementById("fpLocked").hidden = false;
+        return;
+    }
+
+    let walks = [];
+    try { walks = await auth.friendWalks(data.username); } catch (err) { box.innerHTML = ""; showMsg("fpMsg", v31Error(err)); return; }
+    if (fpUser !== name) return;
+    box.innerHTML = "";
+    if (!walks.length) {
+        document.getElementById("fpLockedTitle").textContent = "Маршрутов пока нет";
+        document.getElementById("fpLockedText").textContent = "@" + data.username + " ещё не сохранил(а) ни одной прогулки с маршрутом.";
+        document.getElementById("fpLocked").hidden = false;
+        return;
+    }
+    document.getElementById("fpRoutesCount").textContent = walks.length > 6 ? "6 из " + walks.length : "";
+    walks.slice(0, 6).forEach(w => box.appendChild(routeStub(w, {
+        goText: "Пройти этот маршрут →",
+        onGo: btn => walkFriendRoute(w, data.username, btn)
+    })));
+}
+
+// «Пройти этот маршрут»: копируем маршрут друга к себе (без его старта) и открываем на карте
+async function walkFriendRoute(fw, username, btn) {
+    const stops = (fw.params.route.stops || []).filter(s => Array.isArray(s.at));
+    if (!stops.length) return;
+    btn.disabled = true;
+    btn.textContent = "Открываем…";
+    const first = stops[0];
+    const rest = stops.length > 1 ? stops.slice(1) : stops;
+    const params = {
+        start: first.name || "Первая точка",
+        pace: fw.params.pace || undefined,
+        fromFriend: username,
+        route: { v: 1, start: first.at, stops: rest, plan: fw.params.route.plan || null, ai: null, trip: null }
+    };
+    try {
+        const saved = await auth.addWalk({ kind: "full", title: fw.title || ("Маршрут @" + username), params });
+        updateWalksCount();
+        openRoute(saved);
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = "Пройти этот маршрут →";
+        showMsg("fpMsg", humanError(err));
+    }
 }
 
 function editPreferences() {
@@ -6663,10 +7955,17 @@ async function renderFriends() {
         box.appendChild(empty);
     }
     friends.forEach(f => {
-        const walkBtn = document.createElement("button");
-        walkBtn.className = "walk-open";
-        walkBtn.textContent = "Гулять вместе →";
-        walkBtn.addEventListener("click", () => walkWithFriend(f.username));
+        const walkBtn = document.createElement("div");
+        walkBtn.className = "friend-btns";
+        const profBtn = document.createElement("button");
+        profBtn.className = "walk-open";
+        profBtn.textContent = "Профиль →";
+        profBtn.addEventListener("click", () => openFriendProfile(f.username));
+        const goBtn = document.createElement("button");
+        goBtn.className = "walk-open";
+        goBtn.textContent = "Гулять вместе →";
+        goBtn.addEventListener("click", () => walkWithFriend(f.username));
+        walkBtn.append(profBtn, goBtn);
         const meta = f.hasSurvey
             ? "Опрос пройден — учтём его интересы"
             : "Ещё не прошёл(ла) опрос — подберём по твоим интересам";
@@ -6961,6 +8260,7 @@ function walkTags(walk) {
     const tags = [];
 
     if (walk.kind === "quick") tags.push({ text: "быстрый маршрут", blue: true });
+    if (p.fromFriend) tags.push({ text: "маршрут от @" + p.fromFriend, blue: true });
     if (p.time) tags.push({ text: TIME_LABELS[p.time], blue: true });
     if (p.start) tags.push({ text: "старт: " + p.start, blue: true });
     if (p.must) tags.push({ text: "через: " + p.must, blue: true });
@@ -9629,9 +10929,43 @@ async function init() {
     if (isRecovery) go("newPassword");
     // ссылку на документ открыли в новой вкладке (#privacy, #consent)
     else if (location.hash === "#privacy" || location.hash === "#consent") openLegal(location.hash.slice(1));
+    // v30.4: прямая ссылка на страницу «Скачать» (…/#download)
+    else if (location.hash === "#download") go("download");
 }
 
 init();
+</script>
+
+<!-- v30.3: подсказка для айфона «Добавь на экран Домой» -->
+<div class="a2hs" id="a2hs" role="dialog" aria-label="Добавить на экран Домой">
+    <img src="apple-touch-icon.png" alt="">
+    <div>
+        <b>Сделай из сайта приложение</b>
+        Нажми <svg class="a2hs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> «Поделиться» (на новых айфонах сначала «•••»), потом «На экран „Домой“».
+    </div>
+    <button class="a2hs-close" id="a2hsClose" type="button" aria-label="Закрыть">×</button>
+</div>
+<script>
+(function () {
+    try {
+        var ua = navigator.userAgent || '';
+        var isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|YaBrowser|OPiOS/.test(ua);
+        var standalone = window.navigator.standalone === true ||
+            (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+        var inAndroidApp = /TochkaVstrechiApp/.test(ua);
+        var key = 'tochka_a2hs_hidden';
+        var hidden = false;
+        try { hidden = localStorage.getItem(key) === '1'; } catch (e) {}
+        if (!isIOS || !isSafari || standalone || inAndroidApp || hidden) return;
+        var box = document.getElementById('a2hs');
+        setTimeout(function () { if (typeof currentScreen !== 'undefined' && currentScreen === 'download') return; box.classList.add('show'); }, 4000);
+        document.getElementById('a2hsClose').addEventListener('click', function () {
+            box.classList.remove('show');
+            try { localStorage.setItem(key, '1'); } catch (e) {}
+        });
+    } catch (e) {}
+})();
 </script>
 
 </body>
