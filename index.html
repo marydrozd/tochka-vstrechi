@@ -3447,6 +3447,8 @@ button.route-stub:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(6
 /* ---------- v32: встреча посередине, приглашения, удаление аккаунта ---------- */
 .meet-block{margin-top:18px;padding-top:16px;border-top:1px dashed var(--blue-mid)}
 .meet-block .hint{margin:10px 0 0}
+.pick-btn[hidden]{display:none}
+.invite-extra .inv-pick{margin-top:8px}
 #friendFromRow{margin-top:12px}
 .meet-card .pick-btn{margin-top:4px}
 .meet-options{display:grid;gap:10px;margin-top:14px}
@@ -5049,9 +5051,10 @@ body.modal-open{overflow:hidden}
                             </div>
                             <div class="input-icon" id="friendFromRow">
                                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
-                                <input id="friendFrom" type="text" maxlength="60" list="metroList" autocomplete="off" placeholder="Станция метро или улица, например: м. Тёплый Стан">
+                                <input id="friendFrom" type="text" maxlength="60" list="metroList" autocomplete="off" placeholder="Станция, улица или посёлок, например: м. Тёплый Стан">
                             </div>
-                            <p class="meet-self">Хватит станции метро или улицы рядом с домом. Другу мы её не показываем и в приглашение не пишем.</p>
+                            <button type="button" class="pick-btn" id="friendFromPick" onclick="openPicker('friendFrom')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg> Выбрать на карте</button>
+                            <p class="meet-self">Хватит станции, улицы или посёлка. Если рядом нет метро, например за МКАД, просто отметь точку на карте. Другу мы её не показываем и в приглашение не пишем.</p>
                         </div>
                     </div>
                 </div>
@@ -10640,7 +10643,7 @@ function inMoscow(at) {
 async function openPicker(fieldId) {
     pickerField = fieldId;
     pickerChoice = pickedStart[fieldId] || null;
-    document.getElementById("pickerTitle").textContent = fieldId === "builderMust" ? "Куда обязательно зайти?" : "Откуда начинаем?";
+    document.getElementById("pickerTitle").textContent = fieldId === "builderMust" ? "Куда обязательно зайти?" : fieldId === "friendFrom" ? "Откуда едет друг?" : String(fieldId).indexOf("invFrom_") === 0 ? "Откуда поедешь?" : "Откуда начинаем?";
     const box = document.getElementById("picker");
     box.classList.add("open");
     box.setAttribute("aria-hidden", "false");
@@ -11513,6 +11516,7 @@ function updateMeetBlocks() {
     set("middleBox", !middle);
     set("friendSelfChip", !canFriendPickSelf());
     set("friendFromRow", self);
+    set("friendFromPick", self);
     set("meetCard", !middle);
     set("meetFind", self);
     set("meetOptions", self);
@@ -11563,9 +11567,9 @@ async function findMeetPoints() {
     if (!frText) return showMsg("meetMsg", "Напиши станцию, откуда едет друг.");
     setLoading("meetFind", true, "Ищем…");
     try {
-        const [a, b] = await Promise.all([resolvePoint(myText, "builderStart"), resolvePoint(frText, null)]);
+        const [a, b] = await Promise.all([resolvePoint(myText, "builderStart"), resolvePoint(frText, "friendFrom")]);
         if (!a) return showMsg("meetMsg", "Не нашли «" + myText + "». Напиши станцию метро или выбери точку на карте.");
-        if (!b) return showMsg("meetMsg", "Не нашли «" + frText + "». Выбери станцию из подсказок или напиши улицу.");
+        if (!b) return showMsg("meetMsg", "Не нашли «" + frText + "». Выбери станцию из подсказок, напиши улицу или отметь точку на карте.");
         const likesA = new Set(surveyTags(currentUser && currentUser.survey));
         const likesB = new Set(surveyTags(friendSurveyNow()));
         d.meetOptions = (await meetCandidates(a, b, likesA, likesB)).map(o => ({ ...o, friendFrom: frText }));
@@ -11884,16 +11888,20 @@ function inviteCardEl(i) {
 // «Друг укажет сам»: друг выбирает свою станцию, мы находим точку посередине и строим маршрут
 function askStation(i, extra, msg) {
     extra.innerHTML =
-        '<div class="block-hint">Откуда пойдёшь? Станция метро или улица рядом с домом (адрес другу не покажем).</div>' +
-        '<div class="nick-row"><div class="input-icon"><input type="text" list="metroList" placeholder="м. Тёплый Стан"></div>' +
-        '<button type="button" class="btn-primary">Найти точку</button></div><div class="meet-options"></div>';
+        '<div class="block-hint">Откуда поедешь? Напиши станцию, улицу или посёлок, или отметь точку на карте, если рядом нет метро (адрес другу не покажем).</div>' +
+        '<div class="nick-row"><div class="input-icon"><input type="text" list="metroList" maxlength="120" placeholder="м. Тёплый Стан или пос. Внуково"></div>' +
+        '<button type="button" class="btn-primary">Найти точку</button></div>' +
+        '<button type="button" class="pick-btn inv-pick"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg> Выбрать на карте</button><div class="meet-options"></div>';
     const input = extra.querySelector("input");
+    const fid = "invFrom_" + i.id;
+    input.id = fid;
+    extra.querySelector(".inv-pick").addEventListener("click", () => openPicker(fid));
     const opts = extra.querySelector(".meet-options");
     extra.querySelector(".btn-primary").addEventListener("click", async () => {
         hideMsg(msg.id);
         const text = input.value.trim();
-        const b = text ? await resolvePoint(text, null) : null;
-        if (!b) return showMsg(msg.id, "Не нашли «" + text + "». Выбери станцию из подсказок или напиши улицу.");
+        const b = text ? await resolvePoint(text, fid) : null;
+        if (!b) return showMsg(msg.id, "Не нашли «" + text + "». Выбери станцию из подсказок, напиши улицу или отметь точку на карте.");
         const a = i.fromHint && i.fromHint.at;
         if (!a) return showMsg(msg.id, "В приглашении нет станции друга. Попроси позвать ещё раз.");
         let sender = null;
