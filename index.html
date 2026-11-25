@@ -3,6 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <script>
+    /* v33: если человек уже входил на этом устройстве — вместо главной сразу «Открываем кабинет…» */
+    (function () {
+        try {
+            var ls = localStorage, has = false, h = location.hash || "";
+            for (var i = 0; i < ls.length; i++) {
+                var k = ls.key(i);
+                if (/^sb-.+-auth-token$/.test(k) && ls.getItem(k)) { has = true; break; }
+            }
+            var demo = ls.getItem("tv_session");
+            if (demo && demo !== "null") has = true;
+            if (has && !/type=recovery|#privacy|#consent|#download/.test(h)) document.documentElement.classList.add("booting");
+        } catch (e) {}
+    })();
+    </script>
+    <script>
+    /* v34: мини-приложение Telegram — без главной страницы, сразу кабинет */
+    if (/[?&]tg=1/.test(location.search)) {
+        document.documentElement.classList.add("booting");
+        document.write('<script src="https://telegram.org/js/telegram-web-app.js"><\/script>');
+    }
+    </script>
 
     <!-- v30.3: «Точка встречи» как приложение на экране «Домой» (iPhone и Android) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -3324,6 +3346,19 @@
             font: 400 20px/1 -apple-system, BlinkMacSystemFont, sans-serif;
             cursor: pointer;
         }
+
+/* ---------- v34: Telegram ---------- */
+.tg-card{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:22px;padding:18px 20px;border:1px solid var(--border);border-radius:20px;background:var(--white)}
+.tg-card[hidden]{display:none}
+.tg-card.on{border-color:#cdbdf0}
+.tg-card .tg-head{display:flex;gap:14px;align-items:center;min-width:0;flex:1 1 300px}
+.tg-card .tg-logo{flex:none;width:44px;height:44px;border-radius:50%;background:#2aabee;display:grid;place-items:center}
+.tg-card b{display:block;margin-bottom:4px}
+.tg-card p{margin:0;color:var(--muted);font-size:14px;line-height:1.5;max-width:520px}
+.tg-btns{display:flex;flex-wrap:wrap;gap:8px}
+.tg-btns .btn-primary,.tg-btns .btn-secondary{width:auto;padding:10px 16px;font-size:14.5px;border-radius:999px}
+.tg-btns .soft{color:var(--muted)}
+html.tg .a2hs, html.tg .demo-badge{display:none !important}
 </style>
 
 <style>
@@ -3444,6 +3479,55 @@ button.route-stub:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(6
   .route-stub .rs-km b{font-size:19px}
 }
 
+
+/* ---------- v33: без прокрутки вбок, загрузка кабинета, мои адреса ---------- */
+/* сайт двигается только вверх-вниз: всё, что шире экрана (завитки, пятна), обрезаем */
+@supports (overflow-x: clip) {
+    html, body { overflow-x: clip; }
+    .app { overflow-x: clip; }
+}
+html, body { max-width: 100%; }
+#home .curl-right, #home .curl-left { max-width: 46vw; }
+@media (max-width: 600px) {
+    #home .curl-right { right: 0; }
+    #home .curl-left { left: 0; }
+}
+/* закрытое меню не «торчит» справа за краем экрана */
+.drawer { visibility: hidden; transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s linear .3s; }
+.drawer.open { visibility: visible; transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+
+/* «Открываем твой кабинет…» вместо мелькания главной */
+.boot { display: none; }
+html.booting .app, html.booting .a2hs, html.booting .demo-badge { visibility: hidden; }
+html.booting .boot { display: flex; position: fixed; inset: 0; z-index: 30; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--muted); font-weight: 700; font-size: 15px; }
+.boot-mark { width: 76px; height: 72px; animation: bootPulse 1.1s ease-in-out infinite alternate; }
+@keyframes bootPulse { from { transform: scale(.92); opacity: .65; } to { transform: scale(1.04); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .boot-mark { animation: none; } }
+
+/* мои адреса */
+.place-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+.place-row:empty { display: none; }
+.place-chip { font: inherit; font-size: 14px; font-weight: 700; color: var(--text); background: var(--white); border: 1px solid var(--border); border-radius: 999px; padding: 8px 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; max-width: 100%; }
+.place-chip:hover { border-color: #bca4e9; }
+.place-chip.selected { border-color: var(--purple); background: var(--lilac); color: var(--purple-dark); }
+.place-chip.ghost { border-style: dashed; color: var(--purple); background: transparent; }
+.place-tip { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.place-tip.strong { font-weight: 800; color: var(--text); }
+.place-item { display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 11px 12px; margin-bottom: 8px; }
+.place-ico { flex: none; width: 36px; height: 36px; border-radius: 12px; background: var(--lilac); display: grid; place-items: center; font-size: 18px; }
+.place-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.place-body b { font-size: 15px; }
+.place-body span { font-size: 13.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.place-del { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; }
+.place-del:hover { background: #f4eefe; color: var(--error); }
+.place-form { margin-top: 6px; }
+.place-form .place-kinds { margin: 0 0 12px; }
+.place-form .input-icon { margin-bottom: 10px; }
+.place-form input { width: 100%; }
+#placeNameWrap { margin-bottom: 10px; }
+#placeNameWrap input { font: inherit; font-size: 16px; color: var(--text); background: var(--white); border: 1px solid var(--border); border-radius: 13px; padding: 11px 14px; width: 100%; }
+#placeAddBtn { margin-top: 4px; }
+
 /* ---------- v32: встреча посередине, приглашения, удаление аккаунта ---------- */
 .meet-block{margin-top:18px;padding-top:16px;border-top:1px dashed var(--blue-mid)}
 .meet-block .hint{margin:10px 0 0}
@@ -3512,6 +3596,7 @@ body.modal-open{overflow:hidden}
     <div class="blob blob-3"></div>
 </div>
 <canvas id="glyphs" aria-hidden="true"></canvas>
+<div class="boot" id="boot" role="status"><svg class="boot-mark" aria-hidden="true"><use href="#logoMark"/></svg>Открываем твой кабинет…</div>
 
 <div class="demo-badge" id="demoBadge" title="Supabase ещё не подключён — аккаунты хранятся только в этом браузере">
     демо-режим · данные только в этом браузере
@@ -3562,7 +3647,7 @@ body.modal-open{overflow:hidden}
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot"><div class="drawer-clock">Москва <b id="clock2">--:--</b></div>Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 19 ноя · v32 (пробная)</span></div>
+    <div class="drawer-foot"><div class="drawer-clock">Москва <b id="clock2">--:--</b></div>Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 25 ноя · v34 (пробная)</span></div>
 </aside>
 
 
@@ -5569,6 +5654,31 @@ body.modal-open{overflow:hidden}
                             <span class="tg-switch"></span>
                         </button>
                     </div>
+                    <div class="side-card" id="placesCard">
+                        <div class="profile-title">Мои адреса</div>
+                        <p class="hint">Сохрани дом или работу один раз — и выбирай их в маршруте одним нажатием. Адреса хранятся только на этом устройстве, друзьям и нам они не видны.</p>
+                        <div id="placesList"></div>
+                        <div class="place-form" id="placeForm" hidden>
+                            <div class="place-row place-kinds" id="placeKinds">
+                                <button type="button" class="place-chip" data-kind="home">🏠 Дом</button>
+                                <button type="button" class="place-chip" data-kind="work">💼 Работа</button>
+                                <button type="button" class="place-chip" data-kind="study">🎓 Учёба</button>
+                                <button type="button" class="place-chip" data-kind="other">📍 Другое</button>
+                            </div>
+                            <div id="placeNameWrap" hidden><input id="placeName" type="text" maxlength="20" placeholder="Как назвать: «Бабушка», «Спортзал»…" aria-label="Название места"></div>
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+                                <input id="placeText" type="text" maxlength="120" list="metroList" autocomplete="off" placeholder="Адрес или станция, например: м. Сокол" aria-label="Адрес">
+                            </div>
+                            <button type="button" class="pick-btn" onclick="openPicker('placeText')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg> Выбрать на карте</button>
+                            <div class="form-msg" id="placeMsg"></div>
+                            <div class="row" style="margin-top:12px">
+                                <button type="button" class="btn-primary" onclick="submitPlace()">Сохранить</button>
+                                <button type="button" class="btn-secondary" onclick="closePlaceForm()">Отмена</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-secondary" id="placeAddBtn" onclick="openPlaceForm()">＋ Добавить адрес</button>
+                    </div>
                     <div class="side-card">
                         <div class="profile-title">Символы на фоне</div>
                         <p class="hint">Появляются на твоём пропуске и за курсором. Друзья тоже их видят.</p>
@@ -5598,6 +5708,15 @@ body.modal-open{overflow:hidden}
 
             <div class="row" style="margin-top: 22px;">
                 <button class="btn-primary btn-big" onclick="editPreferences()">✎ Изменить предпочтения</button>
+            </div>
+
+            <!-- v34: Telegram -->
+            <div class="tg-card" id="tgCard" hidden>
+                <div class="tg-head">
+                    <span class="tg-logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="#fff"><path d="M21.5 4.3 2.9 11.5c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.1-14.6c.3-1.3-.5-1.9-1.4-1.5zM8.6 14.2l9.5-6c.5-.3.9-.1.5.2l-8.1 7.3-.3 3.3z"/></svg></span>
+                    <div><b>Telegram</b><p id="tgText">Проверяем…</p></div>
+                </div>
+                <div class="tg-btns" id="tgBtns"></div>
             </div>
 
             <!-- v32: удалить аккаунт -->
@@ -5727,6 +5846,8 @@ function go(id) {
     if (id === "download") renderDownload();
     if (id === "friends") renderFriends();
     if (id === "profile") renderProfilePage();
+    if (id === "profile" && typeof renderPlacesCard === "function") { document.getElementById("placeForm").hidden = true; renderPlacesCard(); }
+    if ((id === "walkBuilder" || id === "quickWalk") && typeof refreshPlaceRows === "function") refreshPlaceRows();
     if (id === "friendProfile") renderFriendProfile();
     // v31: символы на фоне — свои, а в профиле друга — его
     if (typeof applyBgSymbols === "function") applyBgSymbols(id === "friendProfile" && fpData ? fpData.bg_symbols : (currentUser && currentUser.bg_symbols));
@@ -10643,7 +10764,7 @@ function inMoscow(at) {
 async function openPicker(fieldId) {
     pickerField = fieldId;
     pickerChoice = pickedStart[fieldId] || null;
-    document.getElementById("pickerTitle").textContent = fieldId === "builderMust" ? "Куда обязательно зайти?" : fieldId === "friendFrom" ? "Откуда едет друг?" : String(fieldId).indexOf("invFrom_") === 0 ? "Откуда поедешь?" : "Откуда начинаем?";
+    document.getElementById("pickerTitle").textContent = fieldId === "builderMust" ? "Куда обязательно зайти?" : fieldId === "friendFrom" ? "Откуда едет друг?" : fieldId === "placeText" ? "Где этот адрес?" : String(fieldId).indexOf("invFrom_") === 0 ? "Откуда поедешь?" : "Откуда начинаем?";
     const box = document.getElementById("picker");
     box.classList.add("open");
     box.setAttribute("aria-hidden", "false");
@@ -11795,6 +11916,7 @@ async function renderInvites() {
 
 function inviteCardEl(i) {
     const el = document.createElement("div");
+    el.dataset.inv = i.id;
     el.className = "invite" + (inviteNeedsMe(i) ? " needs" : "") + (i.status === "declined" || i.status === "cancelled" ? " closed" : "");
     const p = i.params || {};
     const who = "@" + i.username;
@@ -11895,6 +12017,7 @@ function askStation(i, extra, msg) {
     const input = extra.querySelector("input");
     const fid = "invFrom_" + i.id;
     input.id = fid;
+    attachPlaceRow(input);
     extra.querySelector(".inv-pick").addEventListener("click", () => openPicker(fid));
     const opts = extra.querySelector(".meet-options");
     extra.querySelector(".btn-primary").addEventListener("click", async () => {
@@ -12044,6 +12167,235 @@ async function doDeleteAccount() {
 
 
 /* =============================================================
+   v33: МОИ АДРЕСА («Дом», «Работа»…) — подставить в маршрут одним нажатием
+   Адреса хранятся только на этом устройстве (localStorage), в базу не уходят.
+   ============================================================= */
+const PLACE_KINDS = [
+    { kind: "home", icon: "🏠", label: "Дом" },
+    { kind: "work", icon: "💼", label: "Работа" },
+    { kind: "study", icon: "🎓", label: "Учёба" },
+    { kind: "other", icon: "📍", label: "Другое" }
+];
+const PLACES_MAX = 6;
+const PLACE_FIELDS = ["builderStart", "quickStart"];   // + поля «Откуда поедешь?» в приглашениях
+
+function placesKey() {
+    return currentUser ? "tv_places_" + currentUser.id : null;
+}
+
+function getPlaces() {
+    const k = placesKey();
+    if (!k) return [];
+    try {
+        const list = JSON.parse(localStorage.getItem(k) || "[]");
+        return Array.isArray(list) ? list.filter(p => p && p.text) : [];
+    } catch (e) { return []; }
+}
+
+function setPlaces(list) {
+    const k = placesKey();
+    if (!k) return;
+    try { localStorage.setItem(k, JSON.stringify(list.slice(0, PLACES_MAX))); } catch (e) {}
+    renderPlacesCard();
+    refreshPlaceRows();
+}
+
+function placeKind(kind) {
+    return PLACE_KINDS.find(k => k.kind === kind) || PLACE_KINDS[3];
+}
+
+function placeName(p) {
+    return p.kind === "other" ? (p.name || "Место") : placeKind(p.kind).label;
+}
+
+// сохранить адрес; «Дом», «Работа», «Учёба» — по одному (новый заменяет старый)
+function savePlace(kind, name, text, at) {
+    text = String(text || "").trim().slice(0, 120);
+    if (!text) return false;
+    let list = getPlaces();
+    if (kind !== "other") list = list.filter(p => p.kind !== kind);
+    list = list.filter(p => p.text !== text);
+    if (list.length >= PLACES_MAX) return false;
+    const place = { id: "p" + Date.now().toString(36), kind, text };
+    if (kind === "other") place.name = String(name || "").trim().slice(0, 20) || text.slice(0, 20);
+    if (Array.isArray(at) && at.length === 2) place.at = [Number(at[0]), Number(at[1])];
+    // дом и работа — первыми
+    list.push(place);
+    list.sort((a, b) => PLACE_KINDS.findIndex(k => k.kind === a.kind) - PLACE_KINDS.findIndex(k => k.kind === b.kind));
+    setPlaces(list);
+    return true;
+}
+
+function removePlace(id) {
+    setPlaces(getPlaces().filter(p => p.id !== id));
+}
+
+function usePlace(input, p) {
+    input.value = p.text;
+    if (p.at) pickedStart[input.id] = { text: p.text, at: p.at };
+    else delete pickedStart[input.id];
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+/* ---------- ряд «🏠 Дом · 💼 Работа · ＋ Запомнить» под полем адреса ---------- */
+function attachPlaceRow(input) {
+    if (!input || input.dataset.places) return;
+    input.dataset.places = "1";
+    const anchor = input.closest(".nick-row") || input.closest(".input-icon") || input;
+    const row = document.createElement("div");
+    row.className = "place-row";
+    row.dataset.for = input.id;
+    anchor.insertAdjacentElement("afterend", row);
+    input.addEventListener("input", () => renderPlaceRow(row, input));
+    renderPlaceRow(row, input);
+}
+
+function renderPlaceRow(row, input) {
+    const list = getPlaces();
+    const text = input.value.trim();
+    row.innerHTML = "";
+    list.forEach(p => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "place-chip" + (p.text === text ? " selected" : "");
+        b.innerHTML = '<span aria-hidden="true"></span>';
+        b.firstChild.textContent = placeKind(p.kind).icon;
+        b.append(" " + placeName(p));
+        b.title = p.text;
+        b.addEventListener("click", () => usePlace(input, p));
+        row.appendChild(b);
+    });
+    const known = list.some(p => p.text === text);
+    if (text && !known && list.length < PLACES_MAX) {
+        const add = document.createElement("button");
+        add.type = "button";
+        add.className = "place-chip ghost";
+        add.textContent = "＋ Запомнить адрес";
+        add.addEventListener("click", () => askPlaceKind(row, input));
+        row.appendChild(add);
+    } else if (!list.length) {
+        const tip = document.createElement("span");
+        tip.className = "place-tip";
+        tip.textContent = "Впиши адрес — и его можно запомнить как «Дом» или «Работу», чтобы не вводить каждый раз.";
+        row.appendChild(tip);
+    }
+}
+
+// «Как назвать?» прямо под полем
+function askPlaceKind(row, input) {
+    const text = input.value.trim();
+    if (!text) return;
+    row.innerHTML = '<span class="place-tip strong">Как назвать?</span>';
+    PLACE_KINDS.forEach(k => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "place-chip";
+        b.textContent = k.icon + " " + k.label;
+        b.addEventListener("click", () => {
+            const pick = pickedAt(input.id, text);
+            if (savePlace(k.kind, k.kind === "other" ? text.slice(0, 20) : "", text, pick)) {
+                toast("Запомнили: " + k.label + " — " + text);
+            }
+        });
+        row.appendChild(b);
+    });
+    const no = document.createElement("button");
+    no.type = "button";
+    no.className = "place-chip ghost";
+    no.textContent = "Отмена";
+    no.addEventListener("click", () => renderPlaceRow(row, input));
+    row.appendChild(no);
+}
+
+function refreshPlaceRows() {
+    document.querySelectorAll(".place-row[data-for]").forEach(row => {
+        const input = document.getElementById(row.dataset.for);
+        if (input) renderPlaceRow(row, input);
+        else row.remove();
+    });
+}
+
+/* ---------- карточка «Мои адреса» в профиле ---------- */
+let placeDraftKind = "home";
+
+function renderPlacesCard() {
+    const box = document.getElementById("placesList");
+    if (!box) return;
+    const list = getPlaces();
+    box.innerHTML = "";
+    if (!list.length) {
+        const empty = document.createElement("p");
+        empty.className = "hint";
+        empty.textContent = "Пока пусто. Добавь дом — и в конструкторе прогулки он будет в одно нажатие.";
+        box.appendChild(empty);
+    }
+    list.forEach(p => {
+        const row = document.createElement("div");
+        row.className = "place-item";
+        const ico = document.createElement("span");
+        ico.className = "place-ico";
+        ico.textContent = placeKind(p.kind).icon;
+        const body = document.createElement("div");
+        body.className = "place-body";
+        const b = document.createElement("b");
+        b.textContent = placeName(p);
+        const t = document.createElement("span");
+        t.textContent = p.text;
+        body.append(b, t);
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "place-del";
+        del.setAttribute("aria-label", "Удалить адрес «" + placeName(p) + "»");
+        del.textContent = "×";
+        del.addEventListener("click", () => removePlace(p.id));
+        row.append(ico, body, del);
+        box.appendChild(row);
+    });
+    document.getElementById("placeAddBtn").hidden = list.length >= PLACES_MAX || !document.getElementById("placeForm").hidden;
+}
+
+function openPlaceForm() {
+    placeDraftKind = getPlaces().some(p => p.kind === "home") ? "work" : "home";
+    document.getElementById("placeText").value = "";
+    document.getElementById("placeName").value = "";
+    delete pickedStart.placeText;
+    syncPlaceKind();
+    document.getElementById("placeForm").hidden = false;
+    document.getElementById("placeAddBtn").hidden = true;
+    hideMsg("placeMsg");
+    document.getElementById("placeText").focus();
+}
+
+function closePlaceForm() {
+    document.getElementById("placeForm").hidden = true;
+    renderPlacesCard();
+}
+
+function syncPlaceKind() {
+    document.querySelectorAll("#placeKinds .place-chip").forEach(c => c.classList.toggle("selected", c.dataset.kind === placeDraftKind));
+    document.getElementById("placeNameWrap").hidden = placeDraftKind !== "other";
+}
+
+function submitPlace() {
+    const text = document.getElementById("placeText").value.trim();
+    if (!text) return showMsg("placeMsg", "Напиши адрес или станцию — или отметь точку на карте.");
+    const name = document.getElementById("placeName").value;
+    if (!savePlace(placeDraftKind, name, text, pickedAt("placeText", text))) {
+        return showMsg("placeMsg", "Можно сохранить до " + PLACES_MAX + " адресов. Удали лишний и попробуй снова.");
+    }
+    closePlaceForm();
+    toast("Адрес сохранён 💜");
+}
+
+document.querySelectorAll("#placeKinds .place-chip").forEach(c => c.addEventListener("click", () => {
+    placeDraftKind = c.dataset.kind;
+    syncPlaceKind();
+}));
+
+PLACE_FIELDS.forEach(id => attachPlaceRow(document.getElementById(id)));
+
+
+/* =============================================================
    ЗАПУСК
    ============================================================= */
 function loadScript(src) {
@@ -12098,7 +12450,235 @@ async function init() {
     else if (location.hash === "#download") go("download");
 }
 
-init();
+
+/* =============================================================
+   v34: TELEGRAM — кнопка «Подключить Telegram», «Мои адреса» в аккаунте,
+   режим мини-приложения (?tg=1): сразу кабинет, вход без пароля
+   ============================================================= */
+const TG_BOT = "tochka_vstrechi_app";
+const TG_LOGIN_URL = SUPABASE_URL ? SUPABASE_URL.replace(/\/+$/, "") + "/functions/v1/telegram-login" : "";
+const TGA = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) ? window.Telegram.WebApp : null;
+const TG_PARAMS = new URLSearchParams(location.search);
+let tgState = null;          // {linked, notify, remind} или null, если SQL v34 ещё не запущен
+
+async function tgLoginCall(action, extraHeaders) {
+    const r = await fetch(TG_LOGIN_URL, {
+        method: "POST",
+        headers: Object.assign({ "Content-Type": "application/json", apikey: SUPABASE_KEY }, extraHeaders || {}),
+        body: JSON.stringify({ action, initData: TGA.initData })
+    });
+    return r.json();
+}
+
+// ---------- «Мои адреса» в аккаунте (таблица user_places) ----------
+async function placesPull() {
+    if (auth !== cloud || !currentUser) return;
+    const k = placesKey();
+    const { data, error } = await sb.from("user_places").select("places").eq("user_id", currentUser.id).maybeSingle();
+    if (error) return;                         // SQL v34 ещё не запущен — адреса живут на устройстве, как в v33
+    if (data && Array.isArray(data.places)) {
+        try { localStorage.setItem(k, JSON.stringify(data.places)); } catch (e) {}
+        if (typeof renderPlacesCard === "function") { renderPlacesCard(); refreshPlaceRows(); }
+    } else {
+        const local = getPlaces();
+        if (local.length) placesPush(local);   // перенос адресов с устройства в аккаунт
+    }
+    const hint = document.querySelector("#placesCard .hint");
+    if (hint) hint.textContent = "Сохрани дом или работу один раз — и выбирай их в маршруте и в Telegram одним нажатием. Адреса видишь только ты, друзьям мы показываем только станцию.";
+}
+
+function placesPush(list) {
+    if (auth !== cloud || !currentUser || !sb) return;
+    sb.from("user_places").upsert({ user_id: currentUser.id, places: list.slice(0, PLACES_MAX), updated_at: new Date().toISOString() })
+        .then(({ error }) => { if (error) console.warn("user_places", error.message); });
+}
+
+const _setPlacesV33 = setPlaces;
+setPlaces = function (list) {
+    _setPlacesV33(list);
+    placesPush(getPlaces());
+};
+
+// ---------- карточка «Telegram» в профиле ----------
+async function tgLoad() {
+    if (auth === demo) return { linked: false, demo: true };
+    const { data, error } = await sb.rpc("my_telegram");
+    if (error) return null;
+    return (Array.isArray(data) ? data[0] : data) || { linked: false };
+}
+
+async function renderTgCard() {
+    const card = document.getElementById("tgCard");
+    if (!card || !currentUser) return;
+    tgState = await tgLoad().catch(() => null);
+    if (!tgState) { card.hidden = true; return; }
+    card.hidden = false;
+    const text = document.getElementById("tgText"), btns = document.getElementById("tgBtns");
+    btns.innerHTML = "";
+    const mk = (label, cls, fn) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = cls; b.textContent = label;
+        b.addEventListener("click", fn);
+        btns.appendChild(b);
+        return b;
+    };
+    if (tgState.linked) {
+        card.classList.add("on");
+        text.textContent = "Подключён. Приглашения и ответы друзей приходят в @" + TG_BOT + ".";
+        mk(tgState.remind ? "Напоминать за 2 часа: да" : "Напоминать за 2 часа: нет", "btn-secondary", async e => {
+            e.target.disabled = true;
+            await sb.rpc("telegram_settings", { p_remind: !tgState.remind });
+            renderTgCard();
+        });
+        mk("Отвязать", "btn-secondary soft", async e => {
+            e.target.disabled = true;
+            await sb.rpc("telegram_unlink");
+            toast("Telegram отвязан");
+            renderTgCard();
+        });
+    } else {
+        card.classList.remove("on");
+        text.textContent = "Приглашения от друзей будут приходить в Telegram, а ответить можно одной кнопкой. Номер телефона не нужен.";
+        mk(TGA ? "Подключить этот Telegram" : "Подключить Telegram", "btn-primary", tgConnect);
+    }
+}
+
+async function tgConnect(e) {
+    const b = e && e.target;
+    if (auth === demo) return toast("В демо-режиме Telegram не подключить");
+    if (b) b.disabled = true;
+    try {
+        if (TGA) {
+            // мы уже внутри Telegram — привязываем сразу
+            const { data } = await sb.auth.getSession();
+            const res = await tgLoginCall("link", { Authorization: "Bearer " + data.session.access_token });
+            if (!res.linked) throw new Error(res.error || "link");
+            toast("Telegram подключён ✓");
+            return renderTgCard();
+        }
+        const { data: code, error } = await sb.rpc("telegram_link_code");
+        if (error) throw error;
+        const url = "https://t.me/" + TG_BOT + "?start=link_" + code;
+        const w = window.open(url, "_blank");
+        if (!w) location.href = url;
+        const text = document.getElementById("tgText");
+        text.textContent = "Открыли бота — нажми там «Старт». Потом вернись сюда, карточка обновится.";
+        // ждём, пока человек нажмёт «Старт» в боте (до 2 минут)
+        let tries = 0;
+        const t = setInterval(async () => {
+            tries++;
+            const st = await tgLoad().catch(() => null);
+            if ((st && st.linked) || tries > 24 || currentScreen !== "profile") {
+                clearInterval(t);
+                renderTgCard();
+                if (st && st.linked) toast("Telegram подключён ✓");
+            }
+        }, 5000);
+    } catch (err) {
+        if (b) b.disabled = false;
+        toast("Не получилось подключить Telegram. Попробуй ещё раз.");
+        console.warn(err);
+    } finally {
+        if (b && !TGA) setTimeout(() => { b.disabled = false; }, 3000);
+    }
+}
+
+// ---------- переходы ----------
+const _enterAppV33 = enterApp;
+enterApp = function (user) {
+    _enterAppV33(user);
+    placesPull().catch(() => {});
+    if (TGA) tgAfterLogin().catch(e => console.warn(e));
+};
+
+const _goV33 = go;
+go = function (id) {
+    _goV33(id);
+    if (id === "profile") renderTgCard();
+    if (TGA && TGA.BackButton) {
+        if (["home", "welcome", "login", "authChoice"].includes(currentScreen)) TGA.BackButton.hide();
+        else TGA.BackButton.show();
+    }
+};
+
+// ---------- мини-приложение ----------
+let tgLinkTried = false;
+async function tgAfterLogin() {
+    // вошли ником и паролем внутри Telegram — сразу привязываем этот Telegram
+    if (!tgLinkTried && auth === cloud) {
+        tgLinkTried = true;
+        const st = await tgLoad().catch(() => null);
+        if (st && !st.linked) {
+            const { data } = await sb.auth.getSession();
+            const res = await tgLoginCall("link", { Authorization: "Bearer " + data.session.access_token }).catch(() => ({}));
+            if (res.linked) toast("Telegram подключён ✓ Приглашения будут приходить в бот");
+        }
+    }
+    tgOpenTarget();
+}
+
+// куда вести из кнопки бота: ?go=invite|invites|places|login, ?inv=<id>&do=accept|time
+let tgTargetDone = false;
+async function tgOpenTarget() {
+    if (tgTargetDone) return;
+    tgTargetDone = true;
+    const where = TG_PARAMS.get("go"), inv = TG_PARAMS.get("inv"), act = TG_PARAMS.get("do");
+    if (where === "invite") return go("friends");
+    if (where === "places") {
+        go("profile");
+        setTimeout(() => { const c = document.getElementById("placesCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); }, 200);
+        return;
+    }
+    if (inv) {
+        go("home");
+        await renderInvites().catch(() => {});
+        const card = document.querySelector('#homeInvites .invite[data-inv="' + CSS.escape(inv) + '"]');
+        if (!card) return toast("Это приглашение уже закрыто");
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        const want = act === "accept" ? ["Иду", "Подходит"] : act === "time" ? ["Другое время"] : ["Открыть маршрут →", "Маршрут →"];
+        const b = [...card.querySelectorAll(".invite-btns button")].find(x => want.includes(x.textContent));
+        if (b && act) b.click();
+        else if (b && !act) b.click();
+    }
+}
+
+if (TGA) {
+    document.documentElement.classList.add("tg");
+    try {
+        TGA.ready();
+        TGA.expand();
+        if (TGA.setHeaderColor) TGA.setHeaderColor("#f9f9fb");
+        if (TGA.setBackgroundColor) TGA.setBackgroundColor("#f9f9fb");
+        if (TGA.disableVerticalSwipes) TGA.disableVerticalSwipes();     // свайп вниз не закрывает приложение во время прокрутки
+        if (TGA.BackButton) TGA.BackButton.onClick(() => go(currentUser ? "home" : "welcome"));
+    } catch (e) {}
+}
+
+const _initV33 = init;
+init = async function () {
+    await _initV33();
+    if (!TGA) return;
+    if (currentUser) return;                    // уже вошли раньше на этом телефоне
+    if (auth !== cloud || !TG_LOGIN_URL) return go("authChoice");
+    // вход без пароля: Telegram подтверждает, кто открыл приложение
+    try {
+        const res = await tgLoginCall("session");
+        if (res.linked && res.token_hash) {
+            const { error } = await sb.auth.verifyOtp({ token_hash: res.token_hash, type: "magiclink" });
+            if (!error) {
+                const user = await auth.restore();
+                if (user) return enterApp(user);
+            }
+        }
+    } catch (e) { console.warn("telegram-login", e); }
+    // Telegram ещё не привязан: один раз входим ником и паролем (или регистрируемся)
+    go(TG_PARAMS.get("go") === "login" ? "login" : "authChoice");
+    toast("Войди один раз — дальше приложение будет открываться само");
+};
+
+init().catch(e => console.warn(e)).finally(() => document.documentElement.classList.remove("booting"));
+// на всякий случай: если интернет совсем медленный, через 8 секунд показываем сайт как есть
+setTimeout(() => document.documentElement.classList.remove("booting"), 8000);
 </script>
 
 <!-- v30.3: подсказка для айфона «Добавь на экран Домой» -->
