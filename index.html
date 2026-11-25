@@ -3364,6 +3364,8 @@ html.tg .a2hs, html.tg .demo-badge{display:none !important}
 
 a.route-ya{flex-direction:column;gap:2px;text-align:center;font-weight:700}
 a.route-ya small{display:block;font-size:12.5px;font-weight:500;opacity:.85}
+
+@media (max-width: 600px){ .drawer-foot .drawer-clock{ text-transform:none; letter-spacing:0; font-size:15px; font-weight:700 } }
 </style>
 
 <style>
@@ -3652,7 +3654,7 @@ body.modal-open{overflow:hidden}
     <div class="drawer-sep"></div>
     <button class="drawer-item logout" onclick="logout()"><span class="ic">↩</span>Выйти</button>
 
-    <div class="drawer-foot"><div class="drawer-clock">Москва <b id="clock2">--:--</b></div>Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 25 ноя · v34.2 (пробная)</span></div>
+    <div class="drawer-foot"><div class="drawer-clock">Москва <b id="clock2">--:--</b></div>Скоро здесь появится больше 💜<br><span style="opacity:.55;font-size:12px">версия 25 ноя · v34.2</span></div>
 </aside>
 
 
@@ -11711,8 +11713,49 @@ async function walkMeetCandidates(a, b, likesA, likesB) {
     return out;
 }
 
-// рядом (до 3 км) — пешком, далеко (больше 5 км) — метро, между — и то и другое
+// v34.2: раньше время до станции считали по прямой (≈ 2 мин на км) — это почти как на машине.
+// Теперь спрашиваем Яндекс Карты, сколько ехать на метро/автобусе, и по этому времени выбираем станцию.
+async function transitMin(ymaps, from, to) {
+    try {
+        const model = new ymaps.multiRouter.MultiRouteModel([from, to], { routingMode: "masstransit" });
+        await Promise.race([
+            new Promise((res, rej) => {
+                model.events.add("requestsuccess", res);
+                model.events.add("requestfail", () => rej(new Error("requestfail")));
+            }),
+            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 8000))
+        ]);
+        const r = (model.getRoutes() || [])[0];
+        const v = r && (r.properties.get("duration") || {}).value;
+        return v ? Math.max(1, Math.round(v / 60)) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
 async function meetCandidates(a, b, likesA, likesB) {
+    const km = kmBetween(a, b);
+    if (km <= 3) return meetCandidatesRough(a, b, likesA, likesB);          // рядом — пешком, как раньше
+    let ymaps = null;
+    try { ymaps = await loadYmaps(); } catch (e) { /* без Яндекса — по прямой */ }
+    if (!ymaps || !ymaps.multiRouter) return meetCandidatesRough(a, b, likesA, likesB);
+    // берём 6 лучших станций по прикидке и уточняем время у Яндекса для обоих
+    const rough = metroMeetCandidates(a, b, likesA, likesB).slice(0, 6);
+    const real = await Promise.all(rough.map(async x => {
+        const [ta, tb] = await Promise.all([transitMin(ymaps, a, x.at), transitMin(ymaps, b, x.at)]);
+        if (ta == null && tb == null) return x;
+        const me = ta != null ? ta : x.me, friend = tb != null ? tb : x.friend;
+        const bonus = x.score - (Math.max(x.me, x.friend) + 0.5 * Math.abs(x.me - x.friend));   // интересы — как было
+        return { ...x, me, friend, real: true, score: Math.max(me, friend) + 0.5 * Math.abs(me - friend) + bonus };
+    }));
+    const metro = real.sort((x, y) => x.score - y.score);
+    const walk = km <= 5 ? (await walkMeetCandidates(a, b, likesA, likesB)).filter(x => Math.max(x.me, x.friend) <= 30) : [];
+    if (!walk.length) return metro.slice(0, 3);
+    return walk.map(x => ({ ...x, score: x.score - 4 })).concat(metro).sort((x, y) => x.score - y.score).slice(0, 3);
+}
+
+// рядом (до 3 км) — пешком, далеко (больше 5 км) — метро, между — и то и другое
+async function meetCandidatesRough(a, b, likesA, likesB) {
     const km = kmBetween(a, b);
     const metro = km > 3 ? metroMeetCandidates(a, b, likesA, likesB) : [];
     // пешком — только если идти не дольше 30 минут; при прочих равных пешком лучше (без метро и 75 ₽)
@@ -11780,7 +11823,7 @@ function renderMeetOptions() {
         b.className = "chip opt meet-opt" + (d.meet && d.meet.station === opt.station ? " selected" : "");
         b.innerHTML = '<span class="opt-title"></span><span class="meet-times"></span><span class="opt-desc"></span>';
         b.querySelector(".opt-title").textContent = opt.station;
-        b.querySelector(".meet-times").textContent = (opt.walk ? "пешком: " : "") + "тебе ≈ " + opt.me + " мин · " + fname + " ≈ " + opt.friend + " мин";
+        b.querySelector(".meet-times").textContent = (opt.walk ? "пешком: " : opt.real ? "на транспорте: " : "") + "тебе ≈ " + opt.me + " мин · " + fname + " ≈ " + opt.friend + " мин";
         b.querySelector(".opt-desc").textContent = opt.about;
         b.addEventListener("click", () => { d.meet = opt; renderMeetOptions(); updateSummaries(); });
         box.appendChild(b);
