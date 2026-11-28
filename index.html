@@ -8680,7 +8680,7 @@ async function submitBuilder() {
     };
     if (meet) Object.assign(params, {
         start: meet.station, startAt: meet.at, travel: "no", myStart: start,
-        meet: { station: meet.station, at: meet.at, me: meet.me, friend: meet.friend, walk: !!meet.walk, friendFrom: meet.friendFrom }
+        meet: { station: meet.station, at: meet.at, me: meet.me, friend: meet.friend, walk: !!meet.walk, friendFrom: meet.friendFrom, real: !!meet.real }
     });
 
     const companyShort = { solo: "соло", friends: "с друзьями", person: "вдвоём" }[d.company];
@@ -10384,7 +10384,7 @@ async function showRoute(walk) {
             (stops.length ? " — там " + stops.slice(0, 3).map(s => "«" + s.name + "»").join(", ") + (stops.length > 3 ? " и не только" : "") : "") + "." + routeNote;
     }
     if (p.meet) routeNote = " Встречаетесь посередине: «" + p.meet.station + "». Тебе " + (p.meet.walk ? "идти" : "ехать") + " ≈ " + p.meet.me + " мин, " +
-        (p.friendUsername ? "@" + p.friendUsername : "другу") + " ≈ " + p.meet.friend + " мин." + routeNote;
+        (p.friendUsername ? "@" + p.friendUsername : "другу") + " ≈ " + p.meet.friend + " мин" + (p.meet.real ? " (по Яндекс Картам)" : "") + "." + routeNote;
     tvRouteStart = start;
     renderStops(startLabel, stops, trip);
     renderInviteCard(walk, start, stops);
@@ -11095,56 +11095,70 @@ function drawShareCard(walk) {
     for (let i = 1; i < pts.length; i++) km += kmBetween(pts[i - 1], pts[i]);
     km *= 1.25;   // по улицам идти дальше, чем по прямой
 
-    // а рисуем не карту, а единый «змейкой» путь: старт и остановки по порядку
-    const box = { x: 170, y: 380 + lines.length * 92 + 90, w: W - 340, h: 0 };
-    box.h = 1480 - box.y;
-    const n = Math.max(2, stops.length + 1);
-    const P = [];
-    for (let i = 0; i < n; i++) {
-        const side = n === 2 ? (i ? 0.85 : 0.15) : (i % 2 ? 0.88 : 0.12);
-        const wave = n > 2 && i > 0 && i < n - 1 ? (i % 2 ? -0.06 : 0.06) : 0;   // чуть неровно, как живая прогулка
-        P.push([box.x + box.w * (side + wave), box.y + box.h * i / (n - 1)]);
-    }
-    const trace = () => {
-        ctx.beginPath();
-        ctx.moveTo(P[0][0], P[0][1]);
-        for (let i = 1; i < P.length; i++) {
-            const a = P[i - 1], b = P[i], dy = b[1] - a[1];
-            ctx.bezierCurveTo(a[0], a[1] + dy * 0.75, b[0], b[1] - dy * 0.75, b[0], b[1]);
+    // v34.2: линия — как на мини-карте в профиле: настоящая форма прогулки по координатам мест.
+    // Дом (старт) не рисуем, как и в профиле, — по сторис нельзя понять, где человек живёт.
+    const box = { x: 150, y: 380 + lines.length * 92 + 130, w: W - 300, h: 0 };
+    box.h = 1490 - box.y;
+    const mp = stops.filter(st => Array.isArray(st.at)).map(st => st.at);
+    // лёгкие «улицы» на фоне — как на мини-карте в профиле
+    const rnd = seededRandom(walk.id || walk.title || "w");
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(90, box.y - 70, W - 180, box.h + 140, 40); ctx.clip();
+    ctx.fillStyle = "rgba(255,255,255,.06)";
+    ctx.fillRect(90, box.y - 70, W - 180, box.h + 140);
+    ctx.strokeStyle = "rgba(255,255,255,.08)";
+    for (let i = 0; i < 6; i++) { const y = box.y - 70 + rnd() * (box.h + 140); ctx.lineWidth = 6 + rnd() * 10; ctx.beginPath(); ctx.moveTo(90, y); ctx.lineTo(W - 90, y + (rnd() - .5) * 400); ctx.stroke(); }
+    for (let i = 0; i < 5; i++) { const x = 90 + rnd() * (W - 180); ctx.lineWidth = 6 + rnd() * 10; ctx.beginPath(); ctx.moveTo(x, box.y - 70); ctx.lineTo(x + (rnd() - .5) * 260, box.y + box.h + 70); ctx.stroke(); }
+    ctx.restore();
+    if (mp.length) {
+        const lats = mp.map(q => q[0]), lons = mp.map(q => q[1]);
+        const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLon = Math.min(...lons), maxLon = Math.max(...lons);
+        const k = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
+        const spanX = Math.max((maxLon - minLon) * k, 0.002), spanY = Math.max(maxLat - minLat, 0.002);
+        const scale = Math.min(box.w / spanX, box.h / spanY);
+        const cx = (minLon + maxLon) / 2, cy = (minLat + maxLat) / 2;
+        const xy = mp.map(q => [box.x + box.w / 2 + (q[1] - cx) * k * scale, box.y + box.h / 2 - (q[0] - cy) * scale]);
+        const trace = () => {
+            ctx.beginPath();
+            ctx.moveTo(xy[0][0], xy[0][1]);
+            for (let i = 1; i < xy.length; i++) {
+                const a = xy[i - 1], b = xy[i], m = (a[0] + b[0]) / 2;
+                ctx.bezierCurveTo(m, a[1], m, b[1], b[0], b[1]);
+            }
+        };
+        ctx.lineCap = ctx.lineJoin = "round";
+        if (xy.length > 1) {
+            ctx.strokeStyle = "rgba(255,255,255,.18)";
+            ctx.lineWidth = 46;
+            trace(); ctx.stroke();
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 14;
+            trace(); ctx.stroke();
         }
-    };
-    ctx.lineCap = ctx.lineJoin = "round";
-    ctx.strokeStyle = "rgba(255,255,255,.14)";
-    ctx.lineWidth = 46;
-    trace(); ctx.stroke();
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 12;
-    ctx.setLineDash([2, 26]);       // пунктир из точек — как следы шагов
-    trace(); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // старт — кольцо, остановки — кружки с номерами, последняя — побольше
-    ctx.fillStyle = "#fff";
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 8;
-    ctx.beginPath(); ctx.arc(P[0][0], P[0][1], 22, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(P[0][0], P[0][1], 8, 0, Math.PI * 2); ctx.fill();
-    ctx.font = "700 30px " + FONT;
-    ctx.textBaseline = "middle";
-    ctx.textAlign = P[0][0] < W / 2 ? "left" : "right";
-    ctx.fillStyle = "rgba(255,255,255,.8)";
-    ctx.fillText("старт", P[0][0] + (P[0][0] < W / 2 ? 40 : -40), P[0][1]);
-    ctx.textAlign = "center";
-    ctx.font = "800 34px " + FONT;
-    P.slice(1).forEach(([x, y], i) => {
-        const r = i === P.length - 2 ? 42 : 34;
+        // места — кружки с номерами, последнее — метка
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "800 32px " + FONT;
+        xy.slice(0, -1).forEach(([x, y], i) => {
+            ctx.fillStyle = "#5a2cc4";
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 8;
+            ctx.beginPath(); ctx.arc(x, y, 30, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = "#fff";
+            ctx.fillText(String(i + 1), x, y + 2);
+        });
+        const [ex, ey] = xy[xy.length - 1];
+        ctx.save();
+        ctx.translate(ex - 34, ey - 88);
+        ctx.scale(3.4, 3.4);
         ctx.fillStyle = "#fff";
-        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fill(new Path2D("M10 0C4.5 0 0 4.5 0 10c0 7.3 10 16 10 16s10-8.7 10-16C20 4.5 15.5 0 10 0z"));
         ctx.fillStyle = "#5a2cc4";
-        ctx.fillText(stops.length ? String(i + 1) : "★", x, y + 2);
-    });
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
+        ctx.beginPath(); ctx.arc(10, 10, 4.5, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
+    }
 
     // цифры: километры, время, траты
     const minutes = (plan.walkMin || 0) + (plan.dwell || 0) || plan.minutes || 0;
@@ -11587,9 +11601,70 @@ async function resolvePoint(text, fieldId) {
 }
 
 // сколько примерно ехать: рядом — пешком, дальше — метро (как для поездок на сайте)
+// станции МЦД/МЦК — подгружаются из OpenStreetMap в браузере и хранятся неделю
+let RAIL_EXTRA = [];
+let railExtraPromise = null;
+function loadRailExtra() {
+    if (railExtraPromise) return railExtraPromise;
+    railExtraPromise = (async () => {
+        try {
+            const c = JSON.parse(localStorage.getItem("tv_rail1") || "null");
+            if (c && Date.now() - c.t < 7 * 864e5 && c.list.length) return (RAIL_EXTRA = c.list);
+        } catch (e) { /* без кэша */ }
+        const q = '[out:json][timeout:25];relation["route"~"^(train|light_rail)$"]["network"~"МЦД|МЦК|Московские центральные"](55.0,36.6,56.3,38.6);' +
+            'node(r)["name"];out;';
+        const one = async url => {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 20000);
+            try {
+                const res = await fetch(url, { method: "POST", body: "data=" + encodeURIComponent(q),
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ctrl.signal });
+                if (!res.ok) throw new Error("overpass " + res.status);
+                const json = await res.json();
+                if (!json || !Array.isArray(json.elements) || !json.elements.length) throw new Error("empty");
+                return json.elements;
+            } finally { clearTimeout(timer); }
+        };
+        let els;
+        try { els = await Promise.any(OVERPASS_URLS.map(one)); } catch (e) { railExtraPromise = null; return RAIL_EXTRA; }
+        const list = [];
+        els.forEach(el => {
+            const t = el.tags || {};
+            const okKind = /^(station|halt|stop)$/.test(t.railway || "") || /^(station|stop_position)$/.test(t.public_transport || "");
+            if (!okKind || el.lat == null) return;
+            const name = String(t.name).replace(/^(платформа|станция|о\.п\.|ост\.? ?п(унк)?т?)\s+/i, "").replace(/\s*\(.*\)$/, "").trim();
+            if (!name || /^\d/.test(name)) return;
+            const at = [el.lat, el.lon];
+            if (list.some(x => x.name === name && kmBetween(x.at, at) < 1)) return;
+            const net = /МЦК/.test(t.network || "") ? "МЦК" : "МЦД";
+            list.push({ name, at, net });
+        });
+        RAIL_EXTRA = list;
+        try { localStorage.setItem("tv_rail1", JSON.stringify({ t: Date.now(), list })); } catch (e) { /* ок */ }
+        return list;
+    })();
+    return railExtraPromise;
+}
+setTimeout(() => loadRailExtra(), 4000);   // заранее, чтобы к выбору точки встречи станции уже были
+
+// ближайшая станция: метро из нашего списка + МЦД/МЦК, если уже подгрузились
+function nearestMetroPt(pt) {
+    let best = { d: Infinity, at: pt };
+    METRO.forEach(m => { const at = Array.isArray(m) ? [m[1], m[2]] : m.at, d = kmBetween(pt, at); if (d < best.d) best = { d, at }; });
+    RAIL_EXTRA.forEach(m => { const d = kmBetween(pt, m.at); if (d < best.d) best = { d, at: m.at }; });
+    return best;
+}
+
 function travelMin(from, to) {
     const km = kmBetween(from, to);
-    return km < 1.5 ? Math.max(3, Math.round(km * 1.3 / 4.5 * 60)) : tripMinutes(from, to);
+    if (km < 1.5) return Math.max(3, Math.round(km * 1.3 / 4.5 * 60));
+    const A = nearestMetroPt(from), B = nearestMetroPt(to);
+    // до метро: близко — пешком, далеко (как из Сколково) — автобус с ожиданием
+    // совсем далеко (Зеленоград, Подмосковье) — обычно электричка: быстрее автобуса
+    const reach = d => d < 1.2 ? d * 1.3 / 4.5 * 60 : d < 7 ? 8 + d * 1.4 / 20 * 60 : 15 + d * 1.4 / 40 * 60;
+    const mk = kmBetween(A.at, B.at);
+    const metro = mk < 0.3 ? 0 : 5 + mk * 1.6 + (mk > 5 ? 5 : 0);   // вход, ожидание, пересадка
+    return Math.round(reach(A.d) + metro + reach(B.d));
 }
 
 // интересы двоих по отдельности (а не одной кучей)
@@ -11670,7 +11745,7 @@ function whoLabel(who) {
 const walkMinutes = (a, b) => Math.max(3, Math.round(kmBetween(a, b) * 1.3 / 4.5 * 60));
 
 // станции метро, куда обоим ехать примерно одинаково
-function metroMeetCandidates(a, b, likesA, likesB) {
+function metroMeetCandidatesOld(a, b, likesA, likesB) {
     const list = TRIP_SPOTS.map(spot => {
         const ta = travelMin(a, spot.at), tb = travelMin(b, spot.at);
         const both = spot.tags.filter(t => likesA.has(t) && likesB.has(t)).length;
@@ -11723,31 +11798,71 @@ async function transitMin(ymaps, from, to) {
                 model.events.add("requestsuccess", res);
                 model.events.add("requestfail", () => rej(new Error("requestfail")));
             }),
-            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 8000))
+            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 12000))
         ]);
         const r = (model.getRoutes() || [])[0];
         const v = r && (r.properties.get("duration") || {}).value;
         return v ? Math.max(1, Math.round(v / 60)) : null;
     } catch (e) {
+        console.warn("Яндекс: время на транспорте не пришло", e && e.message);
         return null;
     }
+}
+
+// все места, где можно встретиться: интересные места в центре + все станции метро + МЦД/МЦК
+function allMeetSpots() {
+    const out = TRIP_SPOTS.map(s => ({ label: "м. " + s.station, at: s.at, tags: s.tags, about: s.about, plain: false }));
+    const add = (label, at, about) => { if (!out.some(x => kmBetween(x.at, at) < 0.4)) out.push({ label, at, tags: [], about, plain: true }); };
+    METRO.forEach(m => add("м. " + m.name, m.at, "станция метро"));
+    RAIL_EXTRA.forEach(m => add(m.name + " (" + m.net + ")", m.at, m.net === "МЦК" ? "станция МЦК" : "станция МЦД"));
+    return out;
+}
+
+// станции, куда обоим ехать примерно одинаково (v34.2: из всех станций, а не только из центра)
+function metroMeetCandidates(a, b, likesA, likesB) {
+    const list = allMeetSpots().map(spot => {
+        const ta = travelMin(a, spot.at), tb = travelMin(b, spot.at);
+        const both = spot.tags.filter(t => likesA.has(t) && likesB.has(t)).length;
+        const one = spot.tags.filter(t => likesA.has(t) !== likesB.has(t)).length;
+        // интересные места чуть ценнее обычной станции — там есть где гулять
+        const score = Math.max(ta, tb) + 0.5 * Math.abs(ta - tb) - 2 * Math.min(both, 2) - 0.6 * Math.min(one, 2) + (spot.plain ? 6 : 0);
+        return { station: spot.label, at: spot.at, about: spot.about, me: ta, friend: tb, score, walk: false };
+    });
+    const fair = list.filter(x => Math.abs(x.me - x.friend) <= 10);
+    const sorted = (fair.length >= 3 ? fair : list).sort((x, y) => x.score - y.score);
+    // разные варианты: не предлагаем три соседние станции
+    const out = [];
+    for (const x of sorted) {
+        if (out.every(y => kmBetween(x.at, y.at) > 1.5)) out.push(x);
+        if (out.length >= 8) break;
+    }
+    return out;
 }
 
 async function meetCandidates(a, b, likesA, likesB) {
     const km = kmBetween(a, b);
     if (km <= 3) return meetCandidatesRough(a, b, likesA, likesB);          // рядом — пешком, как раньше
+    await Promise.race([loadRailExtra(), new Promise(r => setTimeout(r, 6000))]);   // станции МЦД, если ещё не пришли
     let ymaps = null;
     try { ymaps = await loadYmaps(); } catch (e) { /* без Яндекса — по прямой */ }
     if (!ymaps || !ymaps.multiRouter) return meetCandidatesRough(a, b, likesA, likesB);
     // берём 6 лучших станций по прикидке и уточняем время у Яндекса для обоих
     const rough = metroMeetCandidates(a, b, likesA, likesB).slice(0, 6);
-    const real = await Promise.all(rough.map(async x => {
-        const [ta, tb] = await Promise.all([transitMin(ymaps, a, x.at), transitMin(ymaps, b, x.at)]);
+    // по 2 запроса за раз: если отправить все 12 сразу, Яндекс на телефоне часто не успевает ответить
+    const jobs = [];
+    rough.forEach(x => { jobs.push([a, x.at]); jobs.push([b, x.at]); });
+    const res = new Array(jobs.length).fill(null);
+    let next = 0;
+    await Promise.all([0, 1].map(async () => {
+        while (next < jobs.length) { const k = next++; res[k] = await transitMin(ymaps, jobs[k][0], jobs[k][1]); }
+    }));
+    const real = rough.map((x, n) => {
+        const ta = res[2 * n], tb = res[2 * n + 1];
         if (ta == null && tb == null) return x;
         const me = ta != null ? ta : x.me, friend = tb != null ? tb : x.friend;
         const bonus = x.score - (Math.max(x.me, x.friend) + 0.5 * Math.abs(x.me - x.friend));   // интересы — как было
         return { ...x, me, friend, real: true, score: Math.max(me, friend) + 0.5 * Math.abs(me - friend) + bonus };
-    }));
+    });
     const metro = real.sort((x, y) => x.score - y.score);
     const walk = km <= 5 ? (await walkMeetCandidates(a, b, likesA, likesB)).filter(x => Math.max(x.me, x.friend) <= 30) : [];
     if (!walk.length) return metro.slice(0, 3);
